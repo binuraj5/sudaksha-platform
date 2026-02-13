@@ -5,27 +5,27 @@ import {
     Search,
     Filter,
     Clock,
-    CheckCircle2,
-    XCircle,
     ChevronRight,
     RefreshCcw,
     Inbox,
     Globe,
-    Briefcase
+    Briefcase,
+    UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ApprovalReviewDialog } from "@/components/admin/ApprovalReviewDialog";
 import { GlobalPublishReviewDialog } from "@/components/assessments/GlobalPublishReviewDialog";
+import { RoleAssignmentRequestReviewDialog } from "@/components/admin/RoleAssignmentRequestReviewDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 export default function ApprovalsDashboard() {
-    const [queueType, setQueueType] = useState<"roles" | "global-publish">("roles");
+    const [queueType, setQueueType] = useState<"roles" | "role-assignment" | "global-publish">("roles");
     const [requests, setRequests] = useState<any[]>([]);
+    const [roleAssignmentRequests, setRoleAssignmentRequests] = useState<any[]>([]);
     const [globalRequests, setGlobalRequests] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
@@ -46,6 +46,25 @@ export default function ApprovalsDashboard() {
         } catch (error) {
             toast.error("Failed to load approval requests.");
             setRequests([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchRoleAssignmentRequests = async (status: string) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`/api/admin/role-assignment-requests?status=${status}`);
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                toast.error((data as { error?: string }).error ?? "Failed to load requests.");
+                setRoleAssignmentRequests([]);
+                return;
+            }
+            setRoleAssignmentRequests(Array.isArray(data) ? data : []);
+        } catch (error) {
+            toast.error("Failed to load requests.");
+            setRoleAssignmentRequests([]);
         } finally {
             setIsLoading(false);
         }
@@ -72,6 +91,7 @@ export default function ApprovalsDashboard() {
 
     useEffect(() => {
         if (queueType === "roles") fetchRequests(activeTab);
+        else if (queueType === "role-assignment") fetchRoleAssignmentRequests(activeTab);
         else fetchGlobalRequests(activeTab);
     }, [activeTab, queueType]);
 
@@ -128,11 +148,11 @@ export default function ApprovalsDashboard() {
                 <Button
                     variant="outline"
                     className="rounded-xl font-bold italic h-12 border-slate-100 bg-white"
-                    onClick={() =>
-                        queueType === "roles"
-                            ? fetchRequests(activeTab)
-                            : fetchGlobalRequests(activeTab)
-                    }
+                    onClick={() => {
+                        if (queueType === "roles") fetchRequests(activeTab);
+                        else if (queueType === "role-assignment") fetchRoleAssignmentRequests(activeTab);
+                        else fetchGlobalRequests(activeTab);
+                    }}
                 >
                     <RefreshCcw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} /> Refresh Queue
                 </Button>
@@ -150,6 +170,17 @@ export default function ApprovalsDashboard() {
                     }}
                 >
                     <Briefcase className="w-4 h-4 mr-2" /> Role & Competency
+                </Button>
+                <Button
+                    variant={queueType === "role-assignment" ? "default" : "ghost"}
+                    className="rounded-lg font-bold italic"
+                    onClick={() => {
+                        setQueueType("role-assignment");
+                        setSelectedRequest(null);
+                        setIsReviewOpen(false);
+                    }}
+                >
+                    <UserPlus className="w-4 h-4 mr-2" /> Role Assignment
                 </Button>
                 <Button
                     variant={queueType === "global-publish" ? "default" : "ghost"}
@@ -181,7 +212,91 @@ export default function ApprovalsDashboard() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-4">
-                        {queueType === "global-publish" ? (
+                        {queueType === "role-assignment" ? (
+                            roleAssignmentRequests.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-100 space-y-4">
+                                    <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center text-slate-300 shadow-sm">
+                                        <UserPlus className="w-8 h-8" />
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-slate-500 font-black italic text-lg tracking-tight">Your queue is empty!</p>
+                                        <p className="text-slate-400 font-medium italic text-sm">No {activeTab.toLowerCase()} requests from profile.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                roleAssignmentRequests.map((req) => (
+                                    <div
+                                        key={req.id}
+                                        role="button"
+                                        tabIndex={0}
+                                        className="border-none shadow-sm hover:shadow-xl hover:ring-2 hover:ring-indigo-100 transition-all rounded-[2rem] cursor-pointer group bg-white ring-1 ring-slate-100"
+                                        onClick={() => {
+                                            if (req.status === "PENDING") {
+                                                setSelectedRequest(req);
+                                                setIsReviewOpen(true);
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if ((e.key === "Enter" || e.key === " ") && req.status === "PENDING") {
+                                                setSelectedRequest(req);
+                                                setIsReviewOpen(true);
+                                            }
+                                        }}
+                                    >
+                                        <Card className="h-full">
+                                            <CardContent className="p-8 flex items-center justify-between">
+                                                <div className="flex gap-6 items-center">
+                                                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-sm transition-transform group-hover:scale-110 duration-300 bg-indigo-50 text-indigo-600">
+                                                        <Briefcase className="w-8 h-8" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-3">
+                                                            <h3 className="text-xl font-black italic tracking-tighter text-slate-900 lowercase">
+                                                                {req.requestedRoleName}{" "}
+                                                                <span className="text-slate-300 font-serif not-italic">–</span>{" "}
+                                                                {req.member?.name}
+                                                            </h3>
+                                                            <Badge className="bg-slate-50 text-slate-400 border-none font-black italic lowercase tracking-tight">
+                                                                #{req.id.slice(-4)}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 mt-1">
+                                                            <div className="flex items-center gap-1.5 text-slate-400 font-bold italic text-sm">
+                                                                <Clock className="w-3.5 h-3.5" /> {format(new Date(req.createdAt), "MMM d, yyyy")}
+                                                            </div>
+                                                            <span className="text-slate-200 text-xs">•</span>
+                                                            <div className="flex items-center gap-1.5 text-indigo-400 font-bold italic text-sm">
+                                                                {req.tenant?.name} • {req.totalExperienceYears} yrs exp
+                                                            </div>
+                                                            <span className="text-slate-200 text-xs">•</span>
+                                                            <span className="text-slate-500 text-sm italic">
+                                                                {req.context === "current" ? "Current role" : "Aspirational role"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    {req.status === "PENDING" ? (
+                                                        <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-black italic text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            Review <ChevronRight className="w-4 h-4" />
+                                                        </div>
+                                                    ) : (
+                                                        <Badge
+                                                            className={cn(
+                                                                "rounded-xl font-black italic px-4 py-1.5",
+                                                                req.status === "APPROVED" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
+                                                            )}
+                                                        >
+                                                            {req.status}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                ))
+                            )
+                        ) : queueType === "global-publish" ? (
                             globalRequests.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-100 space-y-4">
                                     <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center text-slate-300 shadow-sm">
@@ -338,6 +453,14 @@ export default function ApprovalsDashboard() {
                     open={isReviewOpen}
                     onOpenChange={setIsReviewOpen}
                     onDecision={handleDecision}
+                />
+            ) : queueType === "role-assignment" ? (
+                <RoleAssignmentRequestReviewDialog
+                    request={selectedRequest}
+                    open={isReviewOpen}
+                    onOpenChange={setIsReviewOpen}
+                    onApproved={() => fetchRoleAssignmentRequests(activeTab)}
+                    onRejected={() => fetchRoleAssignmentRequests(activeTab)}
                 />
             ) : (
                 <GlobalPublishReviewDialog
