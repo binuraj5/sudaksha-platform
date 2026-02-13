@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
         const requests = await prisma.roleAssignmentRequest.findMany({
             where: { status },
             include: {
+                assignedRole: { select: { id: true, name: true } },
                 member: {
                     select: {
                         id: true,

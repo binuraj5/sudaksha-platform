@@ -10,7 +10,9 @@ export async function POST(
 ) {
     const session = await getApiSession();
 
-    if (!session?.user || session.user.role !== "SUPER_ADMIN") {
+    const u = session?.user as { role?: string; userType?: string } | undefined;
+    const isSuperAdmin = u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
+    if (!session?.user || !isSuperAdmin) {
         return new NextResponse("Unauthorized", { status: 401 });
     }
 

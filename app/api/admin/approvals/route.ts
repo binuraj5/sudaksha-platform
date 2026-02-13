@@ -4,8 +4,10 @@ import { getApiSession } from "@/lib/get-session";
 
 export async function GET(req: NextRequest) {
     const session = await getApiSession();
+    const u = session?.user as { role?: string; userType?: string } | undefined;
+    const isSuperAdmin = u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
 
-    if (!session?.user || (session.user as { role?: string }).role !== "SUPER_ADMIN") {
+    if (!session?.user || !isSuperAdmin) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

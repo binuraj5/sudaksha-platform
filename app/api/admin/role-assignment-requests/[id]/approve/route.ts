@@ -40,7 +40,7 @@ export async function POST(
             );
         }
 
-        let assignedRoleId = roleId;
+        let assignedRoleId = roleId ?? request.assignedRoleId;
 
         if (!assignedRoleId) {
             // Create new role from request
