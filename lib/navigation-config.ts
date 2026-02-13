@@ -148,7 +148,7 @@ const MY_PAGE_NAV_ITEMS: NavigationItem[] = [
             { id: 'take-assessment', icon: FileText, label: 'Take Assessment', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/assessments'), permission: '*', roles: ['*'] },
             { id: 'assessments-role-wise', icon: FileText, label: 'My Assessments - Role-Wise', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/assessments'), permission: '*', roles: ['*'] },
             { id: 'assessments-competency-wise', icon: FileText, label: 'My Assessments - Competency-Wise', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessment-scores', icon: BarChart, label: 'Assessment Scores', path: (base) => basePathOrPortal(base, '/assessments/results', '/assessments'), permission: '*', roles: ['*'] },
+            { id: 'assessment-scores', icon: BarChart, label: 'Assessment Scores', path: (base) => basePathOrPortal(base, '/assessments/results', '/results'), permission: '*', roles: ['*'] },
         ]
     },
     { id: 'take-survey', icon: ClipboardList, label: 'Take Survey', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/surveys'), permission: '*', roles: ALL_PROFILE_ROLES },

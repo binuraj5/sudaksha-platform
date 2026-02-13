@@ -34,7 +34,7 @@ export default async function ClientProfilePage({
                 <p className="text-gray-500">Complete your profile to unlock personalized career recommendations.</p>
             </header>
 
-            <ProfileWizard />
+            <ProfileWizard tenantId={clientId} />
         </div>
     );
 }

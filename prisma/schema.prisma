@@ -1149,8 +1149,9 @@ model Tenant {
   usageRecords      UsageRecord[]
   featureActivations FeatureActivation[]
   activities        Activity[]
-  approvalRequests  ApprovalRequest[]
-  competencies      Competency[]
+  approvalRequests       ApprovalRequest[]
+  roleAssignmentRequests RoleAssignmentRequest[]
+  competencies           Competency[]
   members           Member[]
   orgUnits          OrganizationUnit[]
   roles             Role[]
@@ -1371,6 +1372,7 @@ model Member {
   currentRole              Role?   @relation("MemberCurrentRole", fields: [currentRoleId], references: [id])
   aspirationalRole         Role?   @relation("MemberAspirationalRole", fields: [aspirationalRoleId], references: [id])
   metadata                 Json?   // For B2C: { userMode, freeAssessmentsUsed, subscriptionTier }
+  roleAssignmentRequests   RoleAssignmentRequest[]
 
   @@index([tenantId])
   @@index([type])
@@ -1728,8 +1730,9 @@ model Role {
   tenant             Tenant?           @relation(fields: [tenantId], references: [id])
   competencies       RoleCompetency[]
   users              User[]            @relation("UserRole")
-  memberCurrent      Member[]          @relation("MemberCurrentRole")
-  memberAspirational Member[]          @relation("MemberAspirationalRole")
+  memberCurrent               Member[]                 @relation("MemberCurrentRole")
+  memberAspirational          Member[]                 @relation("MemberAspirationalRole")
+  roleAssignmentRequestsFromProfile RoleAssignmentRequest[] @relation("RoleAssignmentRequestRole")
 }
 
 model Competency {
@@ -1889,6 +1892,32 @@ model ApprovalRequest {
   @@index([type])
   @@index([requesterId])
   @@index([reviewerId])
+}
+
+// Simpler role assignment request from profile (inline "Request role" flow)
+model RoleAssignmentRequest {
+  id                    String   @id @default(cuid())
+  memberId              String
+  tenantId              String
+  requestedRoleName      String
+  description           String?
+  totalExperienceYears  Int
+  context               String   // 'current' | 'aspirational'
+  status                String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  assignedRoleId        String?  // Set when admin creates role and assigns
+  processedBy            String?
+  processedAt           DateTime?
+  rejectionReason       String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  member                Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedRole          Role?    @relation("RoleAssignmentRequestRole", fields: [assignedRoleId], references: [id])
+
+  @@index([memberId])
+  @@index([tenantId])
+  @@index([status])
 }
 
 // Enhancement #1: Approval audit trail (Phase 3)

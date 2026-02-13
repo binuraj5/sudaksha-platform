@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { Loader2, ArrowRight, ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
+import { InlineRoleRequestForm } from "@/components/Career/InlineRoleRequestForm";
 
 const SECTIONS = [
     "Employee Info",
+    "Current Role",
     "Current Responsibilities",
     "Tech Competencies",
     "Behavioral Competencies",
@@ -23,7 +25,7 @@ const SECTIONS = [
     "Self-Assessment"
 ];
 
-export function ProfileWizard() {
+export function ProfileWizard({ tenantSlug, tenantId }: { tenantSlug?: string; tenantId?: string }) {
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -36,19 +38,21 @@ export function ProfileWizard() {
         // Section A
         phone: "",
         bio: "",
-        // Section B
+        // Section B - Current Role
+        currentRoleId: "",
+        // Section C
         responsibilities: "",
-        // Section C & D (Competencies)
+        // Section D & E (Competencies)
         techCompetencies: [],
         behavCompetencies: [],
-        // Section E
+        // Section F
         aspirationalRoleId: "",
-        // Section F & G
+        // Section G & H
         aspirationalTech: [],
         aspirationalBehav: [],
-        // Section H
-        learningPreferences: "",
         // Section I
+        learningPreferences: "",
+        // Section J
         selfAssessment: ""
     });
 
@@ -81,6 +85,7 @@ export function ProfileWizard() {
                 setFormData({
                     phone: data.phone || "",
                     bio: data.bio || "",
+                    currentRoleId: data.currentRoleId || "",
                     responsibilities: savedForm.responsibilities || "",
                     techCompetencies: savedForm.techCompetencies || [],
                     behavCompetencies: savedForm.behavCompetencies || [],
@@ -104,6 +109,7 @@ export function ProfileWizard() {
             const payload = {
                 phone: formData.phone,
                 bio: formData.bio,
+                currentRoleId: formData.currentRoleId || null,
                 aspirationalRoleId: formData.aspirationalRoleId || null,
                 careerFormData: {
                     responsibilities: formData.responsibilities,
@@ -279,8 +285,37 @@ export function ProfileWizard() {
                         </div>
                     )}
 
-                    {/* SECTION B: RESPONSIBILITIES */}
+                    {/* SECTION B: CURRENT ROLE */}
                     {step === 1 && (
+                        <div className="space-y-4">
+                            <Label>Current Role</Label>
+                            <p className="text-sm text-gray-500">
+                                Your role is assigned by your Team Lead or Department Head. If you don&apos;t have a role yet, request one below.
+                            </p>
+                            <Select
+                                value={formData.currentRoleId ?? ""}
+                                onValueChange={(v) => setFormData({ ...formData, currentRoleId: v })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select your current role..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {roles.map((role) => (
+                                        <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InlineRoleRequestForm
+                                context="current"
+                                tenantSlug={tenantSlug}
+                                tenantId={tenantId}
+                                compact
+                            />
+                        </div>
+                    )}
+
+                    {/* SECTION C: RESPONSIBILITIES */}
+                    {step === 2 && (
                         <div className="space-y-2">
                             <Label>Current Responsibilities</Label>
                             <Textarea
@@ -292,14 +327,14 @@ export function ProfileWizard() {
                         </div>
                     )}
 
-                    {/* SECTION C: TECH COMPETENCIES */}
-                    {step === 2 && renderCompetencySelector('techCompetencies', 'TECHNICAL', 'Select your Technical Competencies')}
+                    {/* SECTION D: TECH COMPETENCIES */}
+                    {step === 3 && renderCompetencySelector('techCompetencies', 'TECHNICAL', 'Select your Technical Competencies')}
 
-                    {/* SECTION D: BEHAVIORAL COMPETENCIES */}
-                    {step === 3 && renderCompetencySelector('behavCompetencies', 'BEHAVIORAL', 'Select your Behavioral Competencies')}
+                    {/* SECTION E: BEHAVIORAL COMPETENCIES */}
+                    {step === 4 && renderCompetencySelector('behavCompetencies', 'BEHAVIORAL', 'Select your Behavioral Competencies')}
 
-                    {/* SECTION E: ASPIRATIONAL ROLE */}
-                    {step === 4 && (
+                    {/* SECTION F: ASPIRATIONAL ROLE */}
+                    {step === 5 && (
                         <div className="space-y-4">
                             <Label>Select Aspirational Role</Label>
                             <Select value={formData.aspirationalRoleId ?? ""} onValueChange={handleRoleSelect}>
@@ -313,17 +348,23 @@ export function ProfileWizard() {
                                 </SelectContent>
                             </Select>
                             <p className="text-sm text-gray-500">Choosing a role will suggest relevant competencies for your development plan.</p>
+                            <InlineRoleRequestForm
+                                context="aspirational"
+                                tenantSlug={tenantSlug}
+                                tenantId={tenantId}
+                                compact
+                            />
                         </div>
                     )}
 
-                    {/* SECTION F: ASPIRATIONAL TECH */}
-                    {step === 5 && renderCompetencySelector('aspirationalTech', 'TECHNICAL', 'Technical Competencies to Develop')}
+                    {/* SECTION G: ASPIRATIONAL TECH */}
+                    {step === 6 && renderCompetencySelector('aspirationalTech', 'TECHNICAL', 'Technical Competencies to Develop')}
 
-                    {/* SECTION G: ASPIRATIONAL BEHAV */}
-                    {step === 6 && renderCompetencySelector('aspirationalBehav', 'BEHAVIORAL', 'Behavioral Competencies to Develop')}
+                    {/* SECTION H: ASPIRATIONAL BEHAV */}
+                    {step === 7 && renderCompetencySelector('aspirationalBehav', 'BEHAVIORAL', 'Behavioral Competencies to Develop')}
 
-                    {/* SECTION H: LEARNING PREFS */}
-                    {step === 7 && (
+                    {/* SECTION I: LEARNING PREFS */}
+                    {step === 8 && (
                         <div className="space-y-2">
                             <Label>Learning Preferences</Label>
                             <Textarea
@@ -335,8 +376,8 @@ export function ProfileWizard() {
                         </div>
                     )}
 
-                    {/* SECTION I: SELF ASSESSMENT */}
-                    {step === 8 && (
+                    {/* SECTION J: SELF ASSESSMENT */}
+                    {step === 9 && (
                         <div className="space-y-2">
                             <Label>Self Assessment / Comments</Label>
                             <Textarea

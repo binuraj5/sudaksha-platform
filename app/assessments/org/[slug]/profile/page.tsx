@@ -35,7 +35,7 @@ export default async function OrgProfilePage({
                 <p className="text-gray-500">Complete your profile to unlock personalized career recommendations.</p>
             </header>
 
-            <ProfileWizard />
+            <ProfileWizard tenantSlug={slug} />
         </div>
     );
 }
