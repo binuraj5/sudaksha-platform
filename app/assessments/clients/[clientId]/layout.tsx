@@ -2,7 +2,6 @@ import { getApiSession } from "@/lib/get-session";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/Navigation/Sidebar";
 import { MobileNav } from "@/components/Navigation/MobileNav";
-import { SessionProviderWrapper } from "@/components/SessionProviderWrapper";
 
 export default async function ClientLayout({
     children,
@@ -39,11 +38,10 @@ export default async function ClientLayout({
     }
 
     return (
-        <SessionProviderWrapper session={session}>
-            <div className="min-h-screen bg-gray-50 flex flex-col">
-                <MobileNav />
-                <div className="flex-1 flex overflow-hidden">
-                    <Sidebar />
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            <MobileNav />
+            <div className="flex-1 flex overflow-hidden">
+                <Sidebar />
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                     <main className="flex-1 overflow-y-auto focus:outline-none">
@@ -52,6 +50,5 @@ export default async function ClientLayout({
                 </div>
             </div>
         </div>
-        </SessionProviderWrapper>
     );
 }

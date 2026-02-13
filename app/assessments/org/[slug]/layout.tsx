@@ -2,7 +2,6 @@ import React from 'react';
 import PortalHeader from '@/components/layout/PortalHeader';
 import { Sidebar } from '@/components/Navigation/Sidebar';
 import { MobileNav } from '@/components/Navigation/MobileNav';
-import { SessionProviderWrapper } from '@/components/SessionProviderWrapper';
 import { prisma } from '@/lib/prisma';
 import { getApiSession } from "@/lib/get-session";
 import { redirect, notFound } from "next/navigation";
@@ -51,19 +50,17 @@ export default async function TenantLayout({
     };
 
     return (
-        <SessionProviderWrapper session={session}>
-            <div className="min-h-screen bg-gray-50 flex flex-col">
-                <PortalHeader branding={branding} session={session} />
-                <MobileNav />
-                <div className="flex-1 flex overflow-hidden">
-                    <Sidebar />
-                    <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                        <main className="flex-1 overflow-y-auto relative p-6">
-                            {children}
-                        </main>
-                    </div>
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            <PortalHeader branding={branding} session={session} />
+            <MobileNav />
+            <div className="flex-1 flex overflow-hidden">
+                <Sidebar />
+                <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                    <main className="flex-1 overflow-y-auto relative p-6">
+                        {children}
+                    </main>
                 </div>
             </div>
-        </SessionProviderWrapper>
+        </div>
     );
 }
