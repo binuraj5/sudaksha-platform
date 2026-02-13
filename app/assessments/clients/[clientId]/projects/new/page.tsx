@@ -13,7 +13,10 @@ export default async function NewProjectPage({ params }: { params: Promise<{ cli
     const { clientId } = await params;
     if (!session?.user) redirect("/assessments/login");
 
-    const tenant = await prisma.tenant.findUnique({ where: { id: clientId }, select: { type: true } });
+    const tenant = await prisma.tenant.findUnique({ where: { id: clientId }, select: { type: true, slug: true } });
+    if (tenant?.type === "INSTITUTION") {
+        redirect(tenant.slug ? `/assessments/org/${tenant.slug}/courses` : `/assessments/clients/${clientId}/departments`);
+    }
     const tenantType = (tenant?.type as "CORPORATE" | "INSTITUTION") || "CORPORATE";
     const labels = getLabelsForTenant(tenantType);
 

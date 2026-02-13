@@ -19,6 +19,7 @@ import {
     getTenantContextFromSession,
     withTenantContext,
 } from '@/lib/tenant-context';
+import { validateStudentOrgUnit } from '@/lib/services/class-service';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -149,6 +150,14 @@ export async function POST(req: NextRequest) {
 
         // Determine which tenant this member belongs to
         const memberTenantId = isSuperAdmin && targetTenantId ? targetTenantId : tenantId;
+
+        // Institution students: orgUnitId must be a CLASS (FSD validation)
+        if (type === 'STUDENT') {
+            const validation = await validateStudentOrgUnit(memberTenantId, orgUnitId ?? null);
+            if (!validation.ok) {
+                return ErrorResponses.badRequest(validation.error ?? 'Invalid org unit for student');
+            }
+        }
 
         // Check if email already exists
         const existing = await prisma.member.findFirst({ where: { email } });

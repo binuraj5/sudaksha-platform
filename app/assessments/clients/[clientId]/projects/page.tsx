@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import { CreateProjectDialog } from "@/components/Projects/CreateProjectDialog";
 import { ProjectCard } from "@/components/Projects/ProjectCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +17,14 @@ export default async function ProjectsPage({
 }) {
     const session = await getServerSession(authOptions);
     const { clientId } = await params;
+
+    const tenant = await prisma.tenant.findUnique({
+        where: { id: clientId },
+        select: { type: true, slug: true },
+    });
+    if (tenant?.type === "INSTITUTION") {
+        redirect(tenant.slug ? `/assessments/org/${tenant.slug}/courses` : `/assessments/clients/${clientId}/departments`);
+    }
 
     // Fetch Projects using same logic as API
     const projects = await prisma.activity.findMany({
@@ -53,12 +62,6 @@ export default async function ProjectsPage({
         { id: 'ON_HOLD', label: 'On Hold' },
         { id: 'COMPLETED', label: 'Completed' }
     ];
-
-    // Get Tenant type for dynamic labels
-    const tenant = await prisma.tenant.findUnique({
-        where: { id: clientId },
-        select: { type: true }
-    });
 
     const labels = getLabelsForTenant(tenant?.type as any || 'CORPORATE');
 

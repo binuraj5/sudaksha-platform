@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import { CreateTeamDialog } from "@/components/Teams/CreateTeamDialog";
 import { TeamCard } from "@/components/Teams/TeamCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +10,14 @@ import { getLabelsForTenant } from "@/lib/tenant-labels";
 export default async function TeamsPage({ params }: { params: Promise<{ clientId: string }> }) {
     const session = await getServerSession(authOptions);
     const { clientId } = await params;
+
+    const tenant = await prisma.tenant.findUnique({
+        where: { id: clientId },
+        select: { type: true, slug: true },
+    });
+    if (tenant?.type === "INSTITUTION") {
+        redirect(tenant.slug ? `/assessments/org/${tenant.slug}/classes` : `/assessments/clients/${clientId}/departments`);
+    }
 
     // Fetch Teams
     const teams = await prisma.organizationUnit.findMany({
@@ -33,12 +42,6 @@ export default async function TeamsPage({ params }: { params: Promise<{ clientId
     });
 
     const deptList = Array.from(depts);
-
-    // Get Tenant type for dynamic labels
-    const tenant = await prisma.tenant.findUnique({
-        where: { id: clientId },
-        select: { type: true }
-    });
 
     const labels = getLabelsForTenant(tenant?.type as any || 'CORPORATE');
 

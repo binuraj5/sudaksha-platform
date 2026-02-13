@@ -4,6 +4,7 @@ import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { withTenantContext, getTenantContextFromSession } from "@/lib/tenant-context";
 import { authorize } from "@/lib/permissions/check-permission";
+import { validateStudentOrgUnit } from "@/lib/services/class-service";
 
 export async function PUT(
     req: NextRequest,
@@ -34,9 +35,26 @@ export async function PUT(
             const whereClause = { id };
 
             switch (entityType) {
-                case 'members':
+                case 'members': {
+                    const orgUnitId = body.orgUnitId;
+                    if (orgUnitId !== undefined) {
+                        const existing = await prisma.member.findUnique({
+                            where: whereClause,
+                            select: { tenantId: true, type: true },
+                        });
+                        if (existing?.type === 'STUDENT') {
+                            const validation = await validateStudentOrgUnit(existing.tenantId, orgUnitId ?? null);
+                            if (!validation.ok) {
+                                return NextResponse.json(
+                                    { error: validation.error ?? 'Invalid org unit for student' },
+                                    { status: 400 }
+                                );
+                            }
+                        }
+                    }
                     result = await prisma.member.update({ where: whereClause, data: body });
                     break;
+                }
                 case 'orgUnits':
                     result = await prisma.organizationUnit.update({ where: whereClause, data: body });
                     break;

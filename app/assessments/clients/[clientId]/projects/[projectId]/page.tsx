@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,6 +12,14 @@ import { Progress } from "@/components/ui/progress";
 export default async function ProjectDetailPage({ params }: { params: Promise<{ clientId: string; projectId: string }> }) {
     const session = await getServerSession(authOptions);
     const { clientId, projectId } = await params;
+
+    const tenant = await prisma.tenant.findUnique({
+        where: { id: clientId },
+        select: { type: true, slug: true },
+    });
+    if (tenant?.type === "INSTITUTION") {
+        redirect(tenant.slug ? `/assessments/org/${tenant.slug}/courses` : `/assessments/clients/${clientId}/departments`);
+    }
 
     const project = await prisma.activity.findUnique({
         where: { id: projectId },

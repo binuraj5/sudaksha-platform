@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { CurriculumManager } from "@/components/Curriculum/CurriculumManager";
+import { redirect } from "next/navigation";
 import { CurriculumPageClient } from "@/components/Curriculum/CurriculumPageClient";
 import { GraduationCap } from "lucide-react";
 
@@ -16,13 +16,9 @@ export default async function CurriculumPage({
         select: { name: true, type: true }
     });
 
-    if (!tenant || tenant.type !== 'INSTITUTION') {
-        return (
-            <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-                <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-                <p className="text-gray-500 mt-2">Curriculum management is only available for educational institution tenants.</p>
-            </div>
-        );
+    if (!tenant) return null;
+    if (tenant.type !== 'INSTITUTION') {
+        redirect(`/assessments/clients/${clientId}/departments`);
     }
 
     return (
