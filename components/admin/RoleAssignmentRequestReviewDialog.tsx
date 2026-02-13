@@ -261,7 +261,7 @@ export function RoleAssignmentRequestReviewDialog({
                                 </Badge>
                                 {(createdRoleId || request.assignedRoleId) && (
                                     <Badge className="bg-sudaksha-success-50 text-sudaksha-success-600 border-sudaksha-success-200 font-bold italic h-6">
-                                        Role created
+                                        Role & competencies created
                                     </Badge>
                                 )}
                             </div>

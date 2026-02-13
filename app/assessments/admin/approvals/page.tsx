@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import {
-    Search,
     Filter,
     Clock,
     ChevronRight,
@@ -139,31 +138,33 @@ export default function ApprovalsDashboard() {
     };
 
     return (
-        <div className="container mx-auto p-8 space-y-12 max-w-7xl pb-24">
+        <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-end">
-                <div className="space-y-1">
-                    <h1 className="text-4xl font-black italic tracking-tighter text-sudaksha-navy-900 lowercase">Admin <span className="text-sudaksha-blue-600">Approvals</span></h1>
-                    <p className="text-sudaksha-navy-500 font-medium italic">Review and manage custom role and competency submissions from all tenants.</p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-semibold text-foreground tracking-tight">Approval Queue</h1>
+                    <p className="text-sm text-muted-foreground mt-1">Review and manage custom role and competency submissions from all tenants.</p>
                 </div>
                 <Button
                     variant="outline"
-                    className="rounded-xl font-bold italic h-12 border-sudaksha-blue-100 bg-white hover:bg-sudaksha-blue-50"
+                    size="sm"
+                    className="h-9"
                     onClick={() => {
                         if (queueType === "roles") fetchRequests(activeTab);
                         else if (queueType === "role-assignment") fetchRoleAssignmentRequests(activeTab);
                         else fetchGlobalRequests(activeTab);
                     }}
                 >
-                    <RefreshCcw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} /> Refresh Queue
+                    <RefreshCcw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} /> Refresh
                 </Button>
             </div>
 
             {/* Queue type selector */}
-            <div className="flex gap-2 p-1 bg-sudaksha-blue-50 rounded-xl w-fit">
+            <div className="flex gap-2 p-1 bg-muted rounded-lg w-fit">
                 <Button
                     variant={queueType === "roles" ? "default" : "ghost"}
-                    className="rounded-lg font-bold italic data-[state=active]:bg-sudaksha-blue-600 data-[state=active]:text-white"
+                    size="sm"
+                    className="h-9 rounded-md"
                     onClick={() => {
                         setQueueType("roles");
                         setSelectedRequest(null);
@@ -174,7 +175,8 @@ export default function ApprovalsDashboard() {
                 </Button>
                 <Button
                     variant={queueType === "role-assignment" ? "default" : "ghost"}
-                    className="rounded-lg font-bold italic data-[state=active]:bg-sudaksha-blue-600 data-[state=active]:text-white"
+                    size="sm"
+                    className="h-9 rounded-md"
                     onClick={() => {
                         setQueueType("role-assignment");
                         setSelectedRequest(null);
@@ -185,7 +187,8 @@ export default function ApprovalsDashboard() {
                 </Button>
                 <Button
                     variant={queueType === "global-publish" ? "default" : "ghost"}
-                    className="rounded-lg font-bold italic data-[state=active]:bg-sudaksha-blue-600 data-[state=active]:text-white"
+                    size="sm"
+                    className="h-9 rounded-md"
                     onClick={() => {
                         setQueueType("global-publish");
                         setSelectedRequest(null);
@@ -196,33 +199,29 @@ export default function ApprovalsDashboard() {
                 </Button>
             </div>
 
-            <Tabs defaultValue="PENDING" className="w-full space-y-8" onValueChange={setActiveTab}>
-                <div className="flex justify-between items-center bg-sudaksha-blue-50 p-1 rounded-2xl h-14 w-fit min-w-[400px]">
-                    <TabsList className="bg-transparent h-full">
-                        <TabsTrigger value="PENDING" className="rounded-xl font-black italic h-full px-8 data-[state=active]:bg-white data-[state=active]:text-sudaksha-blue-600 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-sudaksha-blue-200">Pending</TabsTrigger>
-                        <TabsTrigger value="APPROVED" className="rounded-xl font-black italic h-full px-8 data-[state=active]:bg-white data-[state=active]:text-sudaksha-success-600 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-sudaksha-success-200">Approved</TabsTrigger>
-                        <TabsTrigger value="REJECTED" className="rounded-xl font-black italic h-full px-8 data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-red-200">Rejected</TabsTrigger>
+            <Tabs defaultValue="PENDING" className="w-full space-y-4" onValueChange={setActiveTab}>
+                <div className="flex justify-between items-center bg-card p-1 rounded-lg border border-border w-fit">
+                    <TabsList className="bg-transparent h-9 gap-0">
+                        <TabsTrigger value="PENDING" className="rounded-md h-8 px-4 text-sm data-[state=active]:bg-muted data-[state=active]:text-foreground">Pending</TabsTrigger>
+                        <TabsTrigger value="APPROVED" className="rounded-md h-8 px-4 text-sm data-[state=active]:bg-muted data-[state=active]:text-foreground">Approved</TabsTrigger>
+                        <TabsTrigger value="REJECTED" className="rounded-md h-8 px-4 text-sm data-[state=active]:bg-muted data-[state=active]:text-foreground">Rejected</TabsTrigger>
                     </TabsList>
                 </div>
 
                 {isLoading ? (
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="h-32 bg-sudaksha-blue-50/50 border border-sudaksha-blue-100 rounded-[2rem] animate-pulse" />
+                            <div key={i} className="h-20 bg-muted rounded-lg animate-pulse" />
                         ))}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-4">
                         {queueType === "role-assignment" ? (
                             roleAssignmentRequests.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-20 bg-sudaksha-blue-50/50 rounded-[3rem] border-2 border-dashed border-sudaksha-blue-200 space-y-4">
-                                    <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center text-sudaksha-blue-300 shadow-sm">
-                                        <UserPlus className="w-8 h-8" />
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-sudaksha-navy-600 font-black italic text-lg tracking-tight">Your queue is empty!</p>
-                                        <p className="text-sudaksha-navy-500 font-medium italic text-sm">No {activeTab.toLowerCase()} requests from profile.</p>
-                                    </div>
+                                <div className="text-center py-16 bg-card rounded-lg border border-border">
+                                    <UserPlus className="mx-auto h-10 w-10 text-muted-foreground" />
+                                    <h3 className="mt-2 text-sm font-medium text-foreground">No {activeTab.toLowerCase()} requests</h3>
+                                    <p className="mt-1 text-sm text-muted-foreground">Role assignment requests from profile will appear here.</p>
                                 </div>
                             ) : (
                                 roleAssignmentRequests.map((req) => (
@@ -230,7 +229,7 @@ export default function ApprovalsDashboard() {
                                         key={req.id}
                                         role="button"
                                         tabIndex={0}
-                                        className="border-none shadow-sm hover:shadow-xl hover:ring-2 hover:ring-sudaksha-blue-100 transition-all rounded-[2rem] cursor-pointer group bg-white ring-1 ring-sudaksha-blue-100"
+                                        className="rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors cursor-pointer group"
                                         onClick={() => {
                                             if (req.status === "PENDING") {
                                                 setSelectedRequest(req);
@@ -244,54 +243,46 @@ export default function ApprovalsDashboard() {
                                             }
                                         }}
                                     >
-                                        <Card className="h-full">
-                                            <CardContent className="p-8 flex items-center justify-between">
-                                                <div className="flex gap-6 items-center">
-                                                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-sm transition-transform group-hover:scale-110 duration-300 bg-sudaksha-blue-50 text-sudaksha-blue-600">
-                                                        <Briefcase className="w-8 h-8" />
+                                        <Card className="border-0 shadow-none">
+                                            <CardContent className="p-4 flex items-center justify-between">
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                        <Briefcase className="w-5 h-5 text-primary" />
                                                     </div>
                                                     <div>
-                                                        <div className="flex items-center gap-3">
-                                                            <h3 className="text-xl font-black italic tracking-tighter text-sudaksha-navy-900 lowercase">
-                                                                {req.requestedRoleName}{" "}
-                                                                <span className="text-sudaksha-navy-400 font-serif not-italic">–</span>{" "}
-                                                                {req.member?.name}
-                                                            </h3>
-                                                            <Badge className="bg-sudaksha-blue-50 text-sudaksha-blue-600 border-none font-black italic lowercase tracking-tight">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <span className="font-medium text-foreground">
+                                                                {req.requestedRoleName} – {req.member?.name}
+                                                            </span>
+                                                            <Badge variant="secondary" className="text-xs font-mono">
                                                                 #{req.id.slice(-4)}
                                                             </Badge>
                                                             {req.assignedRoleId && req.status === "PENDING" && (
-                                                                <Badge className="bg-sudaksha-orange-50 text-sudaksha-orange-600 border-sudaksha-orange-200 font-bold italic">
-                                                                    Role created
+                                                                <Badge variant="outline" className="text-xs border-emerald-200 text-emerald-700 bg-emerald-50">
+                                                                    Role & competencies created
                                                                 </Badge>
                                                             )}
                                                         </div>
-                                                        <div className="flex items-center gap-4 mt-1">
-                                                            <div className="flex items-center gap-1.5 text-sudaksha-navy-500 font-bold italic text-sm">
-                                                                <Clock className="w-3.5 h-3.5" /> {format(new Date(req.createdAt), "MMM d, yyyy")}
-                                                            </div>
-                                                            <span className="text-sudaksha-navy-300 text-xs">•</span>
-                                                            <div className="flex items-center gap-1.5 text-sudaksha-blue-600 font-bold italic text-sm">
-                                                                {req.tenant?.name} • {req.totalExperienceYears} yrs exp
-                                                            </div>
-                                                            <span className="text-sudaksha-navy-300 text-xs">•</span>
-                                                            <span className="text-sudaksha-navy-600 text-sm italic">
-                                                                {req.context === "current" ? "Current role" : "Aspirational role"}
-                                                            </span>
+                                                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                                                            <Clock className="w-3 h-3" /> {format(new Date(req.createdAt), "MMM d, yyyy")}
+                                                            <span>•</span>
+                                                            <span>{req.tenant?.name}</span>
+                                                            <span>•</span>
+                                                            <span>{req.totalExperienceYears} yrs exp</span>
+                                                            <span>•</span>
+                                                            <span>{req.context === "current" ? "Current role" : "Aspirational role"}</span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-2">
                                                     {req.status === "PENDING" ? (
-                                                        <div className="flex items-center gap-2 px-4 py-2 bg-sudaksha-orange-50 text-sudaksha-orange-600 rounded-xl font-black italic text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            Review <ChevronRight className="w-4 h-4" />
-                                                        </div>
+                                                        <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                                            Review <ChevronRight className="w-3 h-3" />
+                                                        </span>
                                                     ) : (
                                                         <Badge
-                                                            className={cn(
-                                                                "rounded-xl font-black italic px-4 py-1.5",
-                                                                req.status === "APPROVED" ? "bg-sudaksha-success-50 text-sudaksha-success-600" : "bg-red-50 text-red-600"
-                                                            )}
+                                                            variant={req.status === "APPROVED" ? "default" : "destructive"}
+                                                            className="text-xs"
                                                         >
                                                             {req.status}
                                                         </Badge>
@@ -304,14 +295,10 @@ export default function ApprovalsDashboard() {
                             )
                         ) : queueType === "global-publish" ? (
                             globalRequests.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-20 bg-sudaksha-blue-50/50 rounded-[3rem] border-2 border-dashed border-sudaksha-blue-200 space-y-4">
-                                    <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center text-sudaksha-blue-300 shadow-sm">
-                                        <Globe className="w-8 h-8" />
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-sudaksha-navy-600 font-black italic text-lg tracking-tight">No global publish requests</p>
-                                        <p className="text-sudaksha-navy-500 font-medium italic text-sm">No {activeTab.toLowerCase()} requests for assessment models.</p>
-                                    </div>
+                                <div className="text-center py-16 bg-card rounded-lg border border-border">
+                                    <Globe className="mx-auto h-10 w-10 text-muted-foreground" />
+                                    <h3 className="mt-2 text-sm font-medium text-foreground">No global publish requests</h3>
+                                    <p className="mt-1 text-sm text-muted-foreground">No {activeTab.toLowerCase()} requests for assessment models.</p>
                                 </div>
                             ) : (
                                 globalRequests.map((req) => (
@@ -319,7 +306,7 @@ export default function ApprovalsDashboard() {
                                         key={req.id}
                                         role="button"
                                         tabIndex={0}
-                                        className="border-none shadow-sm hover:shadow-xl hover:ring-2 hover:ring-sudaksha-blue-100 transition-all rounded-[2rem] cursor-pointer group bg-white ring-1 ring-sudaksha-blue-100"
+                                        className="rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors cursor-pointer group"
                                         onClick={() => {
                                             setSelectedRequest(req);
                                             setIsReviewOpen(true);
@@ -331,45 +318,37 @@ export default function ApprovalsDashboard() {
                                             }
                                         }}
                                     >
-                                        <Card className="h-full">
-                                            <CardContent className="p-8 flex items-center justify-between">
-                                                <div className="flex gap-6 items-center">
-                                                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-sm transition-transform group-hover:scale-110 duration-300 bg-sudaksha-blue-50 text-sudaksha-blue-600">
-                                                        <Globe className="w-8 h-8" />
+                                        <Card className="border-0 shadow-none">
+                                            <CardContent className="p-4 flex items-center justify-between">
+                                                <div className="flex gap-4 items-center">
+                                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                        <Globe className="w-5 h-5 text-primary" />
                                                     </div>
                                                     <div>
-                                                        <div className="flex items-center gap-3">
-                                                            <h3 className="text-xl font-black italic tracking-tighter text-sudaksha-navy-900 lowercase uppercase-first">
-                                                                {req.entityType} <span className="text-sudaksha-navy-400 font-serif not-italic">–</span> {req.entityName || req.entityId}
-                                                            </h3>
-                                                            <Badge className="bg-sudaksha-blue-50 text-sudaksha-blue-600 border-none font-black italic lowercase tracking-tight">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <span className="font-medium text-foreground">
+                                                                {req.entityType} – {req.entityName || req.entityId}
+                                                            </span>
+                                                            <Badge variant="secondary" className="text-xs font-mono">
                                                                 #{req.id.slice(-4)}
                                                             </Badge>
                                                         </div>
-                                                        <div className="flex items-center gap-4 mt-1">
-                                                            <div className="flex items-center gap-1.5 text-sudaksha-navy-500 font-bold italic text-sm">
-                                                                <Clock className="w-3.5 h-3.5" /> {format(new Date(req.requestedAt), "MMM d, yyyy")}
-                                                            </div>
-                                                            <span className="text-sudaksha-navy-300 text-xs">•</span>
-                                                            <div className="flex items-center gap-1.5 text-sudaksha-blue-600 font-bold italic text-sm">
-                                                                By {req.requester?.name || req.requester?.email || "—"}
-                                                            </div>
+                                                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                                                            <Clock className="w-3 h-3" /> {format(new Date(req.requestedAt), "MMM d, yyyy")}
+                                                            <span>•</span>
+                                                            <span>By {req.requester?.name || req.requester?.email || "—"}</span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-2">
                                                     {activeTab === "PENDING" ? (
-                                                        <div className="flex items-center gap-2 px-4 py-2 bg-sudaksha-orange-50 text-sudaksha-orange-600 rounded-xl font-black italic text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            Review <ChevronRight className="w-4 h-4" />
-                                                        </div>
+                                                        <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                                            Review <ChevronRight className="w-3 h-3" />
+                                                        </span>
                                                     ) : (
                                                         <Badge
-                                                            className={cn(
-                                                                "rounded-xl font-black italic px-4 py-1.5",
-                                                                req.status === "APPROVED"
-                                                                    ? "bg-sudaksha-success-50 text-sudaksha-success-600"
-                                                                    : "bg-red-50 text-red-600"
-                                                            )}
+                                                            variant={req.status === "APPROVED" ? "default" : "destructive"}
+                                                            className="text-xs"
                                                         >
                                                             {req.status}
                                                         </Badge>
@@ -381,14 +360,10 @@ export default function ApprovalsDashboard() {
                                 ))
                             )
                         ) : requests.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 bg-sudaksha-blue-50/50 rounded-[3rem] border-2 border-dashed border-sudaksha-blue-200 space-y-4">
-                                <div className="w-16 h-16 rounded-3xl bg-white flex items-center justify-center text-sudaksha-blue-300 shadow-sm">
-                                    <Inbox className="w-8 h-8" />
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-sudaksha-navy-600 font-black italic text-lg tracking-tight">Your queue is empty!</p>
-                                    <p className="text-sudaksha-navy-500 font-medium italic text-sm">No {activeTab.toLowerCase()} requests found at this moment.</p>
-                                </div>
+                            <div className="text-center py-16 bg-card rounded-lg border border-border">
+                                <Inbox className="mx-auto h-10 w-10 text-muted-foreground" />
+                                <h3 className="mt-2 text-sm font-medium text-foreground">No {activeTab.toLowerCase()} requests</h3>
+                                <p className="mt-1 text-sm text-muted-foreground">Role and competency approval requests will appear here.</p>
                             </div>
                         ) : (
                             requests.map((request) => (
@@ -396,56 +371,51 @@ export default function ApprovalsDashboard() {
                                     key={request.id}
                                     role="button"
                                     tabIndex={0}
-                                    className="border-none shadow-sm hover:shadow-xl hover:ring-2 hover:ring-sudaksha-blue-100 transition-all rounded-[2rem] cursor-pointer group bg-white ring-1 ring-sudaksha-blue-100"
+                                    className="rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors cursor-pointer group"
                                     onClick={() => {
                                         setSelectedRequest(request);
                                         setIsReviewOpen(true);
                                     }}
                                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setSelectedRequest(request); setIsReviewOpen(true); } }}
                                 >
-                                <Card className="h-full">
-                                    <CardContent className="p-8 flex items-center justify-between">
-                                        <div className="flex gap-6 items-center">
-                                            <div className={cn(
-                                                "w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-sm transition-transform group-hover:scale-110 duration-300",
-                                                request.type === "ROLE" ? "bg-sudaksha-blue-50 text-sudaksha-blue-600" : "bg-sudaksha-orange-50 text-sudaksha-orange-600"
-                                            )}>
-                                                {request.type === "ROLE" ? "🎭" : "🎯"}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-3">
-                                                    <h3 className="text-xl font-black italic tracking-tighter text-sudaksha-navy-900 lowercase uppercase-first">
-                                                        {request.type} Request <span className="text-sudaksha-navy-400 font-serif not-italic">by</span> {request.tenant.name}
-                                                    </h3>
-                                                    <Badge className="bg-sudaksha-blue-50 text-sudaksha-blue-600 border-none font-black italic lowercase tracking-tight">#{request.id.slice(-4)}</Badge>
+                                    <Card className="border-0 shadow-none">
+                                        <CardContent className="p-4 flex items-center justify-between">
+                                            <div className="flex gap-4 items-center">
+                                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                    <span className="text-lg">{request.type === "ROLE" ? "🎭" : "🎯"}</span>
                                                 </div>
-                                                <div className="flex items-center gap-4 mt-1">
-                                                    <div className="flex items-center gap-1.5 text-sudaksha-navy-500 font-bold italic text-sm">
-                                                        <Clock className="w-3.5 h-3.5" /> {format(new Date(request.createdAt), "MMM d, yyyy")}
+                                                <div>
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="font-medium text-foreground">
+                                                            {request.type} Request by {request.tenant.name}
+                                                        </span>
+                                                        <Badge variant="secondary" className="text-xs font-mono">
+                                                            #{request.id.slice(-4)}
+                                                        </Badge>
                                                     </div>
-                                                    <span className="text-sudaksha-navy-300 text-xs">•</span>
-                                                    <div className="flex items-center gap-1.5 text-sudaksha-blue-600 font-bold italic text-sm">
-                                                        <Filter className="w-3.5 h-3.5" /> ID: {request.entityId.slice(0, 8)}...
+                                                    <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                                                        <Clock className="w-3 h-3" /> {format(new Date(request.createdAt), "MMM d, yyyy")}
+                                                        <span>•</span>
+                                                        <Filter className="w-3 h-3" /> ID: {request.entityId.slice(0, 8)}...
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            {activeTab === "PENDING" ? (
-                                                <div className="flex items-center gap-2 px-4 py-2 bg-sudaksha-orange-50 text-sudaksha-orange-600 rounded-xl font-black italic text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    Review Changes <ChevronRight className="w-4 h-4" />
-                                                </div>
-                                            ) : (
-                                                <Badge className={cn(
-                                                    "rounded-xl font-black italic px-4 py-1.5",
-                                                    request.status === "APPROVED" ? "bg-sudaksha-success-50 text-sudaksha-success-600" : "bg-red-50 text-red-600"
-                                                )}>
-                                                    {request.status}
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                            <div className="flex items-center gap-2">
+                                                {activeTab === "PENDING" ? (
+                                                    <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                                        Review <ChevronRight className="w-3 h-3" />
+                                                    </span>
+                                                ) : (
+                                                    <Badge
+                                                        variant={request.status === "APPROVED" ? "default" : "destructive"}
+                                                        className="text-xs"
+                                                    >
+                                                        {request.status}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 </div>
                             ))
                         )}

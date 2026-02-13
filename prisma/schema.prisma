@@ -1905,6 +1905,7 @@ model RoleAssignmentRequest {
   context               String   // 'current' | 'aspirational'
   status                String   @default("PENDING") // PENDING | APPROVED | REJECTED
   assignedRoleId        String?  // Set when admin creates role and assigns
+  roleCreatedAt         DateTime?  // Set when admin creates role from approval UI
   processedBy            String?
   processedAt           DateTime?
   rejectionReason       String?

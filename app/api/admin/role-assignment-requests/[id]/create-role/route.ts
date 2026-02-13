@@ -146,6 +146,7 @@ export async function POST(
                 where: { id: requestId },
                 data: {
                     assignedRoleId: newRole.id,
+                    roleCreatedAt: new Date(),
                 },
             });
 
