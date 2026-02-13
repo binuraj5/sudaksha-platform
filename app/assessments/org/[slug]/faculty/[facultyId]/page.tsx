@@ -30,6 +30,8 @@ export default async function OrgFacultyDetailPage({
     const tenant = await prisma.tenant.findUnique({ where: { slug } });
     if (!tenant) notFound();
 
+    if (tenant.type === "CORPORATE") redirect(`/assessments/org/${slug}/employees`);
+
     const faculty = await prisma.member.findFirst({
         where: { id: facultyId, tenantId: tenant.id, type: "EMPLOYEE" },
         include: {

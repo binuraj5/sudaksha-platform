@@ -17,9 +17,17 @@ import {
     getTenantContextFromSession,
     withTenantContext,
 } from '@/lib/tenant-context';
+import { validateStudentOrgUnit } from '@/lib/services/class-service';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
+
+class ValidationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'ValidationError';
+    }
+}
 
 interface RouteParams {
     params: Promise<{
@@ -147,6 +155,14 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
                     return null;
                 }
 
+                // Institution students: orgUnitId must be a CLASS (FSD validation)
+                if (existing.type === 'STUDENT' && orgUnitId !== undefined) {
+                    const validation = await validateStudentOrgUnit(existing.tenantId, orgUnitId ?? null);
+                    if (!validation.ok) {
+                        throw new ValidationError(validation.error ?? 'Invalid org unit for student');
+                    }
+                }
+
                 // Hash password if provided
                 const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
@@ -200,6 +216,9 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
         return sendSuccess(member, 200, 'Member updated successfully');
     } catch (error) {
+        if (error instanceof ValidationError) {
+            return ErrorResponses.badRequest(error.message);
+        }
         console.error(`Member PUT error:`, error);
         return ErrorResponses.internalError('Failed to update member');
     } finally {

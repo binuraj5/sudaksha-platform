@@ -22,6 +22,8 @@ export default async function OrgNewFacultyPage({
     const tenant = await prisma.tenant.findUnique({ where: { slug } });
     if (!tenant) notFound();
 
+    if (tenant.type === "CORPORATE") redirect(`/assessments/org/${slug}/employees`);
+
     const { departmentId } = await searchParams;
     const tenantType = (tenant.type as "CORPORATE" | "INSTITUTION") || "INSTITUTION";
     const labels = getLabelsForTenant(tenantType);

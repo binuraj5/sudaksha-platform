@@ -20,6 +20,8 @@ export default async function OrgNewProjectPage({
     const tenant = await prisma.tenant.findUnique({ where: { slug } });
     if (!tenant) notFound();
 
+    if (tenant.type === "INSTITUTION") redirect(`/assessments/org/${slug}/courses`);
+
     const tenantType = (tenant.type as "CORPORATE" | "INSTITUTION") || "CORPORATE";
     const labels = getLabelsForTenant(tenantType);
     const basePath = `/assessments/org/${slug}`;

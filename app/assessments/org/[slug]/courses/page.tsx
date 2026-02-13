@@ -16,6 +16,8 @@ export default async function OrgCoursesPage({
   const tenant = await prisma.tenant.findUnique({ where: { slug } });
   if (!tenant) notFound();
 
+  if (tenant.type === "CORPORATE") redirect(`/assessments/org/${slug}/projects`);
+
   const role = (session.user as { role?: string }).role;
   const managedOrgUnitId = (session.user as { managedOrgUnitId?: string | null }).managedOrgUnitId ?? null;
   const isDeptHead = role === "DEPARTMENT_HEAD" || role === "DEPT_HEAD";

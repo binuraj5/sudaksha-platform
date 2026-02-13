@@ -21,6 +21,11 @@ export default async function OrgFacultyPage({
     const tenant = await prisma.tenant.findUnique({ where: { slug } });
     if (!tenant) notFound();
 
+    // Faculty page is institution-only; corporates use Employees/Members
+    if (tenant.type === "CORPORATE") {
+        redirect(`/assessments/org/${slug}/employees`);
+    }
+
     const clientId = tenant.id;
     const role = (session.user as { role?: string }).role;
     const managedOrgUnitId = (session.user as { managedOrgUnitId?: string | null }).managedOrgUnitId ?? null;

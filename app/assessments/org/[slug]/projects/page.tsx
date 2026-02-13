@@ -20,6 +20,11 @@ export default async function OrgProjectsPage({
     const tenant = await prisma.tenant.findUnique({ where: { slug } });
     if (!tenant) notFound();
 
+    // Projects are corporate-only; institutions use Courses
+    if (tenant.type === "INSTITUTION") {
+        redirect(`/assessments/org/${slug}/courses`);
+    }
+
     const clientId = tenant.id;
     const basePath = `/assessments/org/${slug}`;
 

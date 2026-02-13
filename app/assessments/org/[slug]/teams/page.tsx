@@ -19,6 +19,11 @@ export default async function OrgTeamsPage({
     const tenant = await prisma.tenant.findUnique({ where: { slug } });
     if (!tenant) notFound();
 
+    // Teams are corporate-only; institutions use Classes
+    if (tenant.type === "INSTITUTION") {
+        redirect(`/assessments/org/${slug}/classes`);
+    }
+
     const clientId = tenant.id;
     const basePath = `/assessments/org/${slug}`;
 

@@ -17,6 +17,8 @@ export default async function OrgCourseDetailPage({
   const tenant = await prisma.tenant.findUnique({ where: { slug } });
   if (!tenant) notFound();
 
+  if (tenant.type === "CORPORATE") redirect(`/assessments/org/${slug}/projects`);
+
   const course = await getCourseById(tenant.id, courseId);
   if (!course) notFound();
 

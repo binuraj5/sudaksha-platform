@@ -22,15 +22,9 @@ export default async function OrgCurriculumPage({
 
     if (!tenant) notFound();
 
+    // Curriculum is institution-only; corporates redirect to departments
     if (tenant.type !== "INSTITUTION") {
-        return (
-            <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-                <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-                <p className="text-gray-500 mt-2">
-                    Curriculum management is only available for educational institution tenants.
-                </p>
-            </div>
-        );
+        redirect(`/assessments/org/${slug}/departments`);
     }
 
     return (

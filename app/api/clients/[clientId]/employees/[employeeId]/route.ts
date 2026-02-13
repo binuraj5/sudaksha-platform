@@ -1,6 +1,7 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validateStudentOrgUnit } from "@/lib/services/class-service";
 
 export async function GET(
     req: NextRequest,
@@ -53,6 +54,22 @@ export async function PATCH(
         const body = await req.json();
         const { firstName, lastName, role, isActive, facultyType, designation, orgUnitId, ...rest } = body;
 
+        const current = await prisma.member.findUnique({
+            where: { id: employeeId },
+            select: { tenantId: true, type: true },
+        });
+        if (!current || current.tenantId !== clientId) {
+            return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
+
+        // Institution students: orgUnitId must be a CLASS (FSD validation)
+        if (current.type === "STUDENT" && orgUnitId !== undefined) {
+            const validation = await validateStudentOrgUnit(clientId, orgUnitId || null);
+            if (!validation.ok) {
+                return NextResponse.json({ error: validation.error }, { status: 400 });
+            }
+        }
+
         const updateData: Record<string, unknown> = { ...rest };
         if (role && validMemberRoles.includes(role)) updateData.role = role;
         if (typeof isActive === 'boolean') updateData.isActive = isActive;
@@ -60,9 +77,9 @@ export async function PATCH(
         if (designation !== undefined) updateData.designation = designation;
         if (orgUnitId !== undefined) updateData.orgUnitId = orgUnitId || null;
         if (firstName || lastName) {
-            const current = await prisma.member.findUnique({ where: { id: employeeId } });
-            const fName = firstName || current?.firstName || "";
-            const lName = lastName || current?.lastName || "";
+            const memberForName = await prisma.member.findUnique({ where: { id: employeeId } });
+            const fName = firstName || memberForName?.firstName || "";
+            const lName = lastName || memberForName?.lastName || "";
             updateData.firstName = fName;
             updateData.lastName = lName;
             updateData.name = `${fName} ${lName}`.trim();
