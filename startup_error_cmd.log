@@ -1,0 +1,13 @@
+
+> sudaksha-nws@1.0.0 dev
+> next dev
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.4:3000
+- Environments: .env
+
+✓ Starting...
+Error: > `pages` and `app` directories should be under the same folder
+    at ignore-listed frames
+[?25h

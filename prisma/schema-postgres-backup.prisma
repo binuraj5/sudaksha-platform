@@ -1,0 +1,300 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Trainer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  bio         String
+  expertise   String[]
+  experience  Int      // years of experience
+  rating      Float    @default(0)
+  imageUrl    String?
+  linkedinUrl String?
+  status      TrainerStatus @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  courses     Course[]
+  batches     CourseBatch[]
+}
+
+model Course {
+  id                String      @id @default(cuid())
+  name              String
+  slug              String      @unique
+  category          CourseCategory
+  deliveryMode      BatchMode   @default(ONLINE)  // Online, Offline, Hybrid
+  categoryType      CategoryType // IT, Non-IT
+  industry          String      @default("Generic/All Industries")
+  targetLevel       TargetLevel // Junior, Middle, Senior, Management, Executive
+  courseType        CourseType  // Technology, IT, Functional, Process, Behavioral, Personal
+  isSelfPaced       Boolean     @default(false) // For future-proofing
+  enrollmentUrl     String?     // Direct link to course-specific enrollment
+  description       String
+  shortDescription  String?
+  duration          Int         // in hours
+  price             Float
+  rating            Float       @default(0)
+  status            CourseStatus @default(DRAFT)
+  audienceLevel     AudienceLevel
+  skillTags         Json        // array of skill tags
+  learningObjectives Json        // array of learning objectives
+  moduleBreakdown   Json        // structured course outline
+  imageUrl          String?
+  videoUrl          String?
+  language          String      @default("English")
+  maxStudents       Int?
+  certification     Boolean     @default(false)
+  trainerId         String
+  trainer           Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  modules           CourseModule[]
+  batches           CourseBatch[]
+  reviews           CourseReview[]
+
+  // Indexes
+  @@index([category, status])
+  @@index([status])
+  @@index([audienceLevel])
+  @@index([rating])
+  @@index([price])
+  @@index([trainerId])
+  @@index([categoryType])
+  @@index([industry])
+  @@index([targetLevel])
+  @@index([courseType])
+  @@index([deliveryMode])
+}
+
+model FinishingSchool {
+  id            String       @id @default(cuid())
+  title         String       // Program title
+  description   String       // Program description
+  categoryType  CategoryType // IT or Non-IT
+  industry      String       @default("Generic/All Industries")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Indexes
+  @@index([categoryType])
+  @@index([industry])
+}
+
+model CourseModule {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  duration    Int      // in hours
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  lessons     CourseLesson[]
+  
+  // Indexes
+  @@index([courseId])
+  @@index([order])
+}
+
+model CourseLesson {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  content     String?     // lesson content/text
+  videoUrl    String?     // video URL if any
+  duration    Int         // in minutes
+  order       Int
+  isFree      Boolean     @default(false)
+  moduleId    String
+  module      CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Indexes
+  @@index([moduleId])
+  @@index([order])
+}
+
+model CourseBatch {
+  id             String      @id @default(cuid())
+  name           String
+  courseId       String
+  trainerId      String
+  course         Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  trainer        Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  startDate      DateTime
+  endDate        DateTime
+  schedule       String      // e.g., "Mon-Wed-Fri 6PM-8PM"
+  mode           BatchMode   @default(ONLINE)
+  maxStudents    Int
+  currentStudents Int        @default(0)
+  price          Float?      // can override course price
+  status         BatchStatus @default(UPCOMING)
+  location       String?     // for offline batches
+  meetingUrl     String?     // for online batches
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  
+  // Indexes
+  @@index([courseId])
+  @@index([trainerId])
+  @@index([startDate, status])
+  @@index([status])
+  @@index([startDate])
+}
+
+model CourseReview {
+  id           String   @id @default(cuid())
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentName  String
+  studentEmail String
+  rating       Int      // 1-5 stars
+  comment      String?
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Indexes
+  @@index([courseId])
+  @@index([rating])
+  @@index([createdAt])
+}
+
+// Enums
+enum CourseCategory {
+  SOFTWARE_DEVELOPMENT
+  DATA_ANALYTICS
+  CLOUD_DEVOPS
+  AI_ML
+  CYBERSECURITY
+  BUSINESS_ANALYSIS
+  PROJECT_MANAGEMENT
+  DIGITAL_MARKETING
+  COMMUNICATION
+  LEADERSHIP
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SUSPENDED
+}
+
+enum AudienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL_LEVELS
+}
+
+enum TrainerStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+enum BatchStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum BatchMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+enum CategoryType {
+  IT
+  NON_IT
+}
+
+enum TargetLevel {
+  JUNIOR
+  MIDDLE
+  SENIOR
+  MANAGEMENT
+  EXECUTIVE
+}
+
+enum CourseType {
+  TECHNOLOGY
+  IT
+  FUNCTIONAL
+  PROCESS
+  BEHAVIORAL
+  PERSONAL
+}
+
+model Communication {
+  id        String   @id @default(cuid())
+  type      CommunicationType
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  status    CommunicationStatus @default(PENDING)
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([type])
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  idEntity  String   @id @default(cuid())
+  action    String
+  entityType String?
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  userId    String?
+  createdAt DateTime @default(now())
+  
+  @@index([action])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+enum CommunicationType {
+  CONTACT_FORM
+  ENROLLMENT_INQUIRY
+  LIVE_CHAT
+  NEWSLETTER
+  OTHER
+}
+
+enum CommunicationStatus {
+  PENDING
+  READ
+  RESPONDED
+  ARCHIVED
+}

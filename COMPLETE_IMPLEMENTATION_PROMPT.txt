@@ -1,0 +1,2329 @@
+================================================================================
+COMPREHENSIVE IMPLEMENTATION PROMPT - ASSESSMENT PLATFORM ENHANCEMENTS
+================================================================================
+
+TARGET: AntiGravity AI Coding Agent
+PROJECT: SudAssess - Unified Assessment Management Platform
+VERSION: 2.0
+DATE: January 30, 2026
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+PART 1: Question Management Enhancements
+  1.1 Bulk Upload Questions (CSV/JSON)
+  1.2 AI Question Generation
+  1.3 Runtime Question Generation
+
+PART 2: Company/Client Management System (B2B)
+  2.1 Client Registration & Login
+  2.2 Company Admin Dashboard
+  2.3 Admin Tabs for Company Management
+  2.4 Bulk Employee Upload
+
+PART 3: Individual User System (B2C)
+  3.1 Individual Signup
+  3.2 Individual Login
+
+PART 4: Employee Self-Service Forms
+  4.1 Employee Dashboard
+  4.2 My Current Job Form (Sections A-I)
+  4.3 My Aspirational Job Form
+
+PART 5: Role-Based Competency Management
+  5.1 Role Management
+  5.2 Competency Definition with Behavioral Indicators
+  5.3 AI-Powered Competency Generation
+  5.4 Auto-Generate Assessments for Roles
+
+PART 6: Implementation Checklist
+
+================================================================================
+PART 1: QUESTION MANAGEMENT ENHANCEMENTS
+================================================================================
+
+CURRENT PAGE: http://localhost:3000/assessments/admin/components/[componentId]/questions
+
+ADD THREE NEW BUTTONS:
+1. Bulk Upload Questions
+2. Generate Questions Using AI
+3. Configure Runtime Generation
+
+--------------------------------------------------------------------------------
+1.1 BULK UPLOAD QUESTIONS
+--------------------------------------------------------------------------------
+
+BUTTON SPECIFICATION:
+- Label: "Bulk Upload Questions"
+- Icon: Upload icon
+- Position: Top right, before "Add Question" button
+- Style: Secondary button variant
+
+CSV FORMAT SPECIFICATION:
+
+Required Columns:
+- question_text (required)
+- question_type (required): MULTIPLE_CHOICE | TRUE_FALSE | CODING_CHALLENGE | ESSAY | SCENARIO_BASED
+- points (optional, default: 1)
+- time_limit (optional, in seconds)
+- order (optional, auto-assign if missing)
+- options (for MCQ/True-False, pipe-separated or JSON)
+- correct_answer (for MCQ/True-False)
+- programming_language (for coding questions)
+- starter_code (for coding questions)
+- test_cases (for coding questions, JSON string)
+- word_limit (for essay questions)
+- evaluation_criteria (JSON string)
+- media_urls (pipe-separated URLs)
+
+EXAMPLE CSV:
+```
+question_text,question_type,points,options,correct_answer
+"What is 2+2?",MULTIPLE_CHOICE,1,"2|3|4|5",4
+"Python is compiled",TRUE_FALSE,1,"True|False",False
+"Write function to reverse string",CODING_CHALLENGE,5,,,Python
+```
+
+JSON FORMAT SPECIFICATION:
+```json
+{
+  "questions": [
+    {
+      "questionText": "What is React?",
+      "questionType": "MULTIPLE_CHOICE",
+      "points": 1,
+      "timeLimit": 60,
+      "order": 1,
+      "options": [
+        { "text": "A JavaScript library", "isCorrect": true },
+        { "text": "A database", "isCorrect": false },
+        { "text": "A programming language", "isCorrect": false },
+        { "text": "An operating system", "isCorrect": false }
+      ],
+      "mediaUrls": []
+    },
+    {
+      "questionText": "Write a Python function to calculate factorial",
+      "questionType": "CODING_CHALLENGE",
+      "points": 5,
+      "timeLimit": 300,
+      "programmingLanguage": "Python",
+      "starterCode": "def factorial(n):\n    # Your code here\n    pass",
+      "testCases": [
+        { "input": "5", "expectedOutput": "120" },
+        { "input": "0", "expectedOutput": "1" }
+      ]
+    }
+  ]
+}
+```
+
+API ENDPOINT:
+POST /api/assessments/admin/components/[componentId]/questions/bulk-upload
+
+Request Body:
+```json
+{
+  "format": "csv" | "json",
+  "data": "string or object",
+  "validateOnly": false
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "summary": {
+    "totalRows": 10,
+    "validRows": 9,
+    "invalidRows": 1,
+    "successfulUploads": 9,
+    "failedUploads": 0
+  },
+  "errors": [
+    { "row": 5, "field": "question_text", "error": "Required field missing" }
+  ],
+  "createdQuestions": []
+}
+```
+
+UPLOAD WORKFLOW:
+1. User drops file or clicks to browse
+2. System validates CSV/JSON structure
+3. Preview table shows first 5 rows with validation status
+4. User can edit individual rows in preview
+5. User clicks "Upload" to process all valid rows
+6. System shows progress bar during upload
+7. Success/error summary displayed
+
+UI COMPONENT CODE:
+```typescript
+// components/BulkUploadQuestionsDialog.tsx
+'use client';
+
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Upload, FileText, Download } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
+import { toast } from 'sonner';
+
+export function BulkUploadQuestionsDialog({ componentId, onSuccess }) {
+  const [open, setOpen] = useState(false);
+  const [format, setFormat] = useState<'csv' | 'json'>('csv');
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
+  
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: format === 'csv' ? { 'text/csv': ['.csv'] } : { 'application/json': ['.json'] },
+    maxFiles: 1,
+    onDrop: async (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      setFile(file);
+      
+      const text = await file.text();
+      
+      const response = await fetch(
+        `/api/assessments/admin/components/${componentId}/questions/bulk-upload`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            format,
+            data: format === 'csv' ? text : JSON.parse(text),
+            validateOnly: true
+          })
+        }
+      );
+      
+      const result = await response.json();
+      setPreview(result);
+    }
+  });
+  
+  const handleUpload = async () => {
+    if (!file) return;
+    setUploading(true);
+    
+    try {
+      const text = await file.text();
+      
+      const response = await fetch(
+        `/api/assessments/admin/components/${componentId}/questions/bulk-upload`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            format,
+            data: format === 'csv' ? text : JSON.parse(text),
+            validateOnly: false
+          })
+        }
+      );
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success(`Successfully uploaded ${result.summary.successfulUploads} questions`);
+        setOpen(false);
+        onSuccess();
+      } else {
+        toast.error('Upload failed with errors');
+      }
+    } catch (error) {
+      toast.error('Upload failed: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+  
+  const downloadTemplate = () => {
+    const csvTemplate = `question_text,question_type,points,options,correct_answer
+"What is 2+2?",MULTIPLE_CHOICE,1,"2|3|4|5",4
+"Python is compiled",TRUE_FALSE,1,"True|False",False`;
+    
+    const blob = new Blob([csvTemplate], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'questions_template.csv';
+    a.click();
+  };
+  
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        <Upload className="mr-2 h-4 w-4" />
+        Bulk Upload Questions
+      </Button>
+      
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Bulk Upload Questions</DialogTitle>
+        </DialogHeader>
+        
+        <Tabs value={format} onValueChange={(v) => setFormat(v as 'csv' | 'json')}>
+          <TabsList>
+            <TabsTrigger value="csv">CSV Upload</TabsTrigger>
+            <TabsTrigger value="json">JSON Upload</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="csv" className="space-y-4">
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" onClick={downloadTemplate}>
+                <Download className="mr-2 h-4 w-4" />
+                Download Template
+              </Button>
+            </div>
+            
+            <div
+              {...getRootProps()}
+              className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer"
+            >
+              <input {...getInputProps()} />
+              <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+              <p className="mt-2">Drop CSV file here or click to browse</p>
+              {file && <p className="mt-2 text-sm">{file.name}</p>}
+            </div>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={handleUpload} disabled={!file || uploading}>
+            {uploading ? 'Uploading...' : 'Upload Questions'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+BACKEND API IMPLEMENTATION:
+```typescript
+// app/api/assessments/admin/components/[componentId]/questions/bulk-upload/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { parse } from 'csv-parse/sync';
+import { prisma } from '@/lib/db';
+import { z } from 'zod';
+
+const questionSchema = z.object({
+  question_text: z.string().min(10),
+  question_type: z.enum(['MULTIPLE_CHOICE', 'TRUE_FALSE', 'CODING_CHALLENGE', 'ESSAY', 'SCENARIO_BASED']),
+  points: z.number().optional().default(1),
+  time_limit: z.number().optional(),
+});
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { componentId: string } }
+) {
+  try {
+    const body = await request.json();
+    const { format, data, validateOnly } = body;
+    
+    let questions = [];
+    
+    if (format === 'csv') {
+      questions = parse(data, {
+        columns: true,
+        skip_empty_lines: true,
+        cast: true
+      });
+    } else {
+      questions = data.questions;
+    }
+    
+    // Validate each question
+    const validationResults = questions.map((q, idx) => {
+      try {
+        questionSchema.parse(q);
+        return { valid: true, row: idx + 1 };
+      } catch (error) {
+        return { valid: false, row: idx + 1, errors: error.errors };
+      }
+    });
+    
+    const validQuestions = validationResults.filter(v => v.valid);
+    const invalidQuestions = validationResults.filter(v => !v.valid);
+    
+    if (validateOnly) {
+      return NextResponse.json({
+        valid: invalidQuestions.length === 0,
+        validCount: validQuestions.length,
+        invalidCount: invalidQuestions.length,
+        errors: invalidQuestions
+      });
+    }
+    
+    // Insert valid questions
+    const createdQuestions = await prisma.$transaction(
+      validQuestions.map((_, idx) => 
+        prisma.componentQuestion.create({
+          data: {
+            componentId: params.componentId,
+            questionText: questions[idx].question_text,
+            questionType: questions[idx].question_type,
+            points: questions[idx].points || 1,
+            timeLimit: questions[idx].time_limit,
+            order: questions[idx].order || idx + 1,
+            options: questions[idx].options,
+          }
+        })
+      )
+    );
+    
+    return NextResponse.json({
+      success: true,
+      summary: {
+        totalRows: questions.length,
+        validRows: validQuestions.length,
+        invalidRows: invalidQuestions.length,
+        successfulUploads: createdQuestions.length,
+        failedUploads: 0
+      },
+      errors: invalidQuestions,
+      createdQuestions
+    });
+    
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Bulk upload failed', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+```
+
+--------------------------------------------------------------------------------
+1.2 AI QUESTION GENERATION
+--------------------------------------------------------------------------------
+
+BUTTON SPECIFICATION:
+- Label: "Generate Questions Using AI"
+- Icon: Sparkles icon (AI indicator)
+- Position: Next to "Bulk Upload Questions" button
+- Style: Primary variant with gradient background
+
+AI GENERATION FORM SECTIONS:
+
+SECTION 1: Question Context
+- Topic/Subject (required, text input)
+  Example: "JavaScript Promises, Leadership Communication"
+  
+- Difficulty Level (required, select)
+  Options: Beginner, Intermediate, Advanced, Expert
+  
+- Question Type (required, multi-select checkboxes)
+  □ Multiple Choice
+  □ True/False
+  □ Coding Challenge
+  □ Essay/Open-ended
+  □ Scenario-Based
+  
+- Number of Questions (required, slider 1-50)
+  Default: 10
+
+SECTION 2: Additional Context
+- Learning Objectives (optional, textarea, 500 chars)
+  Placeholder: "What should students be able to do after learning this?"
+  
+- Key Concepts to Cover (optional, tag input)
+  Example tags: "async/await", "error handling", "callbacks"
+  
+- Industry/Domain (optional, select)
+  Options: Technology, Healthcare, Finance, Manufacturing, Education, Generic
+  
+- Real-world Application (optional, textarea, 500 chars)
+  Placeholder: "Describe practical scenarios where this knowledge applies"
+
+SECTION 3: Question Specifications
+- Include Code Examples (checkbox)
+  - Sub-option: Programming Language (if checked)
+  
+- Include Visual Aids (checkbox)
+  Helper: "AI will suggest diagrams/charts needed"
+  
+- Bloom's Taxonomy Level (optional, multi-select)
+  □ Remember
+  □ Understand
+  □ Apply
+  □ Analyze
+  □ Evaluate
+  □ Create
+  
+- Points per Question (number, default: 1, range: 0.5-10)
+- Time Limit per Question (optional, seconds)
+
+SECTION 4: Quality Controls
+- Avoid Common Pitfalls (checkboxes)
+  □ Trick questions
+  □ Double negatives
+  □ Ambiguous wording
+  □ Cultural bias
+  
+- Tone/Style (select)
+  Options: Formal, Conversational, Technical, Simple
+  Default: Formal
+
+AI GENERATION WORKFLOW:
+
+Step 1: User fills form and clicks "Generate Questions"
+
+Step 2: Backend constructs AI prompt:
+```
+Generate ${numberOfQuestions} ${difficultyLevel} level questions on: ${topic}
+
+Question Types: ${questionTypes.join(', ')}
+
+Learning Objectives:
+${learningObjectives}
+
+Key Concepts: ${keyConcepts.join(', ')}
+
+${realWorldApplication ? `Context: ${realWorldApplication}` : ''}
+
+Requirements:
+- Clear and unambiguous questions
+- For MCQ: 4 options, only 1 correct
+- For coding: include test cases
+- Avoid ${avoidPitfalls.join(', ')}
+- Use ${tone} tone
+- Target Bloom's: ${bloomsLevels.join(', ')}
+
+Return JSON:
+{
+  "questionText": "...",
+  "questionType": "...",
+  "options": [...],
+  "correctAnswer": "...",
+  "explanation": "...",
+  "points": ${pointsPerQuestion},
+  "difficulty": "${difficultyLevel}",
+  "bloomsLevel": "...",
+  "estimatedTime": ${timeLimitPerQuestion || 60}
+}
+```
+
+Step 3: Call OpenAI API:
+```typescript
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const completion = await openai.chat.completions.create({
+  model: "gpt-4-turbo-preview",
+  messages: [
+    {
+      role: "system",
+      content: "You are an expert educational assessment designer."
+    },
+    {
+      role: "user",
+      content: prompt
+    }
+  ],
+  response_format: { type: "json_object" },
+  temperature: 0.7
+});
+
+const generatedQuestions = JSON.parse(completion.choices[0].message.content);
+```
+
+Step 4: Show review modal with generated questions
+
+Step 5: User can:
+- Edit any question
+- Delete unwanted questions
+- Regenerate all questions
+- Add selected questions to component
+
+API ENDPOINT:
+POST /api/assessments/admin/components/[componentId]/questions/ai-generate
+
+Request:
+```json
+{
+  "topic": "JavaScript Promises",
+  "difficultyLevel": "INTERMEDIATE",
+  "questionTypes": ["MULTIPLE_CHOICE", "CODING_CHALLENGE"],
+  "numberOfQuestions": 10,
+  "learningObjectives": "Understand async programming",
+  "keyConcepts": ["async/await", "error handling"],
+  "industry": "TECHNOLOGY",
+  "pointsPerQuestion": 1,
+  "avoidPitfalls": ["trick questions", "double negatives"],
+  "tone": "TECHNICAL"
+}
+```
+
+Response:
+```json
+{
+  "jobId": "job_abc123",
+  "questions": [...],
+  "message": "Questions generated, review before adding"
+}
+```
+
+--------------------------------------------------------------------------------
+1.3 CONFIGURE RUNTIME GENERATION
+--------------------------------------------------------------------------------
+
+BUTTON SPECIFICATION:
+- Label: "Configure Runtime Generation"
+- Icon: Zap icon (dynamic/runtime indicator)
+- Position: Third button in row
+- Style: Outline variant with accent color
+
+CONCEPT:
+Generate questions dynamically DURING assessment execution, powered by AI Agent
+that adapts based on respondent's performance.
+
+KEY DIFFERENCE:
+- Feature 1.2: Pre-generates questions for question bank
+- Feature 1.3: Generates questions on-the-fly during assessment
+
+CONFIGURATION FORM:
+
+SECTION 1: Generation Triggers
+- Enable Runtime Generation (toggle)
+  
+- Generation Mode (radio buttons)
+  ○ Adaptive (generates based on performance)
+  ○ Progressive (increases difficulty as user advances)
+  ○ Gap-filling (targets weak areas)
+  ○ Exploratory (probes understanding depth)
+  
+- Trigger Conditions (multi-select)
+  □ User answers correctly 3 times → increase difficulty
+  □ User answers incorrectly 2 times → provide easier question
+  □ Time spent < 50% of limit → question too easy
+  □ Competency score < 60% → generate more for that competency
+
+SECTION 2: Generation Constraints
+- Max Questions to Generate (1-20, default: 10)
+- Question Pool Size (Small/Medium/Large/Unlimited)
+- Response Time Limit (seconds, default: 30)
+- Fallback Strategy:
+  ○ Skip question if generation fails
+  ○ Show pre-defined fallback question
+  ○ End assessment gracefully
+  ○ Retry once then skip
+
+SECTION 3: Context for Generation
+Assessment Context (checkboxes - what AI receives):
+  ☑ Component/topic being assessed
+  ☑ User's current score
+  ☑ Questions already answered
+  ☑ Time spent on previous questions
+  ☑ Difficulty level of previous questions
+  ☑ User's profile (role, experience level)
+  ☑ Learning objectives
+
+Competency Mapping (table):
+| Competency          | Weight | Min Q | Max Q |
+|---------------------|--------|-------|-------|
+| Python Programming  | 40%    | 2     | 5     |
+| Problem Solving     | 30%    | 1     | 3     |
+| Code Optimization   | 30%    | 1     | 3     |
+
+Performance Thresholds:
+- Score threshold for increasing difficulty: 80%
+- Score threshold for decreasing difficulty: 50%
+- Minimum questions before adaptation: 3
+
+SECTION 4: Question Generation Prompts
+Base Prompt Template (textarea):
+```
+You are assessing a candidate on {topic}.
+
+Current Context:
+- Difficulty Level: {currentDifficulty}
+- Questions Answered: {questionsAnswered}
+- Current Score: {currentScore}%
+- Weak Areas: {weakAreas}
+
+Generate a {questionType} question that:
+- Tests {specificCompetency}
+- Is {difficultyAdjustment} than previous questions
+- Takes approximately {estimatedTime} seconds
+```
+
+SECTION 5: Quality Assurance
+Auto-validation (checkboxes):
+  ☑ Check for duplicate questions
+  ☑ Validate question clarity (using AI)
+  ☑ Ensure answer is unambiguous
+  ☑ Verify difficulty aligns with intent
+
+Human Review Threshold:
+  ○ None (full automation)
+  ○ Random 10% sample
+  ○ All questions (for testing)
+  ○ Only when AI confidence < 80%
+
+SECTION 6: LangGraph Agent Configuration
+- Agent Model: GPT-4 Turbo / GPT-3.5 / Claude 3
+- Agent Temperature: 0.7 (slider 0-1)
+- Agent Max Tokens: 1000 (range: 500-2000)
+- Use LangGraph StateGraph: ON (always)
+- Redis State Key Pattern: 
+  `runtime:component:{componentId}:session:{sessionId}`
+
+DATABASE SCHEMA:
+```prisma
+model RuntimeGenerationConfig {
+  id                    String              @id @default(cuid())
+  componentId           String              @unique
+  component             AssessmentComponent @relation(fields: [componentId], references: [id])
+  
+  enabled               Boolean             @default(false)
+  generationMode        GenerationMode
+  maxQuestionsToGenerate Int               @default(10)
+  questionPoolSize      PoolSize
+  responseTimeLimit     Int                 @default(30)
+  fallbackStrategy      FallbackStrategy
+  
+  triggerConditions     Json
+  contextOptions        Json
+  competencyMapping     Json
+  performanceThresholds Json
+  
+  basePromptTemplate    String              @db.Text
+  difficultyPrompt      String              @db.Text
+  
+  autoValidation        Json
+  humanReviewThreshold  ReviewThreshold
+  
+  agentModel            String              @default("gpt-4-turbo-preview")
+  agentTemperature      Float               @default(0.7)
+  agentMaxTokens        Int                 @default(1000)
+  redisStateKeyPattern  String
+  
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+}
+
+enum GenerationMode {
+  ADAPTIVE
+  PROGRESSIVE
+  GAP_FILLING
+  EXPLORATORY
+}
+```
+
+RUNTIME GENERATION FLOW:
+
+1. Adaptive Flow Agent determines next question needed
+2. Checks if RuntimeGenerationConfig enabled for component
+3. Calls Runtime Question Generation Agent
+4. Agent constructs prompt from template + current context
+5. Calls LLM to generate question
+6. Validates generated question
+7. Stores temporarily (not in permanent bank)
+8. Updates state in Redis
+9. Returns question to assessment interface
+10. After assessment, admin can review and approve good questions
+
+API ENDPOINT (Internal):
+POST /api/agents/runtime-question-generation
+
+Request:
+```json
+{
+  "componentId": "comp_abc",
+  "sessionId": "session_xyz",
+  "currentContext": {
+    "currentDifficulty": "INTERMEDIATE",
+    "questionsAnswered": 5,
+    "currentScore": 75,
+    "weakAreas": ["error handling"]
+  }
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "question": {
+    "questionText": "...",
+    "questionType": "MULTIPLE_CHOICE",
+    "options": [...],
+    "correctAnswer": "...",
+    "points": 1
+  },
+  "questionId": "temp_q_123"
+}
+```
+
+================================================================================
+PART 2: COMPANY/CLIENT MANAGEMENT SYSTEM (B2B)
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 CLIENT REGISTRATION & LOGIN
+--------------------------------------------------------------------------------
+
+CLIENT SIGNUP FORM:
+Route: /clients/register
+
+Form Fields:
+```typescript
+interface ClientSignupForm {
+  // Company Information
+  companyName: string;           // Required
+  companyEmail: string;          // Required, unique
+  companyPhone: string;          // Required
+  companyWebsite?: string;       // Optional
+  industry: Industry;            // Required, dropdown
+  companySize: CompanySize;      // Required
+  country: string;               // Required
+  address: string;               // Required
+  
+  // Admin User
+  adminFirstName: string;        // Required
+  adminLastName: string;         // Required
+  adminEmail: string;            // Required, unique
+  adminPhone: string;            // Required
+  adminPassword: string;         // Required, min 12 chars
+  adminPasswordConfirm: string;  // Required, must match
+  
+  // Subscription
+  plan: ClientPlan;              // STARTER, PROFESSIONAL, ENTERPRISE
+  
+  // Terms
+  acceptTerms: boolean;          // Required
+  acceptDataProcessing: boolean; // Required
+}
+
+enum Industry {
+  INFORMATION_TECHNOLOGY = "Information Technology",
+  HEALTHCARE = "Healthcare",
+  FINANCE = "Finance & Banking",
+  MANUFACTURING = "Manufacturing",
+  EDUCATION = "Education",
+  RETAIL = "Retail & E-commerce",
+  GOVERNMENT = "Government",
+  CONSULTING = "Consulting",
+  OTHER = "Other"
+}
+
+enum CompanySize {
+  SMALL = "1-50 employees",
+  MEDIUM = "51-200 employees",
+  LARGE = "201-1000 employees",
+  ENTERPRISE = "1000+ employees"
+}
+
+enum ClientPlan {
+  STARTER = "STARTER",      // $99/mo, 50 users, 5 projects
+  PROFESSIONAL = "PROFESSIONAL", // $299/mo, 200 users, 20 projects
+  ENTERPRISE = "ENTERPRISE"  // Custom pricing, unlimited
+}
+```
+
+PLAN OPTIONS DISPLAY:
+```
+┌─────────────────────────────────────────────────────────────┐
+│ STARTER          PROFESSIONAL      ENTERPRISE               │
+│ $99/month        $299/month        Custom Pricing           │
+│ • 50 users       • 200 users       • Unlimited users        │
+│ • 5 projects     • 20 projects     • Unlimited projects     │
+│ • Basic support  • Priority support• Dedicated support      │
+│ • Standard SLA   • Enhanced SLA    • Custom SLA             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+DATABASE SCHEMA:
+```prisma
+model Client {
+  id                String              @id @default(cuid())
+  name              String
+  slug              String              @unique
+  email             String              @unique
+  phone             String?
+  website           String?
+  address           String?
+  logo              String?
+  brandColor        String?
+  
+  industry          Industry
+  companySize       CompanySize
+  country           String
+  
+  plan              ClientPlan          @default(STARTER)
+  isActive          Boolean             @default(true)
+  subscriptionStart DateTime
+  subscriptionEnd   DateTime?
+  
+  maxProjects       Int                 @default(5)
+  maxUsers          Int                 @default(100)
+  
+  projects          Project[]
+  users             User[]
+  settings          ClientSettings?
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  createdBy         String
+}
+
+model ClientSettings {
+  id                    String      @id @default(cuid())
+  clientId              String      @unique
+  client                Client      @relation(fields: [clientId], references: [id])
+  
+  primaryColor          String      @default("#3b82f6")
+  secondaryColor        String      @default("#10b981")
+  logoUrl               String?
+  
+  enableDepartments     Boolean     @default(true)
+  enableManagers        Boolean     @default(true)
+  enableCustomTemplates Boolean     @default(false)
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+```
+
+API ENDPOINT:
+POST /api/clients/register
+
+Implementation:
+```typescript
+import bcrypt from 'bcryptjs';
+
+export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json();
+    
+    // Check if company email exists
+    const existingClient = await prisma.client.findUnique({
+      where: { email: data.companyEmail }
+    });
+    
+    if (existingClient) {
+      return NextResponse.json(
+        { error: 'Company email already registered' },
+        { status: 400 }
+      );
+    }
+    
+    // Check if admin email exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.adminEmail }
+    });
+    
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Admin email already registered' },
+        { status: 400 }
+      );
+    }
+    
+    const hashedPassword = await bcrypt.hash(data.adminPassword, 12);
+    
+    // Create client and admin user in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const client = await tx.client.create({
+        data: {
+          name: data.companyName,
+          slug: generateSlug(data.companyName),
+          email: data.companyEmail,
+          phone: data.companyPhone,
+          website: data.companyWebsite,
+          industry: data.industry,
+          companySize: data.companySize,
+          country: data.country,
+          address: data.address,
+          plan: data.plan,
+          isActive: false, // Activate after email verification
+          subscriptionStart: new Date(),
+          maxProjects: data.plan === 'STARTER' ? 5 : 
+                       data.plan === 'PROFESSIONAL' ? 20 : 999,
+          maxUsers: data.plan === 'STARTER' ? 50 : 
+                    data.plan === 'PROFESSIONAL' ? 200 : 9999,
+          createdBy: 'SELF_REGISTRATION'
+        }
+      });
+      
+      const adminUser = await tx.user.create({
+        data: {
+          email: data.adminEmail,
+          password: hashedPassword,
+          name: `${data.adminFirstName} ${data.adminLastName}`,
+          role: 'CLIENT_ADMIN',
+          accountType: 'CLIENT_ADMIN',
+          clientId: client.id,
+          isActive: false,
+          emailVerified: null
+        }
+      });
+      
+      await tx.clientSettings.create({
+        data: {
+          clientId: client.id,
+          primaryColor: '#3b82f6',
+          secondaryColor: '#10b981',
+          enableDepartments: true,
+          enableManagers: true,
+          enableCustomTemplates: data.plan !== 'STARTER'
+        }
+      });
+      
+      return { client, adminUser };
+    });
+    
+    // Send verification email
+    await sendVerificationEmail(data.adminEmail, result.adminUser.id);
+    
+    return NextResponse.json({
+      success: true,
+      clientId: result.client.id,
+      message: 'Registration successful. Check email for verification.'
+    });
+    
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Registration failed', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+```
+
+CLIENT LOGIN FORM:
+Route: /clients/login
+
+Form Fields:
+- Email (required)
+- Password (required)
+- Remember Me (checkbox)
+
+Login Flow:
+```typescript
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  const result = await signIn('credentials', {
+    email,
+    password,
+    accountType: 'CLIENT_ADMIN',
+    redirect: false
+  });
+  
+  if (result?.error) {
+    toast.error('Invalid credentials');
+    return;
+  }
+  
+  const session = await fetch('/api/auth/session').then(r => r.json());
+  
+  if (session?.user?.clientSlug) {
+    router.push(`/clients/${session.user.clientSlug}/dashboard`);
+  }
+};
+```
+
+--------------------------------------------------------------------------------
+2.2 COMPANY ADMIN DASHBOARD
+--------------------------------------------------------------------------------
+
+Route: /clients/[clientSlug]/dashboard
+
+LAYOUT:
+```
+┌────────────────────────────────────────────────────────────────┐
+│ [Logo] Company Name                    [Search] [Notifications]│
+├────────────┬───────────────────────────────────────────────────┤
+│            │ WELCOME BACK, ADMIN NAME!                         │
+│            │ Your career development journey continues         │
+│            │ [Profile: 85% Complete] ████████░░                │
+│ SIDEBAR    ├───────────────────────────────────────────────────┤
+│            │ ┌──────────┬──────────┬──────────┬──────────┐    │
+│ Dashboard  │ │ Projects │ Employees│ Active   │ Plan     │    │
+│ Projects   │ │    15    │   147    │ Assess.  │ PROF     │    │
+│ Employees  │ │  of 20   │  of 200  │    23    │          │    │
+│ Departments│ └──────────┴──────────┴──────────┴──────────┘    │
+│ Assessments├───────────────────────────────────────────────────┤
+│ Analytics  │ QUICK ACTIONS                                     │
+│ Settings   │ [+Create Project] [↑Bulk Upload] [🏢Manage Depts]│
+│            ├───────────────────────────────────────────────────┤
+│            │ RECENT PROJECTS                                   │
+│            │ ┌─────────────────────────────────────────────┐  │
+│            │ │ Project Name | Depts | Users | Status      │  │
+│            │ │ IT Assessment|   3   |  45   | Active      │  │
+│            │ │ HR Onboarding|   2   |  30   | Active      │  │
+│            │ └─────────────────────────────────────────────┘  │
+└────────────┴───────────────────────────────────────────────────┘
+```
+
+STATS CARDS:
+```typescript
+const stats = [
+  {
+    title: "Total Projects",
+    value: client._count.projects,
+    icon: Briefcase,
+    subtitle: `${client.maxProjects - client._count.projects} remaining`
+  },
+  {
+    title: "Total Employees",
+    value: client._count.users,
+    icon: Users,
+    subtitle: `${client.maxUsers - client._count.users} remaining`
+  },
+  {
+    title: "Active Assessments",
+    value: activeAssessments,
+    icon: FileText,
+    subtitle: `${completedToday} completed today`
+  },
+  {
+    title: "Plan",
+    value: client.plan,
+    icon: CreditCard,
+    subtitle: `Renews ${formatDate(client.subscriptionEnd)}`
+  }
+];
+```
+
+QUICK ACTIONS:
+1. Create Project → /clients/[clientSlug]/projects/create
+2. Bulk Upload Employees → /clients/[clientSlug]/employees/bulk-upload
+3. Manage Departments → /clients/[clientSlug]/departments
+
+RECENT PROJECTS TABLE:
+- Columns: Project Name, Departments, Employees, Assessments, Status, Actions
+- Show last 5 projects
+- Link to "View All Projects"
+
+--------------------------------------------------------------------------------
+2.3 TABS IN /assessments/admin FOR COMPANY MANAGEMENT
+--------------------------------------------------------------------------------
+
+Route: /assessments/admin
+
+CURRENT TABS:
+- Components
+- Models
+- Templates
+
+NEW TABS TO ADD:
+- Companies
+- Departments
+- Projects
+- Assessments
+
+TAB STRUCTURE:
+```typescript
+const tabs = [
+  { value: 'components', label: 'Components', href: '/assessments/admin/components' },
+  { value: 'models', label: 'Models', href: '/assessments/admin/models' },
+  { value: 'templates', label: 'Templates', href: '/assessments/admin/templates' },
+  { value: 'companies', label: 'Companies', href: '/assessments/admin/companies' },
+  { value: 'departments', label: 'Departments', href: '/assessments/admin/departments' },
+  { value: 'projects', label: 'Projects', href: '/assessments/admin/projects' },
+  { value: 'assessments', label: 'Assessments', href: '/assessments/admin/assessments' }
+];
+```
+
+TAB 1: COMPANIES
+Route: /assessments/admin/companies
+
+Features:
+- List all registered companies
+- Search and filter (by industry, plan, status)
+- View company details
+- Edit company settings
+- Activate/Deactivate companies
+- View usage statistics
+
+Table Columns:
+- Company Name (with email)
+- Industry
+- Plan
+- Projects (count)
+- Users (count)
+- Custom Models (count)
+- Status (Active/Inactive)
+- Created Date
+- Actions (View, Edit, Login As, Activate/Deactivate)
+
+TAB 2: DEPARTMENTS
+Route: /assessments/admin/departments
+
+Features:
+- View all departments across all companies
+- Filter by company
+- View department hierarchy
+- See manager assignments
+- See assessment counts
+
+Table Columns:
+- Department Name
+- Company
+- Project
+- Code
+- Managers (count)
+- Assessments (count)
+- Actions (View)
+
+Filter:
+- Company dropdown (All Companies / Select Company)
+
+TAB 3: PROJECTS
+Route: /assessments/admin/projects
+
+Features:
+- View all projects across all companies
+- Filter by company, status, date range
+- See project statistics
+- Access project assessments
+
+Table Columns:
+- Project Name
+- Company
+- Departments (count)
+- Employees (count)
+- Assessments (count)
+- Status
+- Start Date
+- End Date
+- Actions (View, Reports)
+
+TAB 4: ASSESSMENTS
+Route: /assessments/admin/assessments
+
+Features:
+- Master view of ALL assessments
+- Filter by company, project, status, date
+- See completion rates
+- Export assessment data
+
+Table Columns:
+- Assessment Name
+- Company
+- Project
+- User
+- Model Used
+- Status
+- Score
+- Completion Date
+- Actions (View Details)
+
+Filters:
+- Company dropdown
+- Project dropdown
+- Status dropdown
+- Date range picker
+
+--------------------------------------------------------------------------------
+2.4 BULK EMPLOYEE UPLOAD
+--------------------------------------------------------------------------------
+
+Route: /clients/[clientSlug]/employees/bulk-upload
+
+CSV TEMPLATE:
+```csv
+first_name,last_name,email,employee_id,department,designation,reporting_manager_email,date_of_joining,educational_qualification,professional_certifications
+John,Doe,john.doe@company.com,EMP001,Engineering,Software Engineer,manager@company.com,2024-01-15,Bachelor's in CS,"AWS Certified|PMP"
+Jane,Smith,jane.smith@company.com,EMP002,HR,HR Manager,ceo@company.com,2023-06-01,MBA in HR,"SHRM-CP|PHR"
+```
+
+UPLOAD WORKFLOW:
+1. Download CSV template
+2. Fill in employee data
+3. Upload CSV file
+4. System validates data
+5. Preview employees (first 10 rows)
+6. Review errors (if any)
+7. Click "Upload X Employees"
+8. System creates:
+   - User account for each employee
+   - AssessorProfile with provided data
+   - Generates temporary password
+   - Sends welcome email to each employee
+
+VALIDATION RULES:
+- email: Must be valid and unique
+- employee_id: Required and unique
+- first_name, last_name: Required
+- department: Required
+- All other fields: Optional but recommended
+
+API ENDPOINT:
+POST /api/clients/[clientSlug]/employees/bulk-upload
+
+Implementation:
+```typescript
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { clientSlug: string } }
+) {
+  try {
+    const { csvData } = await request.json();
+    
+    const client = await prisma.client.findUnique({
+      where: { slug: params.clientSlug }
+    });
+    
+    if (!client) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    }
+    
+    const rows = parse(csvData, {
+      columns: true,
+      skip_empty_lines: true
+    });
+    
+    const validRows = [];
+    const errors = [];
+    
+    for (const [index, row] of rows.entries()) {
+      const validation = validateEmployeeRow(row);
+      if (validation.valid) {
+        validRows.push(row);
+      } else {
+        errors.push({ row: index + 2, message: validation.error });
+      }
+    }
+    
+    const createdEmployees = await prisma.$transaction(
+      validRows.map(row => {
+        const tempPassword = generateTempPassword();
+        const hashedPassword = bcrypt.hashSync(tempPassword, 12);
+        
+        return prisma.user.create({
+          data: {
+            email: row.email,
+            password: hashedPassword,
+            name: `${row.first_name} ${row.last_name}`,
+            role: 'ASSESSOR',
+            accountType: 'CLIENT_USER',
+            clientId: client.id,
+            employeeId: row.employee_id,
+            department: row.department,
+            isActive: true
+          }
+        }).then(async (user) => {
+          await prisma.assessorProfile.create({
+            data: {
+              userId: user.id,
+              employeeId: row.employee_id,
+              departmentUnit: row.department,
+              currentDesignation: row.designation,
+              reportingManager: row.reporting_manager_email || '',
+              dateOfJoining: new Date(row.date_of_joining),
+              yearsInCurrentRole: 0,
+              educationalQual: row.educational_qualification || '',
+              professionalCerts: row.professional_certifications?.split('|') || []
+            }
+          });
+          
+          await sendWelcomeEmail({
+            email: user.email,
+            name: user.name,
+            tempPassword,
+            clientName: client.name,
+            loginUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/clients/${client.slug}/login`
+          });
+          
+          return user;
+        });
+      })
+    );
+    
+    return NextResponse.json({
+      success: true,
+      created: createdEmployees.length,
+      errors: errors.length > 0 ? errors : undefined
+    });
+    
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Upload failed', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+function generateTempPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*';
+  let password = '';
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
+```
+
+================================================================================
+PART 3: INDIVIDUAL USER SYSTEM (B2C)
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1 INDIVIDUAL SIGNUP
+--------------------------------------------------------------------------------
+
+Route: /register or /assessments/register
+
+Form Fields:
+```typescript
+interface IndividualSignupForm {
+  firstName: string;         // Required
+  lastName: string;          // Required
+  email: string;             // Required, unique
+  password: string;          // Required, min 8 chars
+  passwordConfirm: string;   // Required, must match
+  phone?: string;            // Optional
+  country: string;           // Required
+  acceptTerms: boolean;      // Required
+}
+```
+
+Form Layout:
+```
+┌──────────────────────────────────────────┐
+│ CREATE INDIVIDUAL ACCOUNT                 │
+│                                           │
+│ Sign up to access assessments and        │
+│ track your career development             │
+│                                           │
+│ [First Name]      [Last Name]            │
+│ [Email Address]                          │
+│ [Password]                               │
+│ [Confirm Password]                       │
+│ [Phone (optional)]                       │
+│ [Country]                                │
+│                                           │
+│ □ I accept Terms & Conditions            │
+│                                           │
+│ [Create Account]                         │
+│                                           │
+│ Already have account? Sign in            │
+│ Company account? Company login           │
+└──────────────────────────────────────────┘
+```
+
+API ENDPOINT:
+POST /api/auth/register-individual
+
+Implementation:
+```typescript
+export async function POST(request: NextRequest) {
+  try {
+    const { firstName, lastName, email, password } = await request.json();
+    
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+    
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Email already registered' },
+        { status: 400 }
+      );
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 12);
+    
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name: `${firstName} ${lastName}`,
+        role: 'ASSESSOR',
+        accountType: 'INDIVIDUAL',
+        isActive: true
+      }
+    });
+    
+    await sendVerificationEmail(email, user.id);
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Account created successfully'
+    });
+    
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Registration failed' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+--------------------------------------------------------------------------------
+3.2 INDIVIDUAL LOGIN
+--------------------------------------------------------------------------------
+
+Route: /login or /assessments/login
+
+Form Fields:
+- Email (required)
+- Password (required)
+- Remember Me (checkbox)
+
+Form Layout:
+```
+┌──────────────────────────────────────────┐
+│ SIGN IN                                   │
+│                                           │
+│ Access your assessment dashboard          │
+│                                           │
+│ [Email Address]                          │
+│ [Password]              Forgot password?  │
+│                                           │
+│ □ Remember me                            │
+│                                           │
+│ [Sign In]                                │
+│                                           │
+│ ─────────── Or sign in with ────────────│
+│                                           │
+│ [Google]  [LinkedIn]                     │
+│                                           │
+│ Don't have account? Sign up              │
+│ Company account? Company login           │
+└──────────────────────────────────────────┘
+```
+
+Login Flow with Smart Redirect:
+```typescript
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  const result = await signIn('credentials', {
+    email,
+    password,
+    redirect: false
+  });
+  
+  if (result?.error) {
+    toast.error('Invalid credentials');
+    return;
+  }
+  
+  // Get session to determine redirect
+  const session = await fetch('/api/auth/session').then(r => r.json());
+  
+  // Smart redirect based on account type
+  if (session?.user?.accountType === 'INDIVIDUAL') {
+    router.push('/assessments/dashboard');
+  } else if (session?.user?.accountType === 'CLIENT_ADMIN' || 
+             session?.user?.accountType === 'CLIENT_USER') {
+    router.push(`/clients/${session.user.clientSlug}/dashboard`);
+  } else if (session?.user?.role === 'SUPER_ADMIN') {
+    router.push('/admin/dashboard');
+  }
+};
+```
+
+================================================================================
+PART 4: EMPLOYEE SELF-SERVICE FORMS
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1 EMPLOYEE DASHBOARD
+--------------------------------------------------------------------------------
+
+Route (B2C): /assessments/dashboard
+Route (B2B): /clients/[clientSlug]/dashboard (employee view)
+
+DASHBOARD LAYOUT:
+```
+┌──────────────────────────────────────────────────────────────┐
+│ WELCOME BACK, [NAME]!                                        │
+│ Your career development journey continues                     │
+│ Profile Completion: ████████░░ 85%                          │
+├──────────────────────────────────────────────────────────────┤
+│ ┌───────────────┬───────────────┬───────────────┐          │
+│ │ MY CURRENT    │ ASPIRATIONAL  │ DEVELOPMENT   │          │
+│ │ JOB           │ JOB           │ PLAN          │          │
+│ │ Update role   │ Define goals  │ View training │          │
+│ └───────────────┴───────────────┴───────────────┘          │
+├──────────────────────────────────────────────────────────────┤
+│ YOUR ASSESSMENTS                                             │
+│ ┌─[Pending]─┬─[In Progress]─┬─[Completed]─┐                │
+│ │ • Assessment 1 [Start]                  │                │
+│ │ • Assessment 2 [Start]                  │                │
+│ └──────────────────────────────────────────┘                │
+├──────────────────────────────────────────────────────────────┤
+│ PERSONAL DEVELOPMENT PLAN                                    │
+│ Based on your assessments, here are recommended trainings    │
+│ ┌──────────────────────────────────────────────────────┐   │
+│ │ [CRITICAL] Advanced Python Programming               │   │
+│ │ Skill Gap: Error Handling | 40 hours | $299         │   │
+│ │ [Enroll]                                            │   │
+│ └──────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+FEATURES:
+- Profile completion progress bar
+- Quick access to My Job / Aspirational Job forms
+- Assessment assignments (Pending, In Progress, Completed)
+- Personal Development Plan recommendations
+- Progress tracking
+
+--------------------------------------------------------------------------------
+4.2 MY CURRENT JOB FORM
+--------------------------------------------------------------------------------
+
+Route: /assessments/my-job
+
+FORM SECTIONS (A-I):
+
+SECTION A: EMPLOYEE INFORMATION
+Fields:
+- Employee Name *
+- Employee ID *
+- Department/Unit *
+- Current Designation *
+- Reporting Manager *
+- Date of Joining *
+- Years in Current Role *
+- Educational Qualification *
+- Professional Certifications (tag input)
+
+SECTION B: CURRENT ROLE AND RESPONSIBILITIES
+Fields:
+- Primary Job Function * (textarea)
+- Key Responsibilities (repeatable):
+  * Responsibility description *
+  * Frequency: Daily/Weekly/Monthly/Quarterly *
+  * Time Allocation (%) * [must total 100%]
+  * Criticality: High/Medium/Low *
+  * Current Proficiency: Expert/Advanced/Intermediate/Beginner/None *
+  [Add Responsibility button]
+
+UI for Responsibilities:
+```
+Total Allocation: 100% ✓
+
+┌─────────────────────────────────────────────────┐
+│ Responsibility 1                          [×]   │
+│ Description: Design database schemas            │
+│ Frequency: [Daily▼] Allocation: [30]%         │
+│ Criticality: [High▼] Proficiency: [Advanced▼] │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│ Responsibility 2                          [×]   │
+│ Description: Code reviews                       │
+│ Frequency: [Weekly▼] Allocation: [20]%        │
+│ Criticality: [Medium▼] Proficiency: [Expert▼] │
+└─────────────────────────────────────────────────┘
+
+[+ Add Responsibility]
+```
+
+SECTION C: TECHNICAL COMPETENCIES - CURRENT ROLE
+Rate current proficiency (1-5 scale):
+1 = No Knowledge
+2 = Basic Awareness
+3 = Working Knowledge
+4 = Advanced Proficiency
+5 = Expert/Can Train Others
+
+Competency Categories (Accordion UI):
+▼ Programming Languages
+  - Python [1][2][3][4][5]
+  - Java [1][2][3][4][5]
+  - JavaScript [1][2][3][4][5]
+  + Add custom skill
+
+▼ Database Management
+  - SQL [1][2][3][4][5]
+  - NoSQL [1][2][3][4][5]
+  + Add custom skill
+
+▼ Cloud Platforms
+▼ DevOps Tools
+▼ Security Practices
+▼ System Architecture
+▼ Network Administration
+
+SECTION D: BEHAVIORAL COMPETENCIES - CURRENT ROLE
+Rate current proficiency (1-5 scale):
+
+Communication Skills     [1][2][3][4][5]
+Leadership              [1][2][3][4][5]
+Team Collaboration      [1][2][3][4][5]
+Problem Solving         [1][2][3][4][5]
+Time Management         [1][2][3][4][5]
+Adaptability            [1][2][3][4][5]
+Critical Thinking       [1][2][3][4][5]
+Project Management      [1][2][3][4][5]
+Stakeholder Management  [1][2][3][4][5]
+Conflict Resolution     [1][2][3][4][5]
+
+SECTION E: ASPIRATIONAL ROLE AND RESPONSIBILITIES
+Fields:
+- Desired Role/Position *
+- Target Timeline *: Within 1 year / 2-3 years / 3-5 years
+- Career Path Preference *:
+  ○ Technical Leadership Track
+  ○ Management Track
+  ○ Specialist/Expert Track
+  ○ Cross-functional Role
+- Aspirational Responsibilities (repeatable):
+  * Responsibility description *
+  * Required Proficiency Level: Expert/Advanced/Intermediate *
+  * Current Gap: [auto-calculated: High/Medium/Low]
+
+SECTION F: ASPIRATIONAL TECHNICAL COMPETENCIES
+List skills needed for aspirational role:
+- Competency name
+- Required level (1-5)
+- Current level (from Section C or manual)
+- Gap (auto-calculated, color-coded)
+
+UI:
+```
+┌─────────────────────────────────────────────────┐
+│ Kubernetes                                      │
+│ Required: [●●●●●] 5   Current: [●●●○○] 3      │
+│ Gap: ●● HIGH                                    │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│ System Design                                   │
+│ Required: [●●●●○] 4   Current: [●●●○○] 3      │
+│ Gap: ● MEDIUM                                   │
+└─────────────────────────────────────────────────┘
+```
+
+SECTION G: ASPIRATIONAL BEHAVIORAL COMPETENCIES
+Same as Section F but for behavioral skills
+
+SECTION H: LEARNING PREFERENCES AND CONSTRAINTS
+Fields:
+- Preferred Learning Methods (multi-select):
+  □ Classroom Training
+  □ Online/E-learning
+  □ On-the-job Training
+  □ Mentoring/Coaching
+  □ Workshops/Seminars
+  □ Certification Programs
+  □ Self-study
+  
+- Time Availability for Training:
+  * Hours per week: [number]
+  * Preferred timing: □ Working hours □ After hours □ Weekends
+  
+- Language Preferences:
+  □ English □ Swahili □ Both
+  
+- Previous Training Attended (Last 2 years):
+  [Dynamic list with Add/Remove]
+  
+- Barriers to Learning: [textarea]
+
+SECTION I: SELF-ASSESSMENT AND ASPIRATIONS
+Fields:
+- Top 3 Strengths:
+  1. _______________
+  2. _______________
+  3. _______________
+  
+- Top 3 Areas for Improvement:
+  1. _______________
+  2. _______________
+  3. _______________
+  
+- Career Motivation: [textarea, 500 chars max]
+- 5-Year Vision: [textarea, 500 chars max]
+- Employee Signature: [checkbox + typed name]
+- Date: [auto-populated]
+- Manager's Comments: [textarea]
+- Manager Signature: [text]
+- Manager Sign Date: [date]
+
+NAVIGATION:
+```
+[Previous] ← Section Progress: ●●●●○○○○○ → [Next/Submit]
+```
+
+AUTO-SAVE:
+- Form auto-saves every 30 seconds
+- "Last saved: 2 minutes ago" indicator
+- Manual "Save Draft" button
+
+API ENDPOINTS:
+POST /api/assessments/my-job/save
+POST /api/assessments/my-job/submit
+
+--------------------------------------------------------------------------------
+4.3 MY ASPIRATIONAL JOB FORM
+--------------------------------------------------------------------------------
+
+Route: /assessments/aspirational-job
+
+Similar structure to My Current Job, focusing on Sections E-I:
+- Section E: Aspirational Role
+- Section F: Aspirational Technical Competencies (with gap calc)
+- Section G: Aspirational Behavioral Competencies (with gap calc)
+- Section H: Learning Preferences
+- Section I: Self-Assessment
+
+GAP CALCULATION LOGIC:
+```typescript
+function calculateGap(currentLevel: number, requiredLevel: number) {
+  const gap = requiredLevel - currentLevel;
+  
+  let level: 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE';
+  let color: string;
+  
+  if (gap >= 3) {
+    level = 'HIGH';
+    color = 'red';
+  } else if (gap >= 2) {
+    level = 'MEDIUM';
+    color = 'yellow';
+  } else if (gap >= 1) {
+    level = 'LOW';
+    color = 'green';
+  } else {
+    level = 'NONE';
+    color = 'gray';
+  }
+  
+  return { gap, level, color };
+}
+```
+
+VISUAL GAP INDICATORS:
+```
+HIGH GAP:    ██████ (red background)
+MEDIUM GAP:  ████   (yellow background)
+LOW GAP:     ██     (green background)
+NO GAP:      ✓      (checkmark)
+```
+
+================================================================================
+PART 5: ROLE-BASED COMPETENCY MANAGEMENT
+================================================================================
+
+--------------------------------------------------------------------------------
+5.1 ROLE MANAGEMENT
+--------------------------------------------------------------------------------
+
+Route: /assessments/admin/roles
+
+FEATURES:
+- Create/Edit/Delete roles
+- Assign competencies to roles
+- Auto-generate competencies using AI
+- Link roles to assessment models
+- View users assigned to each role
+
+DATABASE SCHEMA:
+```prisma
+model Role {
+  id                String              @id @default(cuid())
+  name              String              @unique
+  description       String?
+  level             RoleLevel           
+  department        String?
+  
+  competencies      RoleCompetency[]
+  users             User[]
+  assessmentModels  AssessmentModel[]
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+enum RoleLevel {
+  ENTRY
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  EXECUTIVE
+}
+
+model RoleCompetency {
+  id                String      @id @default(cuid())
+  roleId            String
+  role              Role        @relation(fields: [roleId], references: [id])
+  competencyId      String
+  competency        Competency  @relation(fields: [competencyId], references: [id])
+  
+  requiredLevel     Int         @default(3)  // 1-5 scale
+  isCritical        Boolean     @default(false)
+  weight            Float       @default(1.0)
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@unique([roleId, competencyId])
+}
+```
+
+ROLE CARD UI:
+```
+┌─────────────────────────────────────┐
+│ Software Engineer              [⋮]  │
+│ Mid-level engineering role          │
+│                                     │
+│ Competencies: 12                    │
+│ Users: 45                           │
+│ Assessment Models: 2                │
+│                                     │
+│ [Manage Competencies] [AI Generate] │
+└─────────────────────────────────────┘
+```
+
+CREATE ROLE FORM:
+```
+Role Name: *
+Description:
+Level: [Entry/Junior/Mid/Senior/Lead/Executive]
+Department (optional):
+
+[Create Role]
+```
+
+--------------------------------------------------------------------------------
+5.2 COMPETENCY DEFINITION WITH BEHAVIORAL INDICATORS
+--------------------------------------------------------------------------------
+
+Route: /assessments/admin/competencies
+
+DATABASE SCHEMA:
+```prisma
+model Competency {
+  id                    String                  @id @default(cuid())
+  name                  String                  @unique
+  description           String
+  category              CompetencyCategory
+  
+  positiveIndicators    BehavioralIndicator[]   @relation("PositiveIndicators")
+  negativeIndicators    BehavioralIndicator[]   @relation("NegativeIndicators")
+  
+  roles                 RoleCompetency[]
+  assessmentComponents  CompetencyComponentMapping[]
+  
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+}
+
+enum CompetencyCategory {
+  TECHNICAL
+  BEHAVIORAL
+  COGNITIVE
+  DOMAIN_SPECIFIC
+}
+
+model BehavioralIndicator {
+  id                String          @id @default(cuid())
+  competencyId      String
+  competency        Competency      @relation(name: "PositiveIndicators", fields: [competencyId], references: [id])
+  
+  indicator         String          @db.Text
+  indicatorType     IndicatorType
+  level             IndicatorLevel  
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@unique([competencyId, indicator])
+}
+
+enum IndicatorType {
+  POSITIVE
+  NEGATIVE
+}
+
+enum IndicatorLevel {
+  BASIC
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+```
+
+COMPETENCY STRUCTURE:
+```
+Competency: Effective Communication
+Description: Ability to convey information clearly...
+Category: BEHAVIORAL
+
+POSITIVE INDICATORS:
+✓ [BASIC] Responds to emails within 24 hours
+✓ [INTERMEDIATE] Presents ideas clearly in meetings
+✓ [ADVANCED] Adapts communication style to audience
+✓ [EXPERT] Facilitates complex discussions effectively
+
+NEGATIVE INDICATORS:
+✗ [BASIC] Frequently misses email responses
+✗ [INTERMEDIATE] Uses jargon without explanation
+✗ [ADVANCED] Dominates conversations without listening
+✗ [EXPERT] Creates communication barriers in team
+```
+
+MANUAL COMPETENCY CREATION FORM:
+```
+Competency Name: *
+Description: *
+Category: [Technical/Behavioral/Cognitive/Domain Specific]
+
+POSITIVE BEHAVIORAL INDICATORS
+┌─────────────────────────────────────────────┐
+│ Indicator 1                            [×]  │
+│ Text: [Responds promptly to queries]        │
+│ Level: [Basic ▼]                           │
+└─────────────────────────────────────────────┘
+[+ Add Positive Indicator]
+
+NEGATIVE BEHAVIORAL INDICATORS
+┌─────────────────────────────────────────────┐
+│ Indicator 1                            [×]  │
+│ Text: [Ignores team communication]          │
+│ Level: [Basic ▼]                           │
+└─────────────────────────────────────────────┘
+[+ Add Negative Indicator]
+
+[Save Competency]
+```
+
+--------------------------------------------------------------------------------
+5.3 AI-POWERED COMPETENCY GENERATION
+--------------------------------------------------------------------------------
+
+BUTTON: "Generate with AI" (with Sparkles icon)
+
+AI GENERATION FORM:
+```
+Competency Name: * [Effective Communication]
+Category: * [Behavioral ▼]
+Target Level: * [Intermediate ▼]
+Description: [Optional description]
+Context: [Optional context - industry, role, etc.]
+
+Example Context:
+"For a customer service role in telecommunications,
+focusing on handling difficult customers"
+
+[Generate Competency & Indicators]
+```
+
+AI PROMPT TEMPLATE:
+```
+Generate a comprehensive competency definition with behavioral indicators.
+
+Competency: {competencyName}
+Category: {category}
+Target Level: {targetLevel}
+Description: {description}
+Context: {context}
+
+Provide:
+1. Clear, concise description of competency
+2. 5-7 positive behavioral indicators (observable behaviors)
+3. 5-7 negative behavioral indicators (lack of competency)
+
+For each indicator:
+- Specific, observable, measurable
+- Categorize by level (BASIC/INTERMEDIATE/ADVANCED/EXPERT)
+- Action-oriented and clear
+
+Return JSON:
+{
+  "name": "Competency Name",
+  "description": "Clear description",
+  "positiveIndicators": [
+    { "text": "Indicator", "level": "INTERMEDIATE" }
+  ],
+  "negativeIndicators": [
+    { "text": "Indicator", "level": "BASIC" }
+  ]
+}
+```
+
+API ENDPOINT:
+POST /api/assessments/admin/competencies/ai-generate
+
+Implementation:
+```typescript
+import { OpenAI } from 'openai';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { competencyName, category, targetLevel, description, context } = 
+      await request.json();
+    
+    const prompt = `Generate competency definition with behavioral indicators...`;
+    
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4-turbo-preview",
+      messages: [
+        {
+          role: "system",
+          content: "Expert in competency modeling and behavioral assessment."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7
+    });
+    
+    const generated = JSON.parse(completion.choices[0].message.content);
+    
+    return NextResponse.json(generated);
+    
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Generation failed' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+REVIEW & EDIT UI:
+After generation, show preview modal where user can:
+- Edit competency name and description
+- Edit each indicator text
+- Change indicator levels
+- Add/remove indicators
+- Regenerate if not satisfied
+- Save to database
+
+--------------------------------------------------------------------------------
+5.4 AUTO-GENERATE ASSESSMENTS FOR ROLES
+--------------------------------------------------------------------------------
+
+FEATURE: Given a role with competencies, automatically:
+1. Create assessment components for each competency
+2. Generate questions based on behavioral indicators
+3. Bundle into role-based assessment model
+4. Link competencies to components
+
+BUTTON: "Auto-Generate Assessment" (on role detail page)
+
+WORKFLOW:
+```
+Step 1: Analyze Role
+- Get all role competencies
+- Get behavioral indicators for each
+- Determine required proficiency levels
+
+Step 2: Generate Components (for each competency)
+- Create AssessmentComponent
+- Component name: "{Competency Name} Assessment"
+- Duration: Based on indicator count
+- Difficulty: Based on required level
+
+Step 3: Generate Questions (for each component)
+- Based on positive indicators → "What would you do?" scenarios
+- Based on negative indicators → "What would you avoid?" questions
+- Mix of MCQ, scenario-based, essay questions
+- 5-10 questions per component
+
+Step 4: Create Assessment Model
+- Model name: "{Role Name} Competency Assessment"
+- Bundle all components
+- Set weightage based on competency criticality
+- Total duration: Sum of component durations
+
+Step 5: Link Everything
+- Create CompetencyComponentMapping records
+- Link role to assessment model
+- Mark as "Role-Based Assessment"
+```
+
+DATABASE SCHEMA:
+```prisma
+model CompetencyComponentMapping {
+  id                String              @id @default(cuid())
+  competencyId      String
+  competency        Competency          @relation(fields: [competencyId], references: [id])
+  componentId       String
+  component         AssessmentComponent @relation(fields: [componentId], references: [id])
+  
+  relevanceScore    Float               @default(1.0)
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@unique([competencyId, componentId])
+}
+```
+
+API ENDPOINT:
+POST /api/assessments/admin/roles/[roleId]/generate-assessment
+
+Process:
+1. Fetch role with competencies and indicators
+2. For each competency, call AI to generate component + questions
+3. Create AssessmentModel
+4. Link components to model
+5. Create CompetencyComponentMapping
+6. Return summary
+
+Response:
+```json
+{
+  "success": true,
+  "model": {
+    "id": "model_abc",
+    "name": "Software Engineer Competency Assessment",
+    "totalDuration": 120,
+    "componentCount": 8
+  },
+  "components": [
+    {
+      "id": "comp_1",
+      "name": "Communication Skills Assessment",
+      "questionCount": 7
+    },
+    ...
+  ]
+}
+```
+
+GENERATION PROGRESS UI:
+```
+Generating Role-Based Assessment...
+
+[████████████░░░░░░░] 60%
+
+✓ Analyzed role competencies (12 found)
+✓ Generated 8 assessment components
+⏳ Creating questions... (45/80 complete)
+⏳ Building assessment model...
+  Linking competencies to components...
+```
+
+REVIEW GENERATED ASSESSMENT:
+After generation, show summary:
+```
+✓ Generation Complete!
+
+Assessment Model: "Software Engineer Competency Assessment"
+Total Duration: 120 minutes
+Components: 8
+
+GENERATED COMPONENTS:
+┌──────────────────────────────────────────────┐
+│ Communication Skills Assessment              │
+│ 7 questions | 15 min | Intermediate         │
+└──────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────┐
+│ Problem Solving Assessment                   │
+│ 6 questions | 20 min | Advanced             │
+└──────────────────────────────────────────────┘
+
+...
+
+[View Assessment Model] [Done]
+```
+
+================================================================================
+PART 6: IMPLEMENTATION CHECKLIST
+================================================================================
+
+DATABASE MIGRATIONS:
+□ Add RuntimeGenerationConfig model
+□ Add Client, ClientSettings models
+□ Add Project, Department models
+□ Add Role, Competency models
+□ Add BehavioralIndicator model
+□ Add RoleCompetency model
+□ Add CompetencyComponentMapping model
+□ Update User model (add clientId, accountType)
+□ Update Assessment model (add clientId, projectId)
+
+API ROUTES TO CREATE:
+□ POST /api/assessments/admin/components/[id]/questions/bulk-upload
+□ POST /api/assessments/admin/components/[id]/questions/ai-generate
+□ POST /api/assessments/admin/components/[id]/runtime-config
+□ POST /api/clients/register
+□ POST /api/clients/[slug]/employees/bulk-upload
+□ POST /api/auth/register-individual
+□ POST /api/assessments/my-job/save
+□ POST /api/assessments/aspirational-job/save
+□ GET/POST /api/assessments/admin/roles
+□ GET/POST /api/assessments/admin/competencies
+□ POST /api/assessments/admin/competencies/ai-generate
+□ POST /api/assessments/admin/roles/[id]/generate-assessment
+
+UI COMPONENTS TO CREATE:
+□ BulkUploadQuestionsDialog
+□ AIGenerateQuestionsDialog
+□ RuntimeGenerationConfigDialog
+□ ClientRegistrationForm
+□ ClientLoginForm
+□ CompanyAdminDashboard
+□ BulkEmployeeUploadPage
+□ IndividualSignupForm
+□ IndividualLoginForm
+□ EmployeeDashboard
+□ MyCurrentJobForm (Sections A-I)
+□ MyAspirationalJobForm (Sections E-I)
+□ RoleManagementPage
+□ CompetencyManagementPage
+□ AIGenerateCompetencyDialog
+□ GenerateRoleAssessmentDialog
+
+ENVIRONMENT VARIABLES:
+□ OPENAI_API_KEY
+□ DATABASE_URL
+□ NEXTAUTH_URL
+□ NEXTAUTH_SECRET
+□ SMTP_HOST
+□ SMTP_PORT
+□ SMTP_USER
+□ SMTP_PASS
+□ REDIS_URL
+
+TESTING:
+□ Unit tests for bulk upload validation
+□ Unit tests for gap calculation
+□ Integration tests for client registration
+□ Integration tests for bulk employee upload
+□ E2E test: Complete My Job form
+□ E2E test: AI generate competency
+□ E2E test: Auto-generate role assessment
+□ Performance test: Bulk upload 1000 questions
+□ Performance test: Bulk upload 500 employees
+
+DOCUMENTATION:
+□ API documentation (OpenAPI/Swagger)
+□ User guide for bulk uploads
+□ Admin guide for role management
+□ Employee guide for self-service forms
+□ Developer guide for AI integrations
+
+================================================================================
+END OF COMPREHENSIVE IMPLEMENTATION PROMPT
+================================================================================
+
+This prompt provides complete implementation guidance for all requested features.
+Each section includes database schemas, API implementations, UI components,
+and integration strategies.
+
+The system supports both B2B (company-based) and B2C (individual) workflows
+while maintaining code reusability and architectural consistency.

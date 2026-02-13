@@ -1,0 +1,473 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Trainer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  bio         String
+  expertise   Json
+  experience  Int      // years of experience
+  rating      Float    @default(0)
+  imageUrl    String?
+  linkedinUrl String?
+  status      TrainerStatus @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  courses     Course[]
+  batches     CourseBatch[]
+}
+
+model Course {
+  id                String      @id @default(cuid())
+  name              String
+  slug              String      @unique
+  category          CourseCategory
+  deliveryMode      BatchMode   @default(ONLINE)  // Online, Offline, Hybrid
+  categoryType      CategoryType // IT, Non-IT
+  industry          String      @default("Generic/All Industries")
+  targetLevel       TargetLevel // Junior, Middle, Senior, Management, Executive
+  courseType        CourseType  // Technology, IT, Functional, Process, Behavioral, Personal
+  isSelfPaced       Boolean     @default(false) // For future-proofing
+  enrollmentUrl     String?     // Direct link to course-specific enrollment
+  description       String
+  shortDescription  String?
+  prerequisites     String?     // Course prerequisites
+  duration          Int         // in hours
+  price             Float
+  rating            Float       @default(0)
+  status            CourseStatus @default(DRAFT)
+  audienceLevel     AudienceLevel
+  skillTags         Json        // array of skill tags
+  learningObjectives Json        // array of learning objectives
+  moduleBreakdown   Json        // structured course outline
+  imageUrl          String?
+  videoUrl          String?
+  language          String      @default("English")
+  maxStudents       Int?
+  certification     Boolean     @default(false)
+  trainerId         String
+  trainer           Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  modules           CourseModule[]
+  batches           CourseBatch[]
+  reviews           CourseReview[]
+
+  // Indexes
+  @@index([category, status])
+  @@index([status])
+  @@index([audienceLevel])
+  @@index([rating])
+  @@index([price])
+  @@index([trainerId])
+  @@index([categoryType])
+  @@index([industry])
+  @@index([targetLevel])
+  @@index([courseType])
+  @@index([deliveryMode])
+}
+
+model FinishingSchool {
+  id            String       @id @default(cuid())
+  title         String       // Program title
+  description   String       // Program description
+  categoryType  CategoryType // IT or Non-IT
+  industry      String       @default("Generic/All Industries")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Indexes
+  @@index([categoryType])
+  @@index([industry])
+}
+
+model CourseModule {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  duration    Int      // in hours
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  lessons     CourseLesson[]
+  
+  // Indexes
+  @@index([courseId])
+  @@index([order])
+}
+
+model CourseLesson {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  content     String?     // lesson content/text
+  videoUrl    String?     // video URL if any
+  duration    Int         // in minutes
+  order       Int
+  isFree      Boolean     @default(false)
+  moduleId    String
+  module      CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Indexes
+  @@index([moduleId])
+  @@index([order])
+}
+
+model CourseBatch {
+  id             String      @id @default(cuid())
+  name           String
+  courseId       String
+  trainerId      String
+  course         Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  trainer        Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  startDate      DateTime
+  endDate        DateTime
+  schedule       String      // e.g., "Mon-Wed-Fri 6PM-8PM"
+  mode           BatchMode   @default(ONLINE)
+  maxStudents    Int
+  currentStudents Int        @default(0)
+  price          Float?      // can override course price
+  status         BatchStatus @default(UPCOMING)
+  location       String?     // for offline batches
+  meetingUrl     String?     // for online batches
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  
+  // Indexes
+  @@index([courseId])
+  @@index([trainerId])
+  @@index([startDate, status])
+  @@index([status])
+  @@index([startDate])
+}
+
+model CourseReview {
+  id           String   @id @default(cuid())
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentName  String
+  studentEmail String
+  rating       Int      // 1-5 stars
+  comment      String?
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Indexes
+  @@index([courseId])
+  @@index([rating])
+  @@index([createdAt])
+}
+
+// Enums
+enum CourseCategory {
+  SOFTWARE_DEVELOPMENT
+  DATA_ANALYTICS
+  CLOUD_DEVOPS
+  AI_ML
+  CYBERSECURITY
+  BUSINESS_ANALYSIS
+  PROJECT_MANAGEMENT
+  DIGITAL_MARKETING
+  COMMUNICATION
+  LEADERSHIP
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SUSPENDED
+}
+
+enum AudienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL_LEVELS
+}
+
+enum TrainerStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+enum BatchStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum BatchMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+enum CategoryType {
+  IT
+  NON_IT
+}
+
+enum TargetLevel {
+  JUNIOR
+  MIDDLE
+  SENIOR
+  MANAGEMENT
+  EXECUTIVE
+}
+
+enum CourseType {
+  TECHNOLOGY
+  IT
+  FUNCTIONAL
+  PROCESS
+  BEHAVIORAL
+  PERSONAL
+}
+
+model Communication {
+  id          String   @id @default(cuid())
+  type        CommunicationType
+  name        String?
+  email       String?
+  phone       String?
+  subject     String?
+  message     String
+  status      CommunicationStatus @default(PENDING)
+  recipients  Json?    // Array of recipient identifiers
+  stats       Json?    // Stats like opened, clicked, etc.
+  campaignId  String?
+  campaign    CommunicationCampaign? @relation(fields: [campaignId], references: [id])
+  metadata    Json?
+  sentAt      DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([type])
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@index([campaignId])
+}
+
+model CommunicationTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  type        CommunicationType
+  subject     String?
+  content     String
+  variables   Json?    // Array of allowed variables
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type])
+}
+
+model CommunicationCampaign {
+  id          String   @id @default(cuid())
+  name        String
+  subject     String?
+  content     String
+  type        CommunicationType
+  status      String   @default("DRAFT") // DRAFT, SCHEDULED, SENDING, SENT, COMPLETED
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  recipientsCount Int    @default(0)
+  communications Communication[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+}
+
+model CTAEvent {
+  id          String   @id @default(cuid())
+  ctaId       String
+  userId      String?
+  sessionId   String?
+  eventType   String   // CLICK, CONVERSION, VIEW
+  pageUrl     String?
+  formName    String?
+  buttonName  String?
+  eventData   Json?
+  createdAt   DateTime @default(now())
+
+  @@index([ctaId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  idEntity    String   @id @default(cuid())
+  action      String
+  entityType  String?
+  entityId    String?
+  entityName  String?
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  userId      String?
+  userName    String?
+  severity    String   @default("INFO") // INFO, WARNING, ERROR, CRITICAL
+  status      String   @default("SUCCESS") // SUCCESS, FAILED
+  createdAt   DateTime @default(now())
+  
+  @@index([action])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@index([severity])
+}
+
+enum CommunicationType {
+  CONTACT_FORM
+  ENROLLMENT_INQUIRY
+  LIVE_CHAT
+  NEWSLETTER
+  OTHER
+}
+
+enum CommunicationStatus {
+  PENDING
+  READ
+  RESPONDED
+  ARCHIVED
+}
+
+// Blog Management
+model Blog {
+  id              String      @id @default(cuid())
+  title           String
+  slug            String      @unique
+  excerpt         String
+  content         String      // Rich text content
+  author          String
+  authorImage     String?
+  category        String
+  tags            Json        // Array of tags
+  imageUrl        String?
+  status          BlogStatus  @default(DRAFT)
+  publishedAt     DateTime?
+  viewCount       Int         @default(0)
+  readTime        Int         // minutes
+  featured        Boolean     @default(false)
+  seoTitle        String?
+  seoDescription  String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@index([status, publishedAt])
+  @@index([category])
+  @@index([featured])
+  @@index([slug])
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// Webinar Management
+model Webinar {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  description     String
+  speaker         String
+  speakerBio      String?
+  speakerImage    String?
+  date            DateTime
+  time            String
+  duration        Int           // minutes
+  timezone        String        @default("IST")
+  imageUrl        String?
+  meetingUrl      String?
+  recordingUrl    String?
+  status          WebinarStatus @default(UPCOMING)
+  maxAttendees    Int?
+  registeredCount Int           @default(0)
+  category        String?
+  tags            Json?
+  featured        Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  registrations   WebinarRegistration[]
+  
+  @@index([status, date])
+  @@index([featured])
+  @@index([slug])
+  @@index([date])
+}
+
+enum WebinarStatus {
+  UPCOMING
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+model WebinarRegistration {
+  id          String    @id @default(cuid())
+  webinarId   String
+  webinar     Webinar   @relation(fields: [webinarId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  phone       String?
+  company     String?
+  attended    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  
+  @@index([webinarId])
+  @@index([email])
+  @@index([createdAt])
+}
+
+// Form Submission Tracking
+model FormSubmission {
+  id          String   @id @default(cuid())
+  formType    String   // CONTACT, DEMO, CTA_BUTTON, WEBINAR_REGISTRATION, etc.
+  formName    String?  // Descriptive name
+  pageUrl     String   // Where form was submitted
+  pageName    String?  // Human-readable page name
+  formData    Json     // All form fields
+  userAgent   String?
+  ipAddress   String?
+  sessionId   String?
+  status      String   @default("NEW") // NEW, CONTACTED, CONVERTED, ARCHIVED
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([formType])
+  @@index([status])
+  @@index([createdAt])
+  @@index([pageUrl])
+}
+

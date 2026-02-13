@@ -1,0 +1,216 @@
+// SQLite Schema for development
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Trainer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  bio         String
+  expertise   String[]
+  experience  Int      // years of experience
+  rating      Float    @default(0)
+  imageUrl    String?
+  linkedinUrl String?
+  status      TrainerStatus @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  courses     Course[]
+  batches     CourseBatch[]
+}
+
+model Course {
+  id                String      @id @default(cuid())
+  name              String
+  slug              String      @unique
+  category          CourseCategory
+  deliveryMode      BatchMode   @default(ONLINE)  // Online, Offline, Hybrid
+  categoryType      CategoryType // IT, Non-IT
+  industry          String      @default("Generic/All Industries")
+  targetLevel       TargetLevel // Junior, Middle, Senior, Management, Executive
+  courseType        CourseType  // Technology, IT, Functional, Process, Behavioral, Personal
+  isSelfPaced       Boolean     @default(false) // For future-proofing
+  enrollmentUrl     String?     // Direct link to course-specific enrollment
+  description       String
+  shortDescription  String?
+  duration          Int         // in hours
+  price             Float
+  rating            Float       @default(0)
+  status            CourseStatus @default(DRAFT)
+  audienceLevel     AudienceLevel
+  skillTags         Json        // array of skill tags
+  learningObjectives Json        // array of learning objectives
+  moduleBreakdown   Json        // structured course outline
+  imageUrl          String?
+  videoUrl          String?
+  language          String      @default("English")
+  maxStudents       Int?
+  certification     Boolean     @default(false)
+  trainerId         String
+  trainer           Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  modules           CourseModule[]
+  batches           CourseBatch[]
+  reviews           CourseReview[]
+
+  // Indexes
+  @@index([category, status])
+  @@index([status])
+  @@index([audienceLevel])
+  @@index([rating])
+  @@index([price])
+  @@index([trainerId])
+  @@index([categoryType])
+  @@index([industry])
+  @@index([targetLevel])
+  @@index([courseType])
+  @@index([deliveryMode])
+}
+
+model CourseModule {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  duration    Int      // in hours
+  order       Int
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     CourseLesson[]
+
+  @@index([courseId, order])
+}
+
+model CourseLesson {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  duration    Int      // in minutes
+  order       Int
+  isFree      Boolean  @default(false)
+  moduleId    String
+  module      CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId, order])
+}
+
+model CourseBatch {
+  id            String      @id @default(cuid())
+  name          String
+  courseId      String
+  course        Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  trainerId     String
+  trainer       Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  startDate     DateTime
+  endDate       DateTime
+  schedule      String
+  mode          BatchMode
+  maxStudents   Int
+  currentStudents Int      @default(0)
+  status        String      @default("UPCOMING")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([courseId])
+  @@index([trainerId])
+  @@index([startDate, status])
+}
+
+model CourseReview {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentId String
+  rating    Int      // 1-5
+  comment   String
+  createdAt DateTime @default(now())
+
+  @@index([courseId])
+  @@index([rating])
+}
+
+model FinishingSchool {
+  id            String       @id @default(cuid())
+  title         String       // Program title
+  description   String       // Program description
+  categoryType  CategoryType // IT or Non-IT
+  industry      String       @default("Generic/All Industries")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Indexes
+  @@index([categoryType])
+  @@index([industry])
+}
+
+// Enums
+enum TrainerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CourseCategory {
+  SOFTWARE_DEVELOPMENT
+  CLOUD_DEVOPS
+  CYBERSECURITY
+  DATA_SCIENCE
+  AI_ML
+  PROJECT_MANAGEMENT
+  COMMUNICATION
+  BUSINESS_ANALYSIS
+  DIGITAL_MARKETING
+  FINANCE
+  HEALTHCARE
+  EDUCATION
+}
+
+enum CategoryType {
+  IT
+  NON_IT
+}
+
+enum TargetLevel {
+  JUNIOR
+  MIDDLE
+  SENIOR
+  MANAGEMENT
+  EXECUTIVE
+}
+
+enum CourseType {
+  TECHNOLOGY
+  IT
+  FUNCTIONAL
+  PROCESS
+  BEHAVIORAL
+  PERSONAL
+}
+
+enum BatchMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AudienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL_LEVELS
+}

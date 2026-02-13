@@ -1,0 +1,6 @@
+
+import PortalLayout from "@/components/layout/PortalLayout";
+
+export default function CatalogLayout({ children }: { children: React.ReactNode }) {
+    return <PortalLayout>{children}</PortalLayout>;
+}
