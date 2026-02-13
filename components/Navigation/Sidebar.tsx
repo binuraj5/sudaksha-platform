@@ -50,8 +50,12 @@ export function Sidebar() {
 
     const user = session.user as { role: string; name?: string; email?: string; image?: string };
 
-    // Determine if switching is applicable (corporates: Admin, Dept Head, Team Lead; institutions: Admin, Dept Head, Class Teacher)
-    const isSwitcherApplicable = ['TENANT_ADMIN', 'CLIENT_ADMIN', 'DEPARTMENT_HEAD', 'DEPT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'].includes(user.role);
+    // Determine if switching is applicable. My Personal Page works for everyone EXCEPT:
+    // Institutions - Admin, Dept Head, Faculty, Class Teacher.
+    const rolesWithSwitcher = ['TENANT_ADMIN', 'CLIENT_ADMIN', 'DEPARTMENT_HEAD', 'DEPT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'];
+    const institutionRolesWithoutPersonalPage = ['TENANT_ADMIN', 'DEPT_HEAD', 'DEPARTMENT_HEAD', 'CLASS_TEACHER'];
+    const isInstitutionRoleExcluded = tenant?.type === 'INSTITUTION' && institutionRolesWithoutPersonalPage.includes(user.role);
+    const isSwitcherApplicable = rolesWithSwitcher.includes(user.role) && !isInstitutionRoleExcluded;
 
     // If not applicable (e.g., EMPLOYEE), force PERSONAL mode logic (or just default config)
     // But getNavigationConfig handles basic roles correctly.

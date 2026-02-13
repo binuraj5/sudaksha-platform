@@ -219,9 +219,11 @@ export function getNavigationConfig(
         });
     }
 
-    // My Profile section: hidden for Admin/Dept Head/Team Lead/Class Teacher (they use View Switch; only show for other roles)
-    const rolesWithViewSwitchOnly = ['TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'];
-    const showMyProfile = !rolesWithViewSwitchOnly.includes(role);
+    // My Profile section: Add for all roles except Institution Faculty.
+    // For switcher roles (Admin, Dept Head, Team Lead), Sidebar uses this when user selects "My Personal Page".
+    // For non-switcher roles (Employee, Student), this is shown as the main nav.
+    const isInstitutionFaculty = tenant?.type === 'INSTITUTION' && ['EMPLOYEE', 'ASSESSOR'].includes(user.role);
+    const showMyProfile = !isInstitutionFaculty;
 
     if (showMyProfile) {
         const effectiveTenantType = tenant?.type ?? (user.role === 'INDIVIDUAL' ? 'SYSTEM' : null);
@@ -255,6 +257,18 @@ export function getNavigationConfig(
                 defaultExpanded: true
             });
         }
+    }
+
+    // Institution Faculty: My Personal Page not available; provide minimal Dashboard link
+    if (isInstitutionFaculty && tenant && basePath) {
+        navigation.push({
+            id: 'institution-faculty-dashboard',
+            icon: Home,
+            label: 'Dashboard',
+            path: `${basePath}/dashboard`,
+            permission: '*',
+            roles: ['*'],
+        });
     }
 
     return navigation;

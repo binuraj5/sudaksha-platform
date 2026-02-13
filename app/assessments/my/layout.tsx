@@ -1,6 +1,7 @@
 import React from 'react';
 import PortalHeader from '@/components/layout/PortalHeader';
 import { SidebarContainer } from '@/components/layout/SidebarContainer';
+import { SessionProviderWrapper } from '@/components/SessionProviderWrapper';
 import { getApiSession } from "@/lib/get-session";
 import { redirect } from "next/navigation";
 
@@ -27,14 +28,16 @@ export default async function PersonalLayout({ children }: { children: React.Rea
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <PortalHeader branding={branding} session={session} />
-            <div className="flex-1 flex overflow-hidden">
-                <SidebarContainer />
-                <main className="flex-1 overflow-y-auto relative p-6">
-                    {children}
-                </main>
+        <SessionProviderWrapper session={session}>
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <PortalHeader branding={branding} session={session} />
+                <div className="flex-1 flex overflow-hidden">
+                    <SidebarContainer />
+                    <main className="flex-1 overflow-y-auto relative p-6">
+                        {children}
+                    </main>
+                </div>
             </div>
-        </div>
+        </SessionProviderWrapper>
     );
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import PortalHeader from './PortalHeader';
 import { Sidebar } from '@/components/Navigation/Sidebar';
 import { MobileNav } from '@/components/Navigation/MobileNav';
+import { SessionProviderWrapper } from '@/components/SessionProviderWrapper';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import type { Session } from "next-auth";
@@ -44,15 +45,17 @@ export default async function PortalLayout({ children }: { children: React.React
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <PortalHeader branding={branding} session={session} />
-            <MobileNav />
-            <div className="flex-1 flex overflow-hidden">
-                <Sidebar />
-                <main className="flex-1 overflow-y-auto relative p-6">
-                    {children}
-                </main>
+        <SessionProviderWrapper session={session}>
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+                <PortalHeader branding={branding} session={session} />
+                <MobileNav />
+                <div className="flex-1 flex overflow-hidden">
+                    <Sidebar />
+                    <main className="flex-1 overflow-y-auto relative p-6">
+                        {children}
+                    </main>
+                </div>
             </div>
-        </div>
+        </SessionProviderWrapper>
     );
 }
