@@ -1844,6 +1844,65 @@ model ComponentSuggestion {
   @@index([competencyCategory, targetLevel])
 }
 
+// Panel Interview: Scheduling and evaluation (Phase: Panel Interview feature)
+model Panel {
+  id                String   @id @default(cuid())
+  tenantId          String?
+  name              String
+  description       String?
+  durationMinutes   Int      @default(60)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  interviews        PanelInterview[]
+  members           PanelMember[]
+
+  @@index([tenantId])
+}
+
+model PanelMember {
+  id        String   @id @default(cuid())
+  panelId   String
+  userId    String
+  role      String?  // HIRING_MANAGER | TECHNICAL_LEAD | PEER_INTERVIEWER
+  createdAt DateTime @default(now())
+  panel    Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
+
+  @@index([panelId])
+}
+
+model PanelInterview {
+  id               String   @id @default(cuid())
+  candidateId      String?  // Member.id or User.id
+  panelId          String
+  scheduledTime    DateTime
+  durationMinutes  Int      @default(60)
+  meetingLink      String?
+  status           String   @default("SCHEDULED") // SCHEDULED | COMPLETED | CANCELLED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  panel            Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  evaluations      PanelEvaluation[]
+
+  @@index([panelId])
+  @@index([candidateId])
+  @@index([status])
+}
+
+model PanelEvaluation {
+  id               String    @id @default(cuid())
+  panelInterviewId String
+  panelistId       String
+  scores           Json?     // { competencyId: score }
+  feedback         String?   @db.Text
+  recommendation   String?   // STRONG_HIRE | HIRE | MAYBE | NO_HIRE
+  submittedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  panelInterview   PanelInterview @relation(fields: [panelInterviewId], references: [id], onDelete: Cascade)
+
+  @@index([panelInterviewId])
+}
+
 // Phase 1: Global publish requests
 model GlobalPublishRequest {
   id                 String   @id @default(cuid())

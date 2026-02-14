@@ -19,6 +19,7 @@ import {
 } from "@/lib/assessment/component-suggester";
 import { ComponentBuildingView } from "@/components/assessments/ComponentBuildingView";
 import { ModelCompetencySelector, type RoleCompetencyItem } from "@/components/assessments/ModelCompetencySelector";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 interface Competency {
@@ -68,6 +69,14 @@ function calculateCompetencyProgress(selection: ComponentSelection): number {
 }
 
 const WIZARD_WEIGHTS_KEY = "assessment-wizard-competency-weights";
+const WIZARD_DRAFT_KEY = "assessment-wizard-draft";
+
+const STEPS_ORDER: Array<"OVERVIEW" | "SELECT_COMPETENCIES" | "COMPONENTS" | "BUILD"> = [
+    "OVERVIEW",
+    "SELECT_COMPETENCIES",
+    "COMPONENTS",
+    "BUILD",
+];
 
 export function AssessmentBuilderWizard({
     roleId,
@@ -233,6 +242,33 @@ export function AssessmentBuilderWizard({
             (s) => s.selectedComponents.size > 0
         );
     };
+
+    const handleSaveDraft = () => {
+        try {
+            const draft = {
+                step,
+                modelName,
+                competencySelection,
+                selectStepSelectedIds: Array.from(selectStepSelectedIds),
+                selectStepWeights: { ...selectStepWeights },
+                roleId,
+                targetLevel,
+            };
+            sessionStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft));
+            toast.success("Draft saved. Return to this page to continue.");
+        } catch {
+            toast.error("Failed to save draft");
+        }
+    };
+
+    const stepProgressPercent =
+        step === "OVERVIEW"
+            ? 10
+            : step === "SELECT_COMPETENCIES"
+              ? 30
+              : step === "COMPONENTS"
+                ? 60
+                : 90;
 
     const handleStartBuilding = async () => {
         if (!hasAnySelection()) return;
@@ -435,9 +471,9 @@ export function AssessmentBuilderWizard({
                 </Button>
             </div>
             <Card>
-                <CardContent className="p-6">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                <CardContent className="p-4 sm:p-6">
+                    <div className="overflow-x-auto -mx-4 sm:mx-0">
+                        <table className="w-full text-sm min-w-[600px]">
                             <thead>
                                 <tr className="border-b">
                                     <th className="text-left p-4 font-semibold">Competency</th>
@@ -579,10 +615,42 @@ export function AssessmentBuilderWizard({
         );
 
     return (
-        <div className="container mx-auto py-8 max-w-5xl">
-            {step === "OVERVIEW" && renderOverview()}
-            {step === "SELECT_COMPETENCIES" && renderSelectCompetencies()}
-            {step === "COMPONENTS" && renderComponentSelection()}
+        <div className="container mx-auto py-8 max-w-5xl px-4 sm:px-6">
+            {/* Step progress indicator */}
+            <div className="mb-8">
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                    <span>
+                        Step {STEPS_ORDER.indexOf(step) + 1} of {STEPS_ORDER.length}
+                    </span>
+                    <span className="capitalize">{step.replace(/_/g, " ").toLowerCase()}</span>
+                </div>
+                <Progress value={stepProgressPercent} className="h-2" />
+            </div>
+
+            {step === "OVERVIEW" && (
+                <div className="space-y-4">
+                    {renderOverview()}
+                    <Button variant="outline" onClick={handleSaveDraft} className="w-full sm:w-auto">
+                        Save draft
+                    </Button>
+                </div>
+            )}
+            {step === "SELECT_COMPETENCIES" && (
+                <div className="space-y-4">
+                    {renderSelectCompetencies()}
+                    <Button variant="outline" onClick={handleSaveDraft} className="w-full sm:w-auto">
+                        Save draft
+                    </Button>
+                </div>
+            )}
+            {step === "COMPONENTS" && (
+                <div className="space-y-4">
+                    {renderComponentSelection()}
+                    <Button variant="outline" onClick={handleSaveDraft} className="w-full sm:w-auto">
+                        Save draft
+                    </Button>
+                </div>
+            )}
             {step === "BUILD" && renderComponentBuilding()}
         </div>
     );
