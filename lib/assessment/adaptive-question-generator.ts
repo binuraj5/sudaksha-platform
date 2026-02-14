@@ -76,14 +76,17 @@ export async function generateAdaptiveQuestion(
 
     const questionText = (generated.question as string) || (generated.text as string) || "Question";
     const rawOptions = (generated.options as Array<{ key?: string; text: string; isCorrect?: boolean }>) ?? [];
-    const correctAnswer = (generated.correctAnswer as string) ?? "";
+    const correctKey = String((generated.correctAnswer as string) ?? "").trim();
     const explanation = (generated.explanation as string) || null;
 
-    const options = rawOptions.map((opt) => ({
-        key: (opt.key as string) || opt.text?.slice(0, 1) || "A",
-        text: typeof opt === "string" ? opt : (opt.text as string),
-        isCorrect: opt.text === correctAnswer || opt.key === correctAnswer,
-    }));
+    const options = rawOptions.map((opt) => {
+        const text = typeof opt === "string" ? opt : (opt.text as string);
+        const key = (opt.key as string) || text?.slice(0, 1) || "A";
+        const isCorrect = key === correctKey || text === correctKey;
+        return { key, text, isCorrect };
+    });
+    const correctOpt = options.find((o) => o.isCorrect);
+    const correctAnswer = correctOpt?.text ?? correctKey;
 
     const question = await prisma.adaptiveQuestion.create({
         data: {

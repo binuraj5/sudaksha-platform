@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { ComponentQuestionRenderer, type RunnerQuestion } from "./ComponentQuestionRenderer";
 import { VoiceInterviewRunner } from "./VoiceInterviewRunner";
 import { VideoInterviewRunner } from "./VideoInterviewRunner";
+import { AdaptiveAssessmentRunner } from "./AdaptiveAssessmentRunner";
 
 interface AssessmentRunnerProps {
     userAssessment: any; // Type should be properly defined based on Prisma include
@@ -50,6 +51,8 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
         useVideoInterview?: boolean;
         videoConfig?: { questionCount: number; maxDurationPerQuestion: number; retakesAllowed: number; competencyName: string; targetLevel: string };
         videoQuestionId?: string | null;
+        useAdaptiveAI?: boolean;
+        adaptiveConfig?: Record<string, unknown>;
         performanceHistory?: { recent: { isCorrect: boolean }[]; total: number; correct: number; streak: number; userId: string | null };
     } | null>(null);
     const [answers, setAnswers] = useState<Record<string, unknown>>({});
@@ -212,6 +215,10 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
                     useVideoInterview: true,
                     videoConfig: data.videoConfig,
                     videoQuestionId: data.videoQuestionId,
+                }),
+                ...(data.useAdaptiveAI && data.adaptiveConfig && {
+                    useAdaptiveAI: true,
+                    adaptiveConfig: data.adaptiveConfig,
                 }),
                 ...(useRuntimeAI && {
                     useRuntimeAI: true,
@@ -442,6 +449,38 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
                             userComponentId={runnerState.userComponentId}
                             questionId={runnerState.voiceQuestionId}
                             voiceConfig={runnerState.voiceConfig}
+                            sectionName={sectionName}
+                            onComplete={handleNextSection}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        // Adaptive AI: runtime question generation
+        if (runnerState?.useAdaptiveAI && runnerState?.adaptiveConfig) {
+            return (
+                <div className="min-h-[80vh] flex flex-col">
+                    <div className="bg-white border-b px-8 py-4 flex justify-between items-center sticky top-0 z-20">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-red-50 p-2 rounded-lg">
+                                <ShieldCheck className="h-5 w-5 text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900">{sectionName}</h3>
+                                <p className="text-[10px] text-gray-500 uppercase tracking-widest">{model?.name}</p>
+                            </div>
+                        </div>
+                        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-lg bg-gray-900 text-white`}>
+                            <Clock className="h-5 w-5 text-red-400" />
+                            {formatTime(Math.max(0, componentDurationSeconds - timerTick))}
+                        </div>
+                    </div>
+                    <div className="flex-1 p-8 bg-gray-50 overflow-y-auto">
+                        <AdaptiveAssessmentRunner
+                            assessmentId={userAssessment.id}
+                            componentId={activeComponent.id}
+                            adaptiveConfig={runnerState.adaptiveConfig as { min_questions?: number; max_questions?: number }}
                             sectionName={sectionName}
                             onComplete={handleNextSection}
                         />

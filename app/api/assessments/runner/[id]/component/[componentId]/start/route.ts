@@ -31,17 +31,33 @@ export async function POST(
         const useRuntimeAI = metadata?.useRuntimeAI === true;
         const totalRuntimeQuestions = metadata?.runtimeQuestionCount ?? 5;
         const componentType = (component as { componentType?: string }).componentType ?? "";
-        let componentConfig = (component as { config?: unknown }).config as { questionCount?: number; maxDurationPerQuestion?: number; retakesAllowed?: number; competencyName?: string; targetLevel?: string } | null;
+        let componentConfig = (component as { config?: unknown }).config as {
+            questionCount?: number;
+            maxDurationPerQuestion?: number;
+            retakesAllowed?: number;
+            competencyName?: string;
+            targetLevel?: string;
+            min_questions?: number;
+            max_questions?: number;
+            starting_difficulty?: number;
+            allowed_question_types?: string[];
+        } | null;
         // Fallback: config may be in first question metadata (legacy)
-        if (!componentConfig?.competencyName && component.questions[0]) {
-            const meta = (component.questions[0] as { metadata?: unknown }).metadata as { competencyName?: string; targetLevel?: string; questionCount?: number; maxDurationPerQuestion?: number; retakesAllowed?: number } | null;
+        if (!componentConfig?.competencyName && !componentConfig?.min_questions && component.questions[0]) {
+            const meta = (component.questions[0] as { metadata?: unknown }).metadata as { competencyName?: string; targetLevel?: string; questionCount?: number; maxDurationPerQuestion?: number; retakesAllowed?: number; min_questions?: number } | null;
             if (meta?.competencyName && meta?.targetLevel) {
+                componentConfig = meta;
+            } else if (meta?.min_questions) {
                 componentConfig = meta;
             }
         }
+        if (!componentConfig && (component as { config?: unknown }).config) {
+            componentConfig = (component as { config: unknown }).config as typeof componentConfig;
+        }
         const isVoiceInterview = componentType === "VOICE" && componentConfig?.competencyName && componentConfig?.targetLevel;
         const isVideoInterview = componentType === "VIDEO" && componentConfig?.competencyName && componentConfig?.targetLevel;
-        const maxScore = useRuntimeAI ? totalRuntimeQuestions * 10 : (isVoiceInterview || isVideoInterview ? 100 : component.questions.reduce((sum, q) => sum + (q.points ?? 1), 0));
+        const isAdaptiveAI = componentType === "ADAPTIVE_AI" && componentConfig;
+        const maxScore = useRuntimeAI ? totalRuntimeQuestions * 10 : (isVoiceInterview || isVideoInterview || isAdaptiveAI ? 100 : component.questions.reduce((sum, q) => sum + (q.points ?? 1), 0));
 
         // 1. Org flow: ProjectUserAssessment
         const projectAssessment = await prisma.projectUserAssessment.findFirst({
@@ -100,6 +116,7 @@ export async function POST(
                     },
                     videoQuestionId: component.questions[0]?.id ?? null,
                 }),
+                // Adaptive AI: Member flow only (AdaptiveSession uses memberAssessmentId)
             });
         }
 
@@ -180,6 +197,10 @@ export async function POST(
                             targetLevel: componentConfig!.targetLevel,
                         },
                         videoQuestionId: component.questions[0]?.id ?? null,
+                    }),
+                    ...(isAdaptiveAI && {
+                        useAdaptiveAI: true,
+                        adaptiveConfig: componentConfig as Record<string, unknown>,
                     }),
                 });
             }
