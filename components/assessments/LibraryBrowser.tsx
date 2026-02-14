@@ -175,8 +175,9 @@ export function LibraryBrowser({
                         <SelectContent>
                             <SelectItem value="">All Types</SelectItem>
                             <SelectItem value="MCQ">MCQ</SelectItem>
-                            <SelectItem value="SITUATIONAL">Situational</SelectItem>
+                            <SelectItem value="SHORT_ANSWER">Short Answer</SelectItem>
                             <SelectItem value="ESSAY">Essay</SelectItem>
+                            <SelectItem value="SITUATIONAL">Situational</SelectItem>
                             <SelectItem value="CODE">Code</SelectItem>
                             <SelectItem value="QUESTIONNAIRE">Questionnaire</SelectItem>
                         </SelectContent>

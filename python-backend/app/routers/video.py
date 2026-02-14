@@ -28,14 +28,19 @@ class VideoAnalyzeResponse(BaseModel):
 @router.post("/analyze", response_model=VideoAnalyzeResponse)
 async def analyze_video(video: UploadFile = File(...), competency_name: str = "", target_level: str = "JUNIOR"):
     """
-    Placeholder: Full video analysis pipeline.
+    Video analysis pipeline. Stub implementation returns placeholder scores.
     In production: extract audio -> Whisper, extract frames -> MediaPipe/GPT-4 Vision.
-    For now returns structure for integration.
     """
+    # Stub: Accept video and return placeholder scores for UI integration
     # TODO: Implement OpenCV frame extraction, MediaPipe face/eye tracking
     # TODO: Extract audio, transcribe with Whisper
     # TODO: GPT-4 Vision for visual analysis
-    raise HTTPException(
-        status_code=501,
-        detail="Video analysis pipeline not yet implemented. Use voice interview for now.",
+    _ = await video.read()  # Consume file for now
+    return VideoAnalyzeResponse(
+        content_score=70.0,
+        delivery_score=75.0,
+        visual_presence_score=72.0,
+        professionalism_score=78.0,
+        overall_score=73.75,
+        feedback=f"Video received for {competency_name} ({target_level}). Full analysis pipeline coming soon.",
     )

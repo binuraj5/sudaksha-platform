@@ -39,8 +39,9 @@ export default withAuth(
         if (path.startsWith('/assessments/admin')) {
             const isSuperAdmin = userType === 'SUPER_ADMIN' || role === 'SUPER_ADMIN';
             if (!isSuperAdmin) {
-                // Use same login page for all users; logged-in users will be redirected to their dashboard
-                return NextResponse.redirect(new URL('/assessments/login', req.url));
+                const loginUrl = new URL('/assessments/login', req.url);
+                loginUrl.searchParams.set('callbackUrl', path);
+                return NextResponse.redirect(loginUrl);
             }
         }
 

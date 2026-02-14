@@ -81,7 +81,7 @@ export async function POST(
         const compType = (component.componentType || "QUESTIONNAIRE").toUpperCase();
 
         // 3. Route by componentType to appropriate generator
-        if (compType === "MCQ" || compType === "SITUATIONAL" || compType === "ESSAY") {
+        if (compType === "MCQ" || compType === "SITUATIONAL" || compType === "ESSAY" || compType === "SHORT_ANSWER") {
             const generationRequest = {
                 competencyName: competency.name,
                 competencyDescription: competency.description ?? undefined,
@@ -92,7 +92,7 @@ export async function POST(
                     text: i.text,
                     type: i.type ?? undefined
                 })),
-                componentType: compType as "MCQ" | "SITUATIONAL" | "ESSAY",
+                componentType: compType as "MCQ" | "SITUATIONAL" | "ESSAY" | "SHORT_ANSWER",
                 questionCount,
                 difficulty: (difficulty || "MEDIUM") as "EASY" | "MEDIUM" | "HARD",
                 additionalContext
@@ -103,6 +103,8 @@ export async function POST(
                 questions = await AIQuestionGenerator.generateMCQQuestions(generationRequest);
             } else if (compType === "SITUATIONAL") {
                 questions = await AIQuestionGenerator.generateSituationalQuestions(generationRequest);
+            } else if (compType === "SHORT_ANSWER") {
+                questions = await AIQuestionGenerator.generateShortAnswerPrompts(generationRequest);
             } else {
                 questions = await AIQuestionGenerator.generateEssayPrompts(generationRequest);
             }

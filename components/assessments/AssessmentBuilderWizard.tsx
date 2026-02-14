@@ -536,7 +536,8 @@ export function AssessmentBuilderWizard({
                                                                     }
                                                                 }}
                                                             >
-                                                                {isSelected ? "✓ " : ""}{s.type}
+                                                                {isSelected ? "✓ " : ""}
+                                                                {s.icon ? `${s.icon} ` : ""}{s.type}
                                                                 <span className="ml-1 text-xs">
                                                                     ({s.estimatedQuestions}Q, {s.estimatedDuration}m)
                                                                 </span>

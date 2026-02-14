@@ -823,6 +823,7 @@ model User {
   assessments        UserAssessmentModel[]
   reports            Report[]
   componentLibrariesCreated ComponentLibrary[]
+  adaptiveComponentLibrariesCreated AdaptiveComponentLibrary[]
   publishRequestsAsRequester GlobalPublishRequest[] @relation("PublishRequester")
   publishRequestsAsReviewer  GlobalPublishRequest[] @relation("PublishReviewer")
 
@@ -955,16 +956,19 @@ model AssessmentModelComponent {
   // NEW: Component library and metadata (Phase 1)
   isFromLibrary       Boolean  @default(false)
   libraryComponentId  String?
-  componentType      String   @default("QUESTIONNAIRE") // MCQ | SITUATIONAL | CODE | ESSAY | VOICE | VIDEO | PANEL | QUESTIONNAIRE
+  componentType      String   @default("QUESTIONNAIRE") // MCQ | SITUATIONAL | CODE | ESSAY | VOICE | VIDEO | PANEL | ADAPTIVE_AI | QUESTIONNAIRE
   status             String   @default("DRAFT") // DRAFT | IN_PROGRESS | COMPLETE
   completionPercentage Int    @default(0)
   estimatedDuration   Int?    // Minutes
+  config             Json?    // Component-specific config (VOICE, VIDEO, CODE, ADAPTIVE_AI)
 
   competency               Competency?               @relation(fields: [competencyId], references: [id])
   model                    AssessmentModel           @relation(fields: [modelId], references: [id], onDelete: Cascade)
   questions                ComponentQuestion[]
   userAssessmentComponents UserAssessmentComponent[]
   libraryComponent         ComponentLibrary?        @relation("ComponentToLibrary", fields: [libraryComponentId], references: [id])
+  adaptiveSessions         AdaptiveSession[]
+  panelInterviews          PanelInterview[]
 
   @@index([modelId])
   @@index([competencyId])
@@ -1162,6 +1166,7 @@ model Tenant {
   curriculumNodes   CurriculumNode[]
   assessmentModels  AssessmentModel[]
   componentLibraries ComponentLibrary[]
+  adaptiveComponentLibraries AdaptiveComponentLibrary[]
 
   @@index([slug])
   @@index([type])
@@ -1355,6 +1360,7 @@ model Member {
   orgUnit            OrganizationUnit?  @relation(fields: [orgUnitId], references: [id])
   tenant             Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assessments        MemberAssessment[]
+  adaptiveSessions   AdaptiveSession[]
   managedUnits       OrganizationUnit[] @relation("UnitManager")
   surveyResponses    SurveyResponse[]
 
@@ -1534,6 +1540,8 @@ model MemberAssessment {
   activity             Activity?        @relation(fields: [activityId], references: [id])
   member               Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
   assessmentModel      AssessmentModel  @relation(fields: [assessmentModelId], references: [id], onDelete: Cascade)
+  adaptiveSessions     AdaptiveSession[]
+  panelInterviews      PanelInterview[]
 
   @@index([memberId])
   @@index([activityId])
@@ -1753,6 +1761,8 @@ model Competency {
   roleLinks                 RoleCompetency[]
   assessmentModelComponents AssessmentModelComponent[]
   componentLibraryEntries   ComponentLibrary[]
+  adaptiveComponentLibraries AdaptiveComponentLibrary[]
+  adaptiveSessions         AdaptiveSession[]
 }
 
 model CompetencyIndicator {
@@ -1866,32 +1876,41 @@ model PanelMember {
   role      String?  // HIRING_MANAGER | TECHNICAL_LEAD | PEER_INTERVIEWER
   createdAt DateTime @default(now())
   panel    Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  evaluations PanelEvaluation[]
 
   @@index([panelId])
 }
 
 model PanelInterview {
-  id               String   @id @default(cuid())
-  candidateId      String?  // Member.id or User.id
-  panelId          String
-  scheduledTime    DateTime
-  durationMinutes  Int      @default(60)
-  meetingLink      String?
-  status           String   @default("SCHEDULED") // SCHEDULED | COMPLETED | CANCELLED
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  panel            Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
-  evaluations      PanelEvaluation[]
+  id                  String   @id @default(cuid())
+  candidateId         String?  // Member.id or User.id
+  panelId             String
+  memberAssessmentId   String?  // Links to assessment submission
+  componentId         String?  // Links to assessment component
+  scheduledTime       DateTime
+  durationMinutes     Int      @default(60)
+  meetingLink         String?
+  status              String   @default("SCHEDULED") // SCHEDULED | COMPLETED | CANCELLED
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  completedAt         DateTime?
+  panel               Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  memberAssessment    MemberAssessment? @relation(fields: [memberAssessmentId], references: [id], onDelete: SetNull)
+  component           AssessmentModelComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  evaluations         PanelEvaluation[]
 
   @@index([panelId])
   @@index([candidateId])
   @@index([status])
+  @@index([memberAssessmentId])
+  @@index([componentId])
 }
 
 model PanelEvaluation {
   id               String    @id @default(cuid())
   panelInterviewId String
   panelistId       String
+  panelMemberId    String?
   scores           Json?     // { competencyId: score }
   feedback         String?   @db.Text
   recommendation   String?   // STRONG_HIRE | HIRE | MAYBE | NO_HIRE
@@ -1899,8 +1918,87 @@ model PanelEvaluation {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   panelInterview   PanelInterview @relation(fields: [panelInterviewId], references: [id], onDelete: Cascade)
+  panelMember      PanelMember?   @relation(fields: [panelMemberId], references: [id], onDelete: SetNull)
 
   @@index([panelInterviewId])
+}
+
+// Phase 1: Master Assessment Engine - Adaptive AI
+model AdaptiveComponentLibrary {
+  id           String   @id @default(cuid())
+  tenantId     String
+  createdBy    String
+  name         String
+  description  String?
+  competencyId String
+  targetLevel  String   // JUNIOR | MIDDLE | SENIOR | EXPERT
+  config       Json     // min_questions, max_questions, starting_difficulty, etc.
+  visibility   String   @default("PRIVATE")
+  usageCount   Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  creator    User       @relation(fields: [createdBy], references: [id])
+  competency Competency @relation(fields: [competencyId], references: [id])
+
+  @@index([tenantId])
+  @@index([competencyId])
+}
+
+model AdaptiveSession {
+  id                  String    @id @default(cuid())
+  memberAssessmentId   String
+  componentId          String
+  memberId             String
+  competencyId         String
+  currentAbility      Decimal   @db.Decimal(4, 2)
+  initialAbility      Decimal   @db.Decimal(4, 2)
+  targetLevel          String
+  questionsAsked       Int       @default(0)
+  questionsCorrect     Int       @default(0)
+  status               String    @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | ABANDONED
+  config               Json
+  startedAt            DateTime  @default(now())
+  lastActivityAt       DateTime  @default(now())
+  completedAt          DateTime?
+  finalScore           Decimal?  @db.Decimal(5, 2)
+  abilityEstimate      Decimal?  @db.Decimal(4, 2)
+
+  memberAssessment MemberAssessment        @relation(fields: [memberAssessmentId], references: [id], onDelete: Cascade)
+  component        AssessmentModelComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  member           Member                  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  competency       Competency              @relation(fields: [competencyId], references: [id])
+  questions        AdaptiveQuestion[]
+
+  @@index([memberAssessmentId])
+  @@index([componentId])
+  @@index([status])
+}
+
+model AdaptiveQuestion {
+  id                String    @id @default(cuid())
+  sessionId         String
+  questionText      String    @db.Text
+  questionType      String
+  options           Json?
+  correctAnswer     String?
+  explanation       String?   @db.Text
+  difficulty        Decimal   @db.Decimal(4, 2)
+  sequenceNumber    Int
+  generationPrompt  String?   @db.Text
+  generatedAt       DateTime  @default(now())
+  candidateAnswer   String?   @db.Text
+  isCorrect         Boolean?
+  timeTakenSeconds  Int?
+  answeredAt        DateTime?
+  pointsAwarded     Decimal?  @db.Decimal(5, 2)
+  maxPoints         Decimal?  @db.Decimal(5, 2)
+
+  session AdaptiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([sessionId, sequenceNumber])
 }
 
 // Phase 1: Global publish requests

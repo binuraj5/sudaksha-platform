@@ -24,6 +24,7 @@ export async function GET(
             include: {
                 competency: {
                     select: {
+                        id: true,
                         name: true,
                         category: true,
                         indicators: true

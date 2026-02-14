@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Mic, Loader2, Play, Terminal } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { CodeEditor } from "@/components/assessments/CodeEditor";
 import { toast } from "sonner";
 
 export interface RunnerQuestion {
@@ -259,8 +260,9 @@ function CodingChallengeBlock({
     metadata?: Record<string, unknown> | null;
 }) {
     const stored = (value && typeof value === "object" && "code" in value) ? (value as { code?: string; language?: string; runResult?: unknown }) : null;
+    const metaLang = (metadata as { language?: string })?.language;
     const [code, setCode] = React.useState(stored?.code ?? (metadata as { starterCode?: string })?.starterCode ?? "// Write your solution here\n");
-    const [language, setLanguage] = React.useState(stored?.language ?? "javascript");
+    const [language, setLanguage] = React.useState(stored?.language ?? metaLang ?? "javascript");
     const [runResult, setRunResult] = React.useState<unknown>(stored?.runResult ?? null);
     const [running, setRunning] = React.useState(false);
 
@@ -314,16 +316,18 @@ function CodingChallengeBlock({
                     Run tests
                 </Button>
             </div>
-            <textarea
-                className="w-full min-h-[200px] p-4 font-mono text-sm bg-slate-900 text-slate-200 rounded-lg border border-slate-700 resize-y"
-                value={code}
-                onChange={(e) => {
-                    setCode(e.target.value);
-                    persist(e.target.value, language, runResult);
-                }}
-                disabled={disabled}
-                spellCheck={false}
-            />
+            <div className="rounded-lg border border-slate-700 overflow-hidden">
+                <CodeEditor
+                    value={code}
+                    onChange={(v) => {
+                        setCode(v);
+                        persist(v, language, runResult);
+                    }}
+                    language={language}
+                    disabled={disabled}
+                    height={240}
+                />
+            </div>
             {runResult && typeof runResult === "object" && !("error" in runResult) ? (
                 <div className="rounded-lg border bg-slate-50 p-3 space-y-2">
                     <div className="flex items-center gap-2 font-medium text-sm">

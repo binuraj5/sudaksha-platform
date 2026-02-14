@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { use } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,7 +20,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, Loader2, Layout } from "lucide-react";
+import { ArrowLeft, Plus, Loader2, Layout, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ComponentBuildStatus {
@@ -52,6 +51,7 @@ interface AssessmentModel {
     id: string;
     name: string;
     code: string;
+    status?: string | null;
     targetLevel?: string | null;
     roleId?: string | null;
 }
@@ -113,6 +113,7 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
     const [addingCompetencyId, setAddingCompetencyId] = useState<string | null>(null);
     const [addingType, setAddingType] = useState<ComponentType | null>(null);
     const [isAdding, setIsAdding] = useState(false);
+    const [unpublishing, setUnpublishing] = useState(false);
 
     const targetLevel = model?.targetLevel || "JUNIOR";
 
@@ -258,6 +259,29 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
         toast.success("Assessment ready for questions.");
     };
 
+    const handleUnpublish = async () => {
+        if (model?.status !== "PUBLISHED") return;
+        setUnpublishing(true);
+        try {
+            const res = await fetch(`/api/assessments/admin/models/${modelId}/unpublish`, {
+                method: "POST",
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                setModel((prev) => prev ? { ...prev, status: "DRAFT" } : null);
+                toast.success(data.message || "Model unpublished");
+            } else {
+                toast.error(data.error || "Failed to unpublish");
+            }
+        } catch {
+            toast.error("Failed to unpublish");
+        } finally {
+            setUnpublishing(false);
+        }
+    };
+
+    const isPublished = model?.status === "PUBLISHED";
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
@@ -305,10 +329,31 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
                             <Badge variant="outline" className="font-mono text-xs py-0">
                                 {model.code}
                             </Badge>
+                            {model.status && (
+                                <Badge variant={model.status === "PUBLISHED" ? "default" : "secondary"} className="text-xs py-0">
+                                    {model.status}
+                                </Badge>
+                            )}
                         </h1>
                         <p className="text-xs text-muted-foreground">Assessment Builder</p>
                     </div>
                 </div>
+                {isPublished && (
+                    <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 px-4 py-2 text-sm">
+                        <span className="text-amber-800 dark:text-amber-200">
+                            This model is published. Unpublish to add or edit components.
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleUnpublish}
+                            disabled={unpublishing}
+                        >
+                            {unpublishing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <XCircle className="w-4 h-4 mr-2" />}
+                            Unpublish
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {selections.size === 0 ? (
@@ -320,9 +365,11 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
                         <div className="text-center max-w-sm">
                             <h2 className="text-lg font-bold">No components yet</h2>
                             <p className="text-sm text-muted-foreground mt-1">
-                                {availableCompetencies.length > 0
-                                    ? "Add competency components to start building your assessment."
-                                    : "Add competencies to your role or competency library first, then return here to build."}
+                                {isPublished
+                                    ? "This model is published. Unpublish it above to add components."
+                                    : availableCompetencies.length > 0
+                                        ? "Add competency components to start building your assessment."
+                                        : "Add competencies to your role or competency library first, then return here to build."}
                             </p>
                         </div>
                         {availableCompetencies.length > 0 ? (
@@ -330,6 +377,7 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
                                 size="lg"
                                 className="bg-navy-700 hover:bg-navy-600"
                                 onClick={() => setIsAddOpen(true)}
+                                disabled={isPublished}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Component
@@ -355,7 +403,7 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
 
             {selections.size > 0 && availableCompetencies.length > 0 && (
                 <div className="mt-4 flex justify-end">
-                    <Button variant="outline" size="sm" onClick={() => setIsAddOpen(true)}>
+                    <Button variant="outline" size="sm" onClick={() => setIsAddOpen(true)} disabled={isPublished}>
                         <Plus className="w-4 h-4 mr-2" />
                         Add Another Component
                     </Button>
@@ -411,7 +459,9 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
                                                 className="p-3 rounded-lg border hover:bg-muted/50 text-left transition-colors"
                                                 onClick={() => setAddingType(s.type)}
                                             >
-                                                <p className="font-medium text-sm">{s.type}</p>
+                                                <p className="font-medium text-sm">
+                                                    {s.icon ? `${s.icon} ` : ""}{s.type}
+                                                </p>
                                                 <p className="text-xs text-muted-foreground">
                                                     {s.estimatedQuestions}Q, {s.estimatedDuration}m
                                                 </p>
@@ -467,6 +517,17 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
 }
 
 export default function AssessmentBuilderPage({ params }: { params: Promise<{ modelId: string }> }) {
-    const { modelId } = use(params);
+    const resolved = use(params);
+    const modelId = resolved?.modelId;
+    if (!modelId) {
+        return (
+            <div className="container mx-auto py-12 px-4 text-center">
+                <p className="text-muted-foreground">Invalid model. Please select an assessment from the list.</p>
+                <Link href="/assessments/admin/models">
+                    <Button variant="outline" className="mt-4">Back to Models</Button>
+                </Link>
+            </div>
+        );
+    }
     return <AssessmentBuilder modelId={modelId} backHref="/assessments/admin/models" />;
 }

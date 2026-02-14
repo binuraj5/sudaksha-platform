@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getApiSession } from "@/lib/get-session";
+import { prisma } from "@/lib/prisma";
 
 const PISTON_EXECUTE_URL = "https://emkc.org/api/v2/piston/execute";
 
@@ -26,8 +28,13 @@ export interface TestCaseInput {
 
 export async function POST(req: NextRequest) {
     try {
+        const session = await getApiSession();
+        if (!session?.user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const body = await req.json();
-        const {
+        let {
             code,
             language = "javascript",
             problemId,
@@ -39,6 +46,19 @@ export async function POST(req: NextRequest) {
                 { error: "Missing or invalid 'code'" },
                 { status: 400 }
             );
+        }
+
+        // Fetch test cases from question metadata when problemId provided
+        if ((!testCases || testCases.length === 0) && problemId) {
+            const question = await prisma.componentQuestion.findUnique({
+                where: { id: problemId },
+                select: { metadata: true },
+            });
+            const meta = question?.metadata as { testCases?: TestCaseInput[]; language?: string } | null;
+            if (meta?.testCases?.length) {
+                testCases = meta.testCases;
+                if (meta.language) language = meta.language;
+            }
         }
 
         const langKey = language.toLowerCase().replace(/\s+/g, "");

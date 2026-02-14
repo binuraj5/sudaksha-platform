@@ -12,7 +12,7 @@ export interface GenerationRequest {
     roleName?: string;
     targetLevel: "JUNIOR" | "MIDDLE" | "SENIOR" | "EXPERT";
     indicators: { id: string; text: string; type?: string }[];
-    componentType: "MCQ" | "SITUATIONAL" | "ESSAY";
+    componentType: "MCQ" | "SITUATIONAL" | "ESSAY" | "SHORT_ANSWER";
     questionCount: number;
     difficulty?: "EASY" | "MEDIUM" | "HARD";
     additionalContext?: string;
@@ -135,6 +135,17 @@ export class AIQuestionGenerator {
      */
     static async generateEssayPrompts(request: GenerationRequest): Promise<GeneratedQuestion[]> {
         const prompt = this.buildEssayPrompt(request);
+        const raw = await this.callOpenAI(prompt, "essay");
+        const questions = (raw.questions as Record<string, unknown>[]) || [];
+        const indicatorIds = request.indicators.map((i) => i.id);
+        return questions.map((q) => mapToOutputFormat(q, "ESSAY", indicatorIds));
+    }
+
+    /**
+     * Generate short-answer prompts (concise responses, 2-4 sentences)
+     */
+    static async generateShortAnswerPrompts(request: GenerationRequest): Promise<GeneratedQuestion[]> {
+        const prompt = this.buildShortAnswerPrompt(request);
         const raw = await this.callOpenAI(prompt, "essay");
         const questions = (raw.questions as Record<string, unknown>[]) || [];
         const indicatorIds = request.indicators.map((i) => i.id);
@@ -325,6 +336,46 @@ Return JSON in this exact format:
       "linkedIndicators": ["${indicatorIds[0] || ""}"],
       "points": 10,
       "difficulty": "HARD"
+    }
+  ]
+}
+
+Generate ${request.questionCount} questions now.
+`;
+    }
+
+    private static buildShortAnswerPrompt(request: GenerationRequest): string {
+        const indicatorList = request.indicators.map((i) => i.text);
+        const indicatorIds = request.indicators.map((i) => i.id);
+
+        return `
+Generate ${request.questionCount} short-answer questions to assess the following:
+
+Competency: ${request.competencyName}
+Target Level: ${request.targetLevel}
+
+Indicators to assess (use the exact ID in linkedIndicators):
+${indicatorList.map((text, i) => `- ID "${indicatorIds[i]}": ${text}`).join("\n")}
+
+Requirements:
+- Create questions that require CONCISE answers (2-4 sentences max)
+- Focus on specific, targeted knowledge or application
+- Appropriate complexity for ${request.targetLevel} level
+- Use linkedIndicators with the indicator IDs above
+- Put evaluation guidance in the explanation field (key points for a strong brief answer)
+
+${request.additionalContext ? `ADDITIONAL CONTEXT:\n${request.additionalContext}\n` : ""}
+
+Return JSON in this exact format:
+{
+  "questions": [
+    {
+      "question": "Short-answer question requiring concise response...",
+      "type": "ESSAY",
+      "explanation": "Key points to evaluate in a strong 2-4 sentence response...",
+      "linkedIndicators": ["${indicatorIds[0] || ""}"],
+      "points": 5,
+      "difficulty": "MEDIUM"
     }
   ]
 }

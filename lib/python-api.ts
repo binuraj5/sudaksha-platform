@@ -97,6 +97,34 @@ export async function evaluateVoiceInterview(params: {
     return response.json();
 }
 
+export async function analyzeVideoPython(params: {
+    videoFile: File | Blob;
+    competencyName: string;
+    targetLevel: string;
+}): Promise<{
+    content_score: number;
+    delivery_score: number;
+    visual_presence_score: number;
+    professionalism_score: number;
+    overall_score: number;
+    feedback: string;
+}> {
+    const formData = new FormData();
+    formData.append("video", params.videoFile instanceof File ? params.videoFile : new File([params.videoFile], "video.webm", { type: "video/webm" }));
+    const url = new URL(`${PYTHON_API_URL}/api/video/analyze`);
+    url.searchParams.set("competency_name", params.competencyName);
+    url.searchParams.set("target_level", params.targetLevel);
+    const response = await fetch(url.toString(), {
+        method: "POST",
+        body: formData,
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error((err as { detail?: string }).detail || "Video analysis failed");
+    }
+    return response.json();
+}
+
 export async function executeCodePython(params: {
     code: string;
     language: string;

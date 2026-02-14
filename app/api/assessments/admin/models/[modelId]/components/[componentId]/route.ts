@@ -17,7 +17,7 @@ export async function PATCH(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { modelId } = await params;
+        const { modelId, componentId } = await params;
         const model = await prisma.assessmentModel.findUnique({
             where: { id: modelId },
             select: { id: true, status: true, tenantId: true, clientId: true }
@@ -31,21 +31,20 @@ export async function PATCH(
         }
 
         const body = await req.json();
-        const { weight, targetLevel, order, isRequired, isTimed, customDuration, indicatorIds } = body;
-        const { componentId, modelId } = await params;
+        const { weight, targetLevel, order, isRequired, isTimed, customDuration, indicatorIds, config } = body;
+        const updateData: Record<string, unknown> = {
+            weight,
+            targetLevel,
+            order,
+            isRequired,
+            isTimed,
+            customDuration,
+            indicatorIds,
+        };
+        if (config !== undefined) updateData.config = config;
         const component = await prisma.assessmentModelComponent.update({
-            where: {
-                id: componentId,
-            },
-            data: {
-                weight,
-                targetLevel,
-                order,
-                isRequired,
-                isTimed,
-                customDuration,
-                indicatorIds
-            }
+            where: { id: componentId },
+            data: updateData,
         });
 
         return NextResponse.json(component);

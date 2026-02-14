@@ -30,7 +30,18 @@ export async function POST(
         const metadata = (component as any).metadata as { useRuntimeAI?: boolean; runtimeQuestionCount?: number } | null;
         const useRuntimeAI = metadata?.useRuntimeAI === true;
         const totalRuntimeQuestions = metadata?.runtimeQuestionCount ?? 5;
-        const maxScore = useRuntimeAI ? totalRuntimeQuestions * 10 : component.questions.reduce((sum, q) => sum + (q.points ?? 1), 0);
+        const componentType = (component as { componentType?: string }).componentType ?? "";
+        let componentConfig = (component as { config?: unknown }).config as { questionCount?: number; maxDurationPerQuestion?: number; retakesAllowed?: number; competencyName?: string; targetLevel?: string } | null;
+        // Fallback: config may be in first question metadata (legacy)
+        if (!componentConfig?.competencyName && component.questions[0]) {
+            const meta = (component.questions[0] as { metadata?: unknown }).metadata as { competencyName?: string; targetLevel?: string; questionCount?: number; maxDurationPerQuestion?: number; retakesAllowed?: number } | null;
+            if (meta?.competencyName && meta?.targetLevel) {
+                componentConfig = meta;
+            }
+        }
+        const isVoiceInterview = componentType === "VOICE" && componentConfig?.competencyName && componentConfig?.targetLevel;
+        const isVideoInterview = componentType === "VIDEO" && componentConfig?.competencyName && componentConfig?.targetLevel;
+        const maxScore = useRuntimeAI ? totalRuntimeQuestions * 10 : (isVoiceInterview || isVideoInterview ? 100 : component.questions.reduce((sum, q) => sum + (q.points ?? 1), 0));
 
         // 1. Org flow: ProjectUserAssessment
         const projectAssessment = await prisma.projectUserAssessment.findFirst({
@@ -65,9 +76,30 @@ export async function POST(
 
             return NextResponse.json({
                 userComponentId: userComponent.id,
-                questions: useRuntimeAI ? [] : component.questions,
+                questions: useRuntimeAI ? [] : (isVoiceInterview ? component.questions : component.questions),
                 maxScore,
                 ...(useRuntimeAI && { useRuntimeAI: true, totalRuntimeQuestions }),
+                ...(isVoiceInterview && {
+                    useVoiceInterview: true,
+                    voiceConfig: {
+                        questionCount: componentConfig?.questionCount ?? 5,
+                        maxDurationPerQuestion: componentConfig?.maxDurationPerQuestion ?? 120,
+                        competencyName: componentConfig!.competencyName,
+                        targetLevel: componentConfig!.targetLevel,
+                    },
+                    voiceQuestionId: component.questions[0]?.id ?? null,
+                }),
+                ...(isVideoInterview && {
+                    useVideoInterview: true,
+                    videoConfig: {
+                        questionCount: componentConfig?.questionCount ?? 3,
+                        maxDurationPerQuestion: componentConfig?.maxDurationPerQuestion ?? 180,
+                        retakesAllowed: componentConfig?.retakesAllowed ?? 1,
+                        competencyName: componentConfig!.competencyName,
+                        targetLevel: componentConfig!.targetLevel,
+                    },
+                    videoQuestionId: component.questions[0]?.id ?? null,
+                }),
             });
         }
 
@@ -128,6 +160,27 @@ export async function POST(
                     questions: useRuntimeAI ? [] : component.questions,
                     maxScore,
                     ...(useRuntimeAI && { useRuntimeAI: true, totalRuntimeQuestions }),
+                    ...(isVoiceInterview && {
+                        useVoiceInterview: true,
+                        voiceConfig: {
+                            questionCount: componentConfig?.questionCount ?? 5,
+                            maxDurationPerQuestion: componentConfig?.maxDurationPerQuestion ?? 120,
+                            competencyName: componentConfig!.competencyName,
+                            targetLevel: componentConfig!.targetLevel,
+                        },
+                        voiceQuestionId: component.questions[0]?.id ?? null,
+                    }),
+                    ...(isVideoInterview && {
+                        useVideoInterview: true,
+                        videoConfig: {
+                            questionCount: componentConfig?.questionCount ?? 3,
+                            maxDurationPerQuestion: componentConfig?.maxDurationPerQuestion ?? 180,
+                            retakesAllowed: componentConfig?.retakesAllowed ?? 1,
+                            competencyName: componentConfig!.competencyName,
+                            targetLevel: componentConfig!.targetLevel,
+                        },
+                        videoQuestionId: component.questions[0]?.id ?? null,
+                    }),
                 });
             }
         }

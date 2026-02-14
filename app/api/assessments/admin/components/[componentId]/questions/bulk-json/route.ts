@@ -34,6 +34,7 @@ export async function POST(
             timeLimit: q.timeLimit || null,
             linkedIndicators: q.linkedIndicators || [],
             explanation: q.explanation || null,
+            metadata: q.metadata ?? null,
             order: idx // Simple order for now
         }));
 

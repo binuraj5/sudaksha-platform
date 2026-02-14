@@ -18,6 +18,13 @@ import { AIGenerateQuestions } from "@/components/assessments/AIGenerateQuestion
 import { QuestionForm } from "@/components/assessments/QuestionForm";
 import { BulkUploadQuestions } from "@/components/assessments/BulkUploadQuestions";
 import { LibraryBrowser } from "@/components/assessments/LibraryBrowser";
+import { VoiceComponentBuilder, type VoiceConfig } from "@/components/assessments/VoiceComponentBuilder";
+import { type VideoConfig } from "@/components/assessments/VideoComponentBuilder";
+import { type CodeConfig } from "@/components/assessments/CodeComponentBuilder";
+import { VideoComponentBuilder } from "@/components/assessments/VideoComponentBuilder";
+import { CodeComponentBuilder } from "@/components/assessments/CodeComponentBuilder";
+import { AdaptiveConfigForm, type AdaptiveConfig } from "@/components/assessments/AdaptiveConfigForm";
+import { PanelComponentBuilder } from "@/components/assessments/PanelComponentBuilder";
 import { Brain, FileEdit, Upload, Library, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,6 +44,7 @@ interface ModelComponent {
     id: string;
     competencyId: string | null;
     componentType: string;
+    config?: unknown;
     competency?: {
         name: string;
         category: string;
@@ -96,9 +104,17 @@ export function ComponentBuildingView({
     }, [modelId]);
 
     const getComponentId = (competencyId: string, componentType: ComponentType): string | null => {
-        const comp = components.find(
-            (c) => c.competencyId === competencyId && c.componentType === componentType
-        );
+        const comp = components.find((c) => {
+            if (c.competencyId !== competencyId) return false;
+            if (c.componentType === componentType) return true;
+            // Map legacy types
+            if (
+                (componentType === ComponentType.ADAPTIVE_AI || componentType === ComponentType.ADAPTIVE_QUESTIONNAIRE) &&
+                (c.componentType === "ADAPTIVE_AI" || c.componentType === "ADAPTIVE_QUESTIONNAIRE")
+            )
+                return true;
+            return false;
+        });
         return comp?.id ?? null;
     };
 
@@ -157,10 +173,167 @@ export function ComponentBuildingView({
         closeDialog();
     };
 
+    const isSpecializedComponent = (type: ComponentType) =>
+        type === ComponentType.VOICE ||
+        type === ComponentType.VIDEO ||
+        type === ComponentType.CODE ||
+        type === ComponentType.ADAPTIVE_AI ||
+        type === ComponentType.ADAPTIVE_QUESTIONNAIRE ||
+        type === ComponentType.PANEL;
+
     const renderBuildDialog = () => {
         if (!currentBuild) return null;
         const competency = competencies.find((c) => c.id === currentBuild.competencyId);
         const componentId = getComponentId(currentBuild.competencyId, currentBuild.componentType);
+
+        // Specialized builders (VOICE, VIDEO, CODE) - show config UI directly
+        if (componentId && isSpecializedComponent(currentBuild.componentType)) {
+            const handleSpecializedComplete = () => {
+                onStatusUpdate(currentBuild.competencyId, currentBuild.componentType, {
+                    status: "COMPLETE",
+                    progress: 100,
+                }, componentId);
+                closeDialog();
+            };
+            if (currentBuild.componentType === ComponentType.VOICE) {
+                return (
+                    <Dialog open={true} onOpenChange={() => closeDialog()}>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Build AI Voice Component</DialogTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Competency: {competency?.name} ({targetLevel} Level)
+                                </p>
+                            </DialogHeader>
+                            <VoiceComponentBuilder
+                                componentId={componentId}
+                                modelId={modelId}
+                                competencyName={competency?.name ?? ""}
+                                targetLevel={targetLevel}
+                                indicators={competency?.indicators}
+                                initialConfig={
+                                    components.find(
+                                        (c) => c.id === componentId && c.componentType === "VOICE"
+                                    )?.config as VoiceConfig | undefined
+                                }
+                                onComplete={handleSpecializedComplete}
+                                onCancel={closeDialog}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                );
+            }
+            if (currentBuild.componentType === ComponentType.VIDEO) {
+                return (
+                    <Dialog open={true} onOpenChange={() => closeDialog()}>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Build AI Video Component</DialogTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Competency: {competency?.name} ({targetLevel} Level)
+                                </p>
+                            </DialogHeader>
+                            <VideoComponentBuilder
+                                componentId={componentId}
+                                modelId={modelId}
+                                competencyName={competency?.name ?? ""}
+                                targetLevel={targetLevel}
+                                indicators={competency?.indicators}
+                                initialConfig={
+                                    components.find(
+                                        (c) => c.id === componentId && c.componentType === "VIDEO"
+                                    )?.config as VideoConfig | undefined
+                                }
+                                onComplete={handleSpecializedComplete}
+                                onCancel={closeDialog}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                );
+            }
+            if (currentBuild.componentType === ComponentType.CODE) {
+                return (
+                    <Dialog open={true} onOpenChange={() => closeDialog()}>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Build Code Test Component</DialogTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Competency: {competency?.name} ({targetLevel} Level)
+                                </p>
+                            </DialogHeader>
+                            <CodeComponentBuilder
+                                componentId={componentId}
+                                modelId={modelId}
+                                competencyName={competency?.name ?? ""}
+                                targetLevel={targetLevel}
+                                indicators={competency?.indicators}
+                                initialConfig={
+                                    components.find(
+                                        (c) => c.id === componentId && c.componentType === "CODE"
+                                    )?.config as CodeConfig | undefined
+                                }
+                                onComplete={handleSpecializedComplete}
+                                onCancel={closeDialog}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                );
+            }
+            if (
+                currentBuild.componentType === ComponentType.ADAPTIVE_AI ||
+                currentBuild.componentType === ComponentType.ADAPTIVE_QUESTIONNAIRE
+            ) {
+                return (
+                    <Dialog open={true} onOpenChange={() => closeDialog()}>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Configure Adaptive AI Component</DialogTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Competency: {competency?.name} ({targetLevel} Level)
+                                </p>
+                            </DialogHeader>
+                            <AdaptiveConfigForm
+                                componentId={componentId}
+                                modelId={modelId}
+                                competencyName={competency?.name ?? ""}
+                                targetLevel={targetLevel}
+                                initialConfig={
+                                    components.find(
+                                        (c) =>
+                                            c.id === componentId &&
+                                            (c.componentType === "ADAPTIVE_AI" ||
+                                                c.componentType === "ADAPTIVE_QUESTIONNAIRE")
+                                    )?.config as AdaptiveConfig | undefined
+                                }
+                                onComplete={handleSpecializedComplete}
+                                onCancel={closeDialog}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                );
+            }
+            if (currentBuild.componentType === ComponentType.PANEL) {
+                return (
+                    <Dialog open={true} onOpenChange={() => closeDialog()}>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Configure Panel Interview</DialogTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Competency: {competency?.name} ({targetLevel} Level)
+                                </p>
+                            </DialogHeader>
+                            <PanelComponentBuilder
+                                componentId={componentId}
+                                competencyName={competency?.name ?? ""}
+                                targetLevel={targetLevel}
+                                onComplete={handleSpecializedComplete}
+                                onCancel={closeDialog}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                );
+            }
+        }
 
         return (
             <Dialog open={true} onOpenChange={() => closeDialog()}>

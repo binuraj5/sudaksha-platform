@@ -28,7 +28,38 @@ function scoreResponse(
         const allPassed = data?.runResult?.allPassed === true;
         return { isCorrect: allPassed, pointsAwarded: allPassed ? points : 0 };
     }
+    if (
+        type === "VOICE_RESPONSE" ||
+        type === "VIDEO_RESPONSE" ||
+        (responseData && typeof responseData === "object" && ((responseData as { type?: string }).type === "VOICE_INTERVIEW" || (responseData as { type?: string }).type === "VIDEO_INTERVIEW"))
+    ) {
+        const data = responseData as { overall_score?: number };
+        const score = typeof data?.overall_score === "number" ? data.overall_score : 0;
+        const pointsAwarded = Math.round((score / 100) * points);
+        return { isCorrect: pointsAwarded > 0, pointsAwarded };
+    }
     return { isCorrect: false, pointsAwarded: 0 };
+}
+
+/** For ADAPTIVE_AI: get score from AdaptiveSession and update UserAssessmentComponent. */
+async function computeAdaptiveComponentScore(
+    userComponentId: string,
+    assessmentId: string,
+    componentId: string,
+    maxScore: number
+): Promise<boolean> {
+    const adaptiveSession = await prisma.adaptiveSession.findFirst({
+        where: { memberAssessmentId: assessmentId, componentId, status: "COMPLETED" },
+        orderBy: { completedAt: "desc" },
+    });
+    if (!adaptiveSession?.finalScore) return false;
+    const percentage = Number(adaptiveSession.finalScore);
+    const score = Math.round((percentage / 100) * maxScore);
+    await prisma.userAssessmentComponent.update({
+        where: { id: userComponentId },
+        data: { score, percentage },
+    });
+    return true;
 }
 
 /** Compute component score from question responses and update UserAssessmentComponent + ComponentQuestionResponse. */
@@ -203,7 +234,13 @@ export async function POST(
                         timeLimitUsed: timeSpent,
                     },
                 });
-                await computeAndSaveComponentScore(userComponent.id).catch(() => {});
+                const comp = (memberAssessment.assessmentModel?.components ?? []).find((c: { id: string }) => c.id === componentId) as { componentType?: string } | undefined;
+                const isAdaptive = comp?.componentType === "ADAPTIVE_AI";
+                if (isAdaptive) {
+                    await computeAdaptiveComponentScore(userComponent.id, assessmentId, componentId, userComponent.maxScore).catch(() => {});
+                } else {
+                    await computeAndSaveComponentScore(userComponent.id).catch(() => {});
+                }
 
                 const components = memberAssessment.assessmentModel?.components ?? [];
                 const nextIndex = components.findIndex((c: { id: string }) => c.id === componentId) + 1;
