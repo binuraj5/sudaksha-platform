@@ -44,6 +44,23 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Role not found" }, { status: 404 });
         }
 
+        // Validate competencyWeights if provided (must sum to 100%)
+        if (competencyWeights && Object.keys(competencyWeights).length > 0) {
+            const competencyIdsInComponents = Array.from(
+                new Set((components as { competencyId: string }[]).map((c) => c.competencyId))
+            );
+            const totalWeight = competencyIdsInComponents.reduce(
+                (sum, id) => sum + (competencyWeights[id] ?? 0),
+                0
+            );
+            if (Math.abs(totalWeight - 100) > 0.5) {
+                return NextResponse.json(
+                    { error: "Weights must sum to 100%" },
+                    { status: 400 }
+                );
+            }
+        }
+
         const lastModel = await prisma.assessmentModel.findFirst({
             orderBy: { createdAt: "desc" },
             select: { code: true },

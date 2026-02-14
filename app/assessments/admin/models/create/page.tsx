@@ -79,9 +79,21 @@ export default function CreateAssessmentPage() {
                 setRoleCompetencies(data);
                 const ids = new Set(data.map((rc: CompetencyMapping) => rc.competencyId));
                 setSelectedIds(ids);
-                const equal = ids.size > 0 ? 100 / ids.size : 0;
                 const w: Record<string, number> = {};
-                ids.forEach((id: string) => (w[id] = equal));
+                data.forEach((rc: CompetencyMapping) => {
+                    const raw = rc.weight ?? 1;
+                    w[rc.competencyId] =
+                        raw > 0 && raw <= 1 ? raw * 100 : typeof raw === "number" ? raw : 100 / data.length;
+                });
+                const total = Object.values(w).reduce((s, v) => s + v, 0);
+                if (total <= 0) {
+                    const equal = data.length > 0 ? 100 / data.length : 0;
+                    data.forEach((rc: CompetencyMapping) => (w[rc.competencyId] = equal));
+                } else if (Math.abs(total - 100) > 0.5) {
+                    Object.keys(w).forEach((id) => {
+                        w[id] = Math.round((w[id] / total) * 1000) / 10;
+                    });
+                }
                 setWeights(w);
             }
         } catch {
@@ -348,17 +360,35 @@ export default function CreateAssessmentPage() {
                             )}
                         </div>
 
-                        <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
-                            <Button variant="outline" onClick={() => router.push("/assessments/admin/models")}>
-                                <ArrowLeft className="w-4 h-4 mr-1" /> Back
-                            </Button>
-                            <Button
-                                onClick={() => selectedRoleId && setStep(2)}
-                                disabled={!selectedRoleId || loading}
-                            >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-                                Continue <ArrowRight className="w-4 h-4 ml-1" />
-                            </Button>
+                        <div className="flex flex-col gap-2 pt-2">
+                            <div className="flex flex-col-reverse sm:flex-row gap-2">
+                                <Button variant="outline" onClick={() => router.push("/assessments/admin/models")}>
+                                    <ArrowLeft className="w-4 h-4 mr-1" /> Back
+                                </Button>
+                                <Button
+                                    onClick={() => selectedRoleId && setStep(2)}
+                                    disabled={!selectedRoleId || loading}
+                                >
+                                    {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                                    Continue <ArrowRight className="w-4 h-4 ml-1" />
+                                </Button>
+                            </div>
+                            {selectedRoleId && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-muted-foreground hover:text-foreground"
+                                    onClick={() =>
+                                        router.push(
+                                            `/assessments/admin/models/build?roleId=${selectedRoleId}&level=${targetLevel}`
+                                        )
+                                    }
+                                    disabled={loading}
+                                >
+                                    <Layout className="w-4 h-4 mr-1" />
+                                    Build from role (select competencies in wizard)
+                                </Button>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

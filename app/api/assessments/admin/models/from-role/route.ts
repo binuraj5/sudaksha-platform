@@ -78,6 +78,30 @@ export async function POST(request: Request) {
             );
         }
 
+        // 3b. Validate weights sum to 100% (model-specific)
+        if (competencyWeights && Object.keys(competencyWeights).length > 0) {
+            const totalWeight = competenciesToUse.reduce(
+                (sum, rc) => sum + (competencyWeights[rc.competencyId] ?? 0),
+                0
+            );
+            if (Math.abs(totalWeight - 100) > 0.5) {
+                return NextResponse.json(
+                    { error: "Weights must sum to 100%" },
+                    { status: 400 }
+                );
+            }
+            const hasInvalidWeight = competenciesToUse.some((rc) => {
+                const w = competencyWeights[rc.competencyId];
+                return w == null || w <= 0;
+            });
+            if (hasInvalidWeight) {
+                return NextResponse.json(
+                    { error: "Each selected competency must have a weight greater than 0" },
+                    { status: 400 }
+                );
+            }
+        }
+
         const result = await prisma.$transaction(async (tx) => {
             const model = await tx.assessmentModel.create({
                 data: {

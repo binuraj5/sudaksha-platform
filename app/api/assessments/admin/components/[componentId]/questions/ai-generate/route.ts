@@ -2,6 +2,8 @@ import { getApiSession } from "@/lib/get-session";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateQuestions } from "@/lib/ai/question-generator";
+import { selectRelevantIndicators } from "@/lib/assessment/indicator-selection";
+import { ProficiencyLevel } from "@prisma/client";
 
 export async function POST(
     request: Request,
@@ -11,7 +13,9 @@ export async function POST(
         const session = await getApiSession();
         const { componentId } = await params;
 
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        const u = session?.user as { role?: string; userType?: string } | undefined;
+        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
+        if (!session?.user || !isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -27,11 +31,7 @@ export async function POST(
                         role: true
                     }
                 },
-                competency: {
-                    include: {
-                        indicators: true
-                    }
-                }
+                competency: true,
             }
         });
 
@@ -44,17 +44,15 @@ export async function POST(
             return NextResponse.json({ error: "Component has no linked competency" }, { status: 400 });
         }
 
-        // 2. Filter indicators to only include those relevant to this component's target level 
-        const level = component.targetLevel ?? undefined;
-        const relevantIndicators = competency.indicators.filter(ind => {
-            return ind.level === component.targetLevel;
-        });
+        // 2. Use smart indicator selection: exact level + lower levels (DOC3 algorithm)
+        const targetLevel = (component.targetLevel ?? component.model?.targetLevel ?? "JUNIOR") as ProficiencyLevel;
+        const relevantIndicators = await selectRelevantIndicators(competency.id, targetLevel);
 
         // 3. Build generation config (level must be ProficiencyLevel, not null)
         const config = {
-            roleName: component.model.role?.name || "Professional",
+            roleName: component.model?.role?.name || "Professional",
             competencyName: competency.name,
-            level: level ?? "JUNIOR" as const,
+            level: targetLevel,
             indicators: relevantIndicators.map(i => ({
                 id: i.id,
                 text: i.text,

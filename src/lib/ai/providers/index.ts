@@ -6,10 +6,10 @@
 
 export async function generateChatCompletion(messages: Array<{ role: string, content: string }>) {
     const providers = [
+        { name: 'Gemini', key: process.env.GEMINI_API_KEY, call: callGemini },
         { name: 'OpenAI', key: process.env.OPENAI_API_KEY, call: callOpenAI },
         { name: 'Anthropic', key: process.env.ANTHROPIC_API_KEY, call: callAnthropic },
         { name: 'xAI', key: process.env.XAI_API_KEY, call: callXAI },
-        { name: 'Gemini', key: process.env.GEMINI_API_KEY, call: callGemini },
         { name: 'Perplexity', key: process.env.PERPLEXITY_API_KEY, call: callPerplexity },
     ];
 

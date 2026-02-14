@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import {
     Brain,
     Sparkles,
-    ArrowRight,
     Loader2,
     RefreshCcw,
     Trash2,
@@ -68,19 +67,32 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
     const [selectedTypes, setSelectedTypes] = useState<QuestionType[]>(["MULTIPLE_CHOICE", "TRUE_FALSE"]);
     const [additionalContext, setAdditionalContext] = useState("");
 
+    const callAiGenerate = async (url: string, payload: object) => {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        return res;
+    };
+
     const handleGenerate = async () => {
+        if (!componentId) {
+            toast.error("No competency selected. Please select a competency from the sidebar.");
+            return;
+        }
         setGenerating(true);
         try {
-            const res = await fetch(getAiGenerateUrl(componentId, modelId), {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    count,
-                    difficulty,
-                    questionTypes: selectedTypes,
-                    additionalContext
-                })
-            });
+            const payload = { count, difficulty, questionTypes: selectedTypes, additionalContext };
+            let res = await callAiGenerate(getAiGenerateUrl(componentId, modelId), payload);
+
+            // Fallback: if model-scoped API returns 404 "Component not found", try component-level API
+            if (!res.ok && modelId) {
+                const errData = await res.json().catch(() => ({}));
+                if (res.status === 404 && (errData?.error?.includes("Component not found") || errData?.error?.includes("component"))) {
+                    res = await callAiGenerate(getAiGenerateUrl(componentId), payload);
+                }
+            }
 
             if (res.ok) {
                 const data = await res.json();
@@ -88,7 +100,7 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                 setStep("preview");
                 toast.success(`Generated ${data.questions.length} questions!`);
             } else {
-                const err = await res.json();
+                const err = await res.json().catch(() => ({}));
                 toast.error(err.error || "Failed to generate questions");
             }
         } catch (error) {
@@ -99,18 +111,23 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
     };
 
     const handleRegenerateOne = async (index: number) => {
+        if (!componentId) return;
         setRegeneratingIndex(index);
         try {
-            const res = await fetch(getAiGenerateUrl(componentId, modelId), {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    count: 1,
-                    difficulty,
-                    questionTypes: [questions[index].questionType],
-                    additionalContext: `This is a replacement for: ${questions[index].questionText}. ${additionalContext}`
-                })
-            });
+            const payload = {
+                count: 1,
+                difficulty,
+                questionTypes: [questions[index].questionType],
+                additionalContext: `This is a replacement for: ${questions[index].questionText}. ${additionalContext}`
+            };
+            let res = await callAiGenerate(getAiGenerateUrl(componentId, modelId), payload);
+
+            if (!res.ok && modelId) {
+                const errData = await res.json().catch(() => ({}));
+                if (res.status === 404 && (errData?.error?.includes("Component not found") || errData?.error?.includes("component"))) {
+                    res = await callAiGenerate(getAiGenerateUrl(componentId), payload);
+                }
+            }
 
             if (res.ok) {
                 const data = await res.json();
@@ -118,6 +135,9 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                 newQuestions[index] = data.questions[0];
                 setQuestions(newQuestions);
                 toast.success("Question regenerated!");
+            } else {
+                const err = await res.json().catch(() => ({}));
+                toast.error(err.error || "Regeneration failed");
             }
         } catch (error) {
             toast.error("Regeneration failed");
@@ -145,30 +165,30 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
     };
 
     return (
-        <div className="max-w-4xl mx-auto py-8">
+        <div className="max-w-4xl mx-auto py-6">
             {step === "config" ? (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                     <div className="text-center space-y-2">
-                        <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-indigo-200 mb-6">
-                            <Brain className="w-10 h-10 text-white" />
+                        <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <Brain className="w-8 h-8 text-primary" />
                         </div>
-                        <h1 className="text-4xl font-black text-gray-900 tracking-tight italic">AI Question Generation</h1>
-                        <p className="text-gray-500 font-medium max-w-lg mx-auto">
-                            Leverage GPT-4 to create pedagogical questions based on your competency indicators and target level.
+                        <h2 className="text-xl font-bold tracking-tight text-foreground">AI Question Generation</h2>
+                        <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+                            Generate questions based on your competency indicators and target level.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
-                        <Card className="border-none shadow-2xl rounded-[2.5rem] bg-white ring-1 ring-gray-100 p-10 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="border border-border bg-card shadow-sm rounded-xl p-6">
                             <div className="space-y-6">
-                                <Label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-indigo-600">
+                                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                     <BarChart3 className="w-4 h-4" /> Parameters
                                 </Label>
 
                                 <div className="space-y-3">
                                     <div className="flex justify-between">
-                                        <Label className="font-bold text-sm text-gray-700">Number of Questions</Label>
-                                        <span className="text-xs font-black text-indigo-600">{count}</span>
+                                        <Label className="font-medium text-sm text-foreground">Number of Questions</Label>
+                                        <span className="text-xs font-semibold text-primary">{count}</span>
                                     </div>
                                     <Input
                                         type="range"
@@ -177,23 +197,24 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                                         step="1"
                                         value={count}
                                         onChange={(e) => setCount(parseInt(e.target.value))}
-                                        className="accent-indigo-600"
+                                        className="accent-primary"
                                     />
                                 </div>
 
-                                <div className="space-y-4">
-                                    <Label className="font-bold text-sm text-gray-700">Difficulty Level</Label>
-                                    <div className="grid grid-cols-3 gap-3">
+                                <div className="space-y-3">
+                                    <Label className="font-medium text-sm text-foreground">Difficulty Level</Label>
+                                    <div className="grid grid-cols-3 gap-2">
                                         {["EASY", "MEDIUM", "HARD"].map((lvl) => (
                                             <div
                                                 key={lvl}
                                                 onClick={() => setDifficulty(lvl as any)}
-                                                className={`py-3 rounded-2xl border-2 text-center cursor-pointer transition-all ${difficulty === lvl
-                                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-xl shadow-indigo-100"
-                                                    : "bg-white border-slate-100 text-slate-400 font-bold hover:border-slate-200"
-                                                    }`}
+                                                className={`py-2.5 rounded-lg border text-center cursor-pointer transition-all text-xs font-medium ${
+                                                    difficulty === lvl
+                                                        ? "bg-primary text-primary-foreground border-primary"
+                                                        : "bg-card border-border text-muted-foreground hover:border-muted-foreground/30"
+                                                }`}
                                             >
-                                                <span className="text-[10px] font-black">{lvl}</span>
+                                                {lvl}
                                             </div>
                                         ))}
                                     </div>
@@ -201,12 +222,12 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                             </div>
                         </Card>
 
-                        <Card className="border-none shadow-2xl rounded-[2.5rem] bg-white ring-1 ring-gray-100 p-10 space-y-8">
+                        <Card className="border border-border bg-card shadow-sm rounded-xl p-6">
                             <div className="space-y-6">
-                                <Label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-indigo-600">
+                                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                     <FileType className="w-4 h-4" /> Question Types
                                 </Label>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                     {[
                                         { id: "MULTIPLE_CHOICE", label: "Multiple Choice" },
                                         { id: "TRUE_FALSE", label: "True / False" },
@@ -217,25 +238,26 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                                         <div
                                             key={t.id}
                                             onClick={() => toggleType(t.id as any)}
-                                            className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-3 ${selectedTypes.includes(t.id as any)
-                                                ? "border-indigo-500 bg-indigo-50/20"
-                                                : "border-slate-50 hover:border-slate-100"
-                                                }`}
+                                            className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center gap-3 ${
+                                                selectedTypes.includes(t.id as any)
+                                                    ? "border-primary bg-primary/5"
+                                                    : "border-border bg-card hover:border-muted-foreground/30"
+                                            }`}
                                         >
                                             <Checkbox checked={selectedTypes.includes(t.id as any)} />
-                                            <span className="text-xs font-bold text-gray-700">{t.label}</span>
+                                            <span className="text-xs font-medium text-foreground">{t.label}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <Label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-indigo-600">
+                            <div className="space-y-3 mt-6">
+                                <Label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                     <Settings2 className="w-4 h-4" /> Additional Context
                                 </Label>
                                 <Textarea
                                     placeholder="e.g. Focus on Java 11 features, avoid obsolete APIs..."
-                                    className="min-h-[100px] rounded-2xl border-2 border-slate-100 bg-slate-50/30"
+                                    className="min-h-[80px] rounded-lg border border-border bg-muted/30 text-foreground"
                                     value={additionalContext}
                                     onChange={(e) => setAdditionalContext(e.target.value)}
                                 />
@@ -243,105 +265,102 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                         </Card>
                     </div>
 
-                    <div className="pt-6">
+                    <div className="pt-2">
                         <Button
-                            className="w-full h-18 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-2xl font-black italic shadow-2xl shadow-indigo-100 gap-4"
+                            className="w-full h-12 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium gap-2"
                             onClick={handleGenerate}
                             disabled={generating || selectedTypes.length === 0}
                         >
-                            {generating ? <Loader2 className="w-8 h-8 animate-spin" /> : <Sparkles className="w-8 h-8" />}
-                            {generating ? "Crafting Questions..." : "Generate with AI"}
+                            {generating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                            {generating ? "Generating..." : "Generate with AI"}
                         </Button>
                     </div>
                 </div>
             ) : (
-                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <div className="flex items-center justify-between">
+                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-widest mb-1">
+                            <div className="flex items-center gap-2 text-muted-foreground font-semibold text-xs uppercase tracking-wider mb-1">
                                 <History className="w-4 h-4" /> AI Output Preview
                             </div>
-                            <h2 className="text-3xl font-black italic tracking-tight text-gray-900">Generated Questions</h2>
-                            <p className="text-gray-500 font-medium">Review, edit, or regenerate before adding to assessment.</p>
+                            <h2 className="text-lg font-bold tracking-tight text-foreground">Generated Questions</h2>
+                            <p className="text-sm text-muted-foreground">Review, edit, or regenerate before adding to assessment.</p>
                         </div>
-                        <div className="flex gap-3">
-                            <Button variant="outline" className="rounded-2xl h-14 px-6 border-2 font-black italic" onClick={() => setStep("config")}>
-                                <RefreshCcw className="w-5 h-5 mr-2" /> Start Over
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm" className="rounded-lg h-9 border-border" onClick={() => setStep("config")}>
+                                <RefreshCcw className="w-4 h-4 mr-2" /> Start Over
                             </Button>
-                            <Button className="rounded-2xl h-14 px-8 bg-indigo-600 hover:bg-indigo-700 font-black italic shadow-xl shadow-indigo-100 gap-3" onClick={() => onAcceptAll(questions)}>
-                                <CheckCircle2 className="w-5 h-5" /> Accept & Save All
+                            <Button size="sm" className="rounded-lg h-9 bg-primary hover:bg-primary/90 text-primary-foreground gap-2" onClick={() => onAcceptAll(questions)}>
+                                <CheckCircle2 className="w-4 h-4" /> Accept & Save All
                             </Button>
                         </div>
                     </div>
 
-                    <ScrollArea className="h-[60vh] rounded-[3rem] border-2 border-slate-100 bg-white shadow-2xl p-8">
-                        <div className="space-y-6">
+                    <ScrollArea className="h-[55vh] rounded-xl border border-border bg-card p-4">
+                        <div className="space-y-4">
                             {questions.map((q, idx) => (
-                                <Card key={idx} className="border-2 border-slate-100 rounded-3xl overflow-hidden group hover:border-indigo-200 transition-all">
-                                    <div className="p-6 space-y-4">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black">
+                                <Card key={idx} className="border border-border rounded-lg overflow-hidden hover:border-primary/30 transition-colors">
+                                    <div className="p-4 space-y-3">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-8 h-8 rounded-lg bg-muted text-foreground flex items-center justify-center font-semibold text-sm shrink-0">
                                                     {idx + 1}
                                                 </div>
                                                 <div>
-                                                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-600 font-bold text-[10px] uppercase">
+                                                    <Badge variant="secondary" className="text-[10px] font-medium">
                                                         {q.questionType.replace("_", " ")}
                                                     </Badge>
-                                                    <span className="text-[10px] font-bold text-slate-400 ml-3">
-                                                        {q.points} Points{q.timeLimit ? ` • ${q.timeLimit}s` : ""}
+                                                    <span className="text-[10px] text-muted-foreground ml-2">
+                                                        {q.points} pts{q.timeLimit ? ` • ${q.timeLimit}s` : ""}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="flex gap-1 opacity-100 transition-opacity">
+                                            <div className="flex gap-1 shrink-0">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-9 w-9 rounded-xl hover:bg-indigo-50 text-indigo-500"
+                                                    className="h-8 w-8 rounded-md hover:bg-muted"
                                                     disabled={regeneratingIndex === idx}
                                                     onClick={() => handleRegenerateOne(idx)}
                                                 >
                                                     {regeneratingIndex === idx ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCcw className="w-4 h-4" />}
                                                 </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-9 w-9 rounded-xl hover:bg-indigo-50 text-indigo-500"
-                                                    onClick={() => setEditingIndex(idx)}
-                                                >
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md hover:bg-muted" onClick={() => setEditingIndex(idx)}>
                                                     <Edit2 className="w-4 h-4" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-400" onClick={() => removeQuestion(idx)}>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md hover:bg-destructive/10 text-destructive" onClick={() => removeQuestion(idx)}>
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </div>
                                         </div>
 
-                                        <p className="text-lg font-bold text-gray-800 leading-tight">{q.questionText}</p>
+                                        <p className="text-sm font-medium text-foreground leading-snug">{q.questionText}</p>
 
                                         {(q.questionType === "MULTIPLE_CHOICE" || q.questionType === "SCENARIO_BASED") && q.options?.length > 0 && (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
                                                 {q.options.map((opt: any, oi: number) => (
-                                                    <div key={oi} className={`p-4 rounded-xl border-2 flex items-center gap-3 ${opt.isCorrect ? "border-green-500 bg-green-50/50" : "border-slate-50"}`}>
-                                                        <div className={`w-2 h-2 rounded-full ${opt.isCorrect ? "bg-green-500" : "bg-slate-200"}`} />
-                                                        <span className={`text-xs font-bold ${opt.isCorrect ? "text-green-700" : "text-slate-600"}`}>{opt.text}</span>
+                                                    <div key={oi} className={`p-3 rounded-lg border flex items-center gap-2 ${opt.isCorrect ? "border-green-500/50 bg-green-500/5" : "border-border bg-muted/30"}`}>
+                                                        <div className={`w-2 h-2 rounded-full shrink-0 ${opt.isCorrect ? "bg-green-600" : "bg-muted-foreground/40"}`} />
+                                                        <span className={`text-xs ${opt.isCorrect ? "text-green-700 dark:text-green-400 font-medium" : "text-muted-foreground"}`}>{opt.text}</span>
                                                     </div>
                                                 ))}
                                             </div>
                                         )}
 
-                                        <div className="p-4 bg-slate-50/50 rounded-2xl">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Explanation</p>
-                                            <p className="text-xs font-medium text-slate-600 leading-relaxed italic">{q.explanation || "—"}</p>
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Explanation</p>
+                                            <p className="text-xs text-foreground/80 leading-relaxed">{q.explanation || "—"}</p>
                                         </div>
 
-                                        <div className="flex gap-2">
-                                            {q.linkedIndicators.map((id, ii) => (
-                                                <Badge key={ii} variant="outline" className="text-[9px] border-slate-200 text-slate-400">
-                                                    {indicators.find(ind => ind.id === id)?.text || "Linked Indicator"}
-                                                </Badge>
-                                            ))}
-                                        </div>
+                                        {q.linkedIndicators?.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {q.linkedIndicators.map((id, ii) => (
+                                                    <Badge key={ii} variant="outline" className="text-[9px] border-border text-muted-foreground font-normal">
+                                                        {indicators.find(ind => ind.id === id)?.text || "Linked Indicator"}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </Card>
                             ))}

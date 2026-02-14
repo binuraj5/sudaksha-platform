@@ -1,8 +1,11 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { canEditModelComponents } from "@/lib/assessments/model-edit-permission";
 import { generateQuestions } from "@/lib/ai/question-generator";
 import { AIQuestionGenerator } from "@/lib/assessment/ai-generator";
+import { selectRelevantIndicators } from "@/lib/assessment/indicator-selection";
+import { ProficiencyLevel } from "@prisma/client";
 
 /**
  * POST /api/assessments/admin/models/[modelId]/components/[componentId]/questions/ai-generate
@@ -17,8 +20,22 @@ export async function POST(
         const session = await getApiSession();
         const { modelId, componentId } = await params;
 
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        const u = session?.user as { role?: string; userType?: string } | undefined;
+        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
+        if (!session?.user || !isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const model = await prisma.assessmentModel.findUnique({
+            where: { id: modelId },
+            select: { id: true, status: true, tenantId: true, clientId: true }
+        });
+        if (!model) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+        const editCheck = await canEditModelComponents(model, session);
+        if (!editCheck.allowed) {
+            return NextResponse.json({ error: editCheck.reason }, { status: 403 });
         }
 
         const body = await request.json();
@@ -53,12 +70,12 @@ export async function POST(
             return NextResponse.json({ error: "Component has no linked competency" }, { status: 400 });
         }
 
-        // 2. Filter indicators by component's target level (include at or below)
-        const targetLevel = (component.targetLevel ?? "JUNIOR") as "JUNIOR" | "MIDDLE" | "SENIOR" | "EXPERT";
-        const relevantIndicators = competency.indicators.filter(
-            (ind) => ind.level === targetLevel || ind.level === "JUNIOR"
-        );
-        const indicatorsToUse = relevantIndicators.length > 0 ? relevantIndicators : competency.indicators;
+        // 2. Use smart indicator selection: exact level + lower levels (DOC3 algorithm)
+        const targetLevel = (component.targetLevel ?? component.model?.targetLevel ?? "JUNIOR") as ProficiencyLevel;
+        const relevantIndicators = await selectRelevantIndicators(competency.id, targetLevel);
+        const indicatorsToUse = relevantIndicators.length > 0
+            ? relevantIndicators
+            : competency.indicators.map((i) => ({ id: i.id, text: i.text, type: i.type, level: i.level, weight: 1 }));
 
         const questionCount = count || 5;
         const compType = (component.componentType || "QUESTIONNAIRE").toUpperCase();

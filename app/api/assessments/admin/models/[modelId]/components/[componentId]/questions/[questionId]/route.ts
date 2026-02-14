@@ -1,6 +1,7 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { canEditModelComponents } from "@/lib/assessments/model-edit-permission";
 
 /**
  * PATCH /api/assessments/admin/models/[modelId]/components/[componentId]/questions/[questionId]
@@ -14,6 +15,19 @@ export async function PATCH(
         const session = await getApiSession();
         if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const { modelId } = await params;
+        const model = await prisma.assessmentModel.findUnique({
+            where: { id: modelId },
+            select: { id: true, status: true, tenantId: true, clientId: true }
+        });
+        if (!model) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+        const editCheck = await canEditModelComponents(model, session);
+        if (!editCheck.allowed) {
+            return NextResponse.json({ error: editCheck.reason }, { status: 403 });
         }
 
         const body = await req.json();
@@ -45,7 +59,18 @@ export async function DELETE(
         if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        const { questionId: qId } = await params;
+        const { modelId, questionId: qId } = await params;
+        const model = await prisma.assessmentModel.findUnique({
+            where: { id: modelId },
+            select: { id: true, status: true, tenantId: true, clientId: true }
+        });
+        if (!model) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+        const editCheck = await canEditModelComponents(model, session);
+        if (!editCheck.allowed) {
+            return NextResponse.json({ error: editCheck.reason }, { status: 403 });
+        }
         await prisma.componentQuestion.delete({
             where: {
                 id: qId,

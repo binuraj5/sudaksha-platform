@@ -147,7 +147,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                 <div className="lg:col-span-2 space-y-6">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <Label className="text-sm font-black uppercase tracking-widest text-indigo-600">Question Content</Label>
+                            <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Question Content</Label>
                             <Select
                                 value={type}
                                 onValueChange={(val: QuestionType) => {
@@ -155,10 +155,10 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                                     setValue("questionType", val);
                                 }}
                             >
-                                <SelectTrigger className="w-[200px] h-10 rounded-xl border-2">
+                                <SelectTrigger className="w-[200px] h-10 rounded-lg border border-border">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl border-none shadow-2xl">
+                                <SelectContent className="rounded-lg border border-border">
                                     <SelectItem value="MULTIPLE_CHOICE">Multiple Choice</SelectItem>
                                     <SelectItem value="TRUE_FALSE">True / False</SelectItem>
                                     <SelectItem value="FILL_IN_BLANK">Short Answer</SelectItem>
@@ -172,7 +172,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                             <Textarea
                                 {...register("questionText")}
                                 placeholder="Type your question here..."
-                                className="min-h-[150px] rounded-2xl border-2 text-lg font-medium p-6 focus:ring-indigo-500/20"
+                                className="min-h-[120px] rounded-lg border border-border p-4 text-foreground focus:ring-primary/20"
                             />
                             {errors.questionText && <p className="text-red-500 text-xs font-bold">{errors.questionText.message}</p>}
                         </div>
@@ -180,32 +180,32 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
 
                     {/* Question Type Specific Fields */}
                     {type === "MULTIPLE_CHOICE" && (
-                        <div className="space-y-4 p-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200">
-                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Answer Options</Label>
+                        <div className="space-y-4 p-4 bg-muted/30 rounded-xl border border-dashed border-border">
+                            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Answer Options</Label>
                             <div className="space-y-3">
                                 {options.map((option, idx) => (
                                     <div key={idx} className="flex gap-3 group">
                                         <div
                                             onClick={() => handleToggleCorrect(idx)}
-                                            className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center cursor-pointer transition-all ${option.isCorrect ? "bg-green-500 border-green-500 text-white shadow-lg shadow-green-100" : "bg-white border-slate-200 text-slate-300 hover:border-slate-400"
+                                            className={`w-10 h-10 rounded-lg border flex items-center justify-center cursor-pointer transition-all shrink-0 ${option.isCorrect ? "bg-green-600 border-green-600 text-white" : "bg-card border-border text-muted-foreground hover:border-muted-foreground/50"
                                                 }`}
                                         >
-                                            <CheckCircle2 className="w-6 h-6" />
+                                            <CheckCircle2 className="w-5 h-5" />
                                         </div>
                                         <Input
                                             value={option.text}
                                             onChange={(e) => handleOptionChange(idx, e.target.value)}
                                             placeholder={`Option ${idx + 1}`}
-                                            className="h-12 rounded-xl border-2 focus:border-indigo-500 transition-all text-sm font-bold"
+                                            className="h-10 rounded-lg border border-border text-foreground focus:ring-primary/20"
                                         />
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-12 w-12 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50"
+                                            className="h-10 w-10 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                                             onClick={() => handleRemoveOption(idx)}
                                             disabled={options.length <= 2}
                                         >
-                                            <Trash2 className="w-5 h-5" />
+                                            <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </div>
                                 ))}
@@ -213,7 +213,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="w-full h-12 rounded-xl border-2 border-slate-200 border-dashed text-slate-500 hover:bg-white hover:border-indigo-500 hover:text-indigo-600 font-bold gap-2"
+                                className="w-full h-10 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary gap-2"
                                 onClick={handleAddOption}
                                 disabled={options.length >= 6}
                             >
@@ -223,13 +223,13 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                     )}
 
                     {type === "TRUE_FALSE" && (
-                        <div className="flex gap-4 p-6 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200">
+                        <div className="flex gap-4 p-4 bg-muted/30 rounded-xl border border-dashed border-border">
                             {["true", "false"].map(val => (
                                 <Button
                                     key={val}
                                     type="button"
                                     variant={watch("correctAnswer") === val ? "default" : "outline"}
-                                    className={`flex-1 h-16 rounded-2xl text-lg font-black italic shadow-xl transition-all ${watch("correctAnswer") === val ? "bg-indigo-600" : "bg-white"
+                                    className={`flex-1 h-12 rounded-lg font-medium transition-all ${watch("correctAnswer") === val ? "bg-primary text-primary-foreground" : "border-border"
                                         }`}
                                     onClick={() => setValue("correctAnswer", val)}
                                 >
@@ -240,68 +240,69 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                     )}
 
                     <div className="space-y-4">
-                        <Label className="text-sm font-black uppercase tracking-widest text-indigo-600">Explanation (Optional)</Label>
+                        <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Explanation (Optional)</Label>
                         <Textarea
                             {...register("explanation")}
                             placeholder="Explain why the answer is correct..."
-                            className="rounded-2xl border-2 min-h-[100px]"
+                            className="rounded-lg border border-border min-h-[80px] text-foreground"
                         />
                     </div>
                 </div>
 
                 {/* Sidebar Controls */}
                 <div className="space-y-6">
-                    <Card className="border-none shadow-xl ring-1 ring-gray-100 rounded-3xl overflow-hidden">
-                        <CardHeader className="bg-indigo-600 text-white p-6">
-                            <CardTitle className="text-lg font-bold flex items-center gap-2">
-                                <Settings className="w-5 h-5" /> Settings
+                    <Card className="border border-border rounded-xl overflow-hidden shadow-sm">
+                        <CardHeader className="bg-muted/30 px-4 py-3 border-b border-border">
+                            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                                <Settings className="w-4 h-4" /> Settings
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-6 space-y-6">
+                        <CardContent className="p-4 space-y-4">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Difficulty Points</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Points</Label>
                                 <div className="flex items-center gap-3">
-                                    <Trophy className="w-5 h-5 text-amber-500" />
+                                    <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
                                     <Input
                                         type="number"
                                         {...register("points", { valueAsNumber: true })}
-                                        className="h-10 rounded-xl border-2 font-bold"
+                                        className="h-9 rounded-lg border border-border"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Time Limit (Seconds)</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Time Limit (sec)</Label>
                                 <div className="flex items-center gap-3">
-                                    <Clock className="w-5 h-5 text-indigo-500" />
+                                    <Clock className="w-4 h-4 text-primary shrink-0" />
                                     <Input
                                         type="number"
                                         {...register("timeLimit", { valueAsNumber: true })}
-                                        className="h-10 rounded-xl border-2 font-bold"
+                                        className="h-9 rounded-lg border border-border"
                                     />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-none shadow-xl ring-1 ring-gray-100 rounded-3xl overflow-hidden">
-                        <CardHeader className="bg-slate-800 text-white p-6">
-                            <CardTitle className="text-lg font-bold flex items-center gap-2">
-                                <FileText className="w-5 h-5" /> Linked Indicators
+                    <Card className="border border-border rounded-xl overflow-hidden shadow-sm">
+                        <CardHeader className="bg-muted/30 px-4 py-3 border-b border-border">
+                            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                                <FileText className="w-4 h-4" /> Linked Indicators
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-6">
-                            <div className="space-y-3">
+                        <CardContent className="p-4">
+                            <div className="space-y-2">
                                 {indicators.map(ind => (
                                     <div
                                         key={ind.id}
                                         onClick={() => toggleIndicator(ind.id)}
-                                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 ${selectedIndicatorIds.includes(ind.id) ? "border-indigo-500 bg-indigo-50/30" : "border-slate-100 hover:border-slate-200"
-                                            }`}
+                                        className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 ${
+                                            selectedIndicatorIds.includes(ind.id) ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
+                                        }`}
                                     >
-                                        <Checkbox checked={selectedIndicatorIds.includes(ind.id)} className="mt-1" />
-                                        <div className="flex-1">
-                                            <p className="text-xs font-bold text-gray-700 leading-tight">{ind.text}</p>
-                                            <Badge variant="secondary" className="text-[9px] mt-1 bg-white border border-slate-100">{ind.level}</Badge>
+                                        <Checkbox checked={selectedIndicatorIds.includes(ind.id)} className="mt-0.5" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-medium text-foreground leading-tight">{ind.text}</p>
+                                            <Badge variant="secondary" className="text-[9px] mt-1">{ind.level}</Badge>
                                         </div>
                                     </div>
                                 ))}
@@ -309,9 +310,9 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                         </CardContent>
                     </Card>
 
-                    <div className="flex items-center gap-4">
-                        <Button type="button" variant="outline" className="flex-1 h-14 rounded-2xl font-bold" onClick={onCancel}>Cancel</Button>
-                        <Button type="submit" className="flex-1 h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black italic shadow-xl shadow-indigo-100">
+                    <div className="flex items-center gap-3">
+                        <Button type="button" variant="outline" className="flex-1 h-10 rounded-lg border-border" onClick={onCancel}>Cancel</Button>
+                        <Button type="submit" className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium">
                             Save Question
                         </Button>
                     </div>

@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { QuestionType } from "@prisma/client";
+import { generateChatCompletion } from "@/lib/ai/providers";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
@@ -146,10 +147,28 @@ export class AIQuestionGenerator {
     ): Promise<Record<string, unknown>> {
         const systemContent =
             mode === "multiple-choice"
-                ? "You are an expert assessment designer creating high-quality multiple-choice questions for competency-based assessments. Generate questions that accurately measure the specified indicators at the target proficiency level. Always respond in valid JSON format."
+                ? "You are an expert assessment designer creating high-quality multiple-choice questions for competency-based assessments. Generate questions that accurately measure the specified indicators at the target proficiency level. Always respond in valid JSON format only, no markdown."
                 : mode === "situational"
-                  ? "You are an expert in situational judgment tests and behavioral assessments. Create realistic workplace scenarios that assess decision-making and problem-solving aligned with specific competency indicators. Always respond in valid JSON format."
-                  : "You are an expert in creating essay questions that assess deep understanding and analytical thinking. Create prompts that require candidates to demonstrate comprehensive knowledge and critical thinking aligned with competency indicators. Always respond in valid JSON format.";
+                  ? "You are an expert in situational judgment tests and behavioral assessments. Create realistic workplace scenarios that assess decision-making and problem-solving aligned with specific competency indicators. Always respond in valid JSON format only, no markdown."
+                  : "You are an expert in creating essay questions that assess deep understanding and analytical thinking. Create prompts that require candidates to demonstrate comprehensive knowledge and critical thinking aligned with competency indicators. Always respond in valid JSON format only, no markdown.";
+
+        const messages = [
+            { role: "system", content: systemContent },
+            { role: "user", content: prompt }
+        ];
+
+        if (process.env.GEMINI_API_KEY) {
+            try {
+                const response = await generateChatCompletion(messages);
+                const content = response.choices[0].message.content;
+                if (!content) throw new Error("Empty response from AI");
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                const jsonStr = jsonMatch ? jsonMatch[0] : content;
+                return JSON.parse(jsonStr) as Record<string, unknown>;
+            } catch (e) {
+                console.warn("Gemini fallback:", e);
+            }
+        }
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o",

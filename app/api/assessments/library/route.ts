@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
+import { resolveCreatedByUserId } from "@/lib/resolve-created-by";
 
 /**
  * GET /api/assessments/library
@@ -18,23 +19,37 @@ export async function GET(req: NextRequest) {
         const componentType = searchParams.get("componentType");
         const targetLevel = searchParams.get("targetLevel");
         const visibility = searchParams.get("visibility");
+        const search = searchParams.get("search");
+        const category = searchParams.get("category");
 
         const userId = session.user.id;
         const tenantId = session.user.tenantId ?? undefined;
 
         // Build where: user can see GLOBAL + ORG + their own PRIVATE
-        const where: Record<string, unknown> = {
-            OR: [
-                { visibility: "GLOBAL", publishedToGlobal: true },
-                ...(tenantId ? [{ visibility: "ORGANIZATION" as const, tenantId }] : []),
-                { visibility: "PRIVATE" as const, createdBy: userId }
-            ]
-        };
-
-        if (competencyId) (where as Record<string, unknown>).competencyId = competencyId;
-        if (componentType) (where as Record<string, unknown>).componentType = componentType;
-        if (targetLevel) (where as Record<string, unknown>).targetLevel = targetLevel;
-        if (visibility) (where as Record<string, unknown>).visibility = visibility;
+        const andClauses: Record<string, unknown>[] = [
+            {
+                OR: [
+                    { visibility: "GLOBAL", publishedToGlobal: true },
+                    ...(tenantId ? [{ visibility: "ORGANIZATION" as const, tenantId }] : []),
+                    { visibility: "PRIVATE" as const, createdBy: userId }
+                ]
+            }
+        ];
+        if (competencyId) andClauses.push({ competencyId });
+        if (componentType) andClauses.push({ componentType });
+        if (targetLevel) andClauses.push({ targetLevel });
+        if (visibility) andClauses.push({ visibility });
+        if (category) andClauses.push({ competency: { category } });
+        if (search?.trim()) {
+            const term = search.trim();
+            andClauses.push({
+                OR: [
+                    { name: { contains: term, mode: "insensitive" } },
+                    { description: { contains: term, mode: "insensitive" } }
+                ]
+            });
+        }
+        const where = andClauses.length > 1 ? { AND: andClauses } : andClauses[0];
 
         const components = await prisma.componentLibrary.findMany({
             where,
@@ -83,10 +98,14 @@ export async function POST(req: NextRequest) {
 
         let questionsToSave = questions;
 
+        let resolvedCompetencyId = competencyId;
+        let resolvedTargetLevel = targetLevel;
+        let resolvedComponentType = componentType;
+
         if (sourceComponentId && !questionsToSave) {
             const component = await prisma.assessmentModelComponent.findFirst({
                 where: { id: sourceComponentId },
-                include: { questions: true }
+                include: { questions: true, competency: true }
             });
             if (!component) {
                 return NextResponse.json({ error: "Source component not found" }, { status: 404 });
@@ -94,16 +113,19 @@ export async function POST(req: NextRequest) {
             questionsToSave = component.questions.map((q) => ({
                 questionText: q.questionText,
                 questionType: q.questionType,
-                options: q.options,
-                correctAnswer: q.correctAnswer,
-                points: q.points,
-                timeLimit: q.timeLimit,
-                linkedIndicators: q.linkedIndicators,
-                explanation: q.explanation
+                options: q.options ?? [],
+                correctAnswer: q.correctAnswer ? String(q.correctAnswer) : null,
+                points: q.points ?? 1,
+                timeLimit: q.timeLimit ?? null,
+                linkedIndicators: q.linkedIndicators ?? [],
+                explanation: q.explanation ?? null
             }));
+            if (!resolvedCompetencyId && component.competencyId) resolvedCompetencyId = component.competencyId;
+            if (!resolvedTargetLevel && component.targetLevel) resolvedTargetLevel = String(component.targetLevel);
+            if (!resolvedComponentType && component.componentType) resolvedComponentType = component.componentType;
         }
 
-        if (!name || !componentType || !competencyId || !targetLevel) {
+        if (!name || !resolvedComponentType || !resolvedCompetencyId || !resolvedTargetLevel) {
             return NextResponse.json(
                 { error: "Missing required fields: name, componentType, competencyId, targetLevel" },
                 { status: 400 }
@@ -114,15 +136,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "questions must be an array" }, { status: 400 });
         }
 
+        const createdBy = await resolveCreatedByUserId(session);
+
         const libraryComponent = await prisma.componentLibrary.create({
             data: {
-                tenantId: session.user.tenantId ?? null,
-                createdBy: session.user.id,
+                tenantId: (session.user as { tenantId?: string }).tenantId ?? null,
+                createdBy,
                 name,
                 description: description ?? null,
-                componentType,
-                competencyId,
-                targetLevel,
+                componentType: resolvedComponentType,
+                competencyId: resolvedCompetencyId,
+                targetLevel: resolvedTargetLevel,
                 visibility: visibility || "PRIVATE",
                 questions: questionsToSave,
                 metadata: {}
@@ -135,6 +159,18 @@ export async function POST(req: NextRequest) {
         });
     } catch (error) {
         console.error("Library save error:", error);
-        return NextResponse.json({ error: "Failed to save to library" }, { status: 500 });
+        const msg = error instanceof Error ? error.message : String(error);
+        const isPrisma = error && typeof error === "object" && "code" in error;
+        const details = isPrisma && typeof (error as { meta?: unknown }).meta === "object"
+            ? (error as { meta?: { target?: string[] } }).meta?.target
+            : undefined;
+        return NextResponse.json(
+            {
+                error: "Failed to save to library",
+                details: process.env.NODE_ENV === "development" ? msg : undefined,
+                ...(details && { hint: details })
+            },
+            { status: 500 }
+        );
     }
 }

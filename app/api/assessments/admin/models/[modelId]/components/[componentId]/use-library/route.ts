@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
+import { canEditModelComponents } from "@/lib/assessments/model-edit-permission";
 
 /**
  * POST /api/assessments/admin/models/[modelId]/components/[componentId]/use-library
@@ -17,6 +18,17 @@ export async function POST(
         }
 
         const { modelId, componentId } = await params;
+        const model = await prisma.assessmentModel.findUnique({
+            where: { id: modelId },
+            select: { id: true, status: true, tenantId: true, clientId: true }
+        });
+        if (!model) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+        const editCheck = await canEditModelComponents(model, session);
+        if (!editCheck.allowed) {
+            return NextResponse.json({ error: editCheck.reason }, { status: 403 });
+        }
         const body = await req.json();
         const { libraryComponentId } = body;
 

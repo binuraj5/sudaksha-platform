@@ -84,7 +84,8 @@ export function SaveToLibraryDialog({
                 onSaved?.();
             } else {
                 const err = await res.json().catch(() => ({}));
-                toast.error(err.error || "Failed to save to library");
+                const msg = err.details ? `${err.error}: ${err.details}` : (err.error || "Failed to save to library");
+                toast.error(msg);
             }
         } catch {
             toast.error("Failed to save to library");

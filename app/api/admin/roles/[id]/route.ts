@@ -8,7 +8,9 @@ export async function DELETE(
 ) {
     try {
         const session = await getApiSession();
-        if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        const u = session?.user as { role?: string; userType?: string } | undefined;
+        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
+        if (!session || !isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -70,7 +72,9 @@ export async function GET(
 ) {
     try {
         const session = await getApiSession();
-        if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        const u = session?.user as { role?: string; userType?: string } | undefined;
+        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
+        if (!session || !isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -108,7 +112,9 @@ export async function PATCH(
 ) {
     try {
         const session = await getApiSession();
-        if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        const u = session?.user as { role?: string; userType?: string } | undefined;
+        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
+        if (!session || !isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

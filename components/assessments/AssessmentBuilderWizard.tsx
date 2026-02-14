@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
     Card,
@@ -18,6 +18,7 @@ import {
     type ComponentSuggestion,
 } from "@/lib/assessment/component-suggester";
 import { ComponentBuildingView } from "@/components/assessments/ComponentBuildingView";
+import { ModelCompetencySelector, type RoleCompetencyItem } from "@/components/assessments/ModelCompetencySelector";
 import { toast } from "sonner";
 
 interface Competency {
@@ -40,11 +41,19 @@ interface ComponentSelection {
     componentStatus: Map<ComponentType, ComponentBuildStatus>;
 }
 
+interface CompetencySelection {
+    selectedCompetencyIds: string[];
+    weights: Record<string, number>;
+}
+
 interface AssessmentBuilderWizardProps {
     roleId: string;
     roleName: string;
     competencies: Competency[];
+    roleCompetencies?: RoleCompetencyItem[];
     targetLevel: "JUNIOR" | "MIDDLE" | "SENIOR" | "EXPERT";
+    /** When provided, skip SELECT_COMPETENCIES and use these as pre-selected */
+    preSelectedCompetencyIds?: string[] | null;
 }
 
 function calculateCompetencyProgress(selection: ComponentSelection): number {
@@ -64,7 +73,9 @@ export function AssessmentBuilderWizard({
     roleId,
     roleName,
     competencies,
+    roleCompetencies = [],
     targetLevel,
+    preSelectedCompetencyIds = null,
 }: AssessmentBuilderWizardProps) {
     const router = useRouter();
     const competencyWeightsRef = useRef<Record<string, number> | null>(null);
@@ -85,8 +96,36 @@ export function AssessmentBuilderWizard({
         `${roleName} - ${targetLevel} Assessment`
     );
     const [step, setStep] = useState<
-        "OVERVIEW" | "COMPONENTS" | "BUILD"
+        "OVERVIEW" | "SELECT_COMPETENCIES" | "COMPONENTS" | "BUILD"
     >("OVERVIEW");
+    const [competencySelection, setCompetencySelection] = useState<CompetencySelection | null>(
+        preSelectedCompetencyIds?.length
+            ? {
+                  selectedCompetencyIds: preSelectedCompetencyIds,
+                  weights: {},
+              }
+            : null
+    );
+    const [selectStepSelectedIds, setSelectStepSelectedIds] = useState<Set<string>>(new Set());
+    const [selectStepWeights, setSelectStepWeights] = useState<Record<string, number>>({});
+    const selectStepInitialized = useRef(false);
+    useEffect(() => {
+        if (
+            step === "SELECT_COMPETENCIES" &&
+            !selectStepInitialized.current &&
+            roleCompetencies.length > 0
+        ) {
+            selectStepInitialized.current = true;
+            const ids = new Set(roleCompetencies.map((rc) => rc.competencyId));
+            const w: Record<string, number> = {};
+            roleCompetencies.forEach((rc) => {
+                w[rc.competencyId] =
+                    rc.weight ?? 100 / roleCompetencies.length;
+            });
+            setSelectStepSelectedIds(ids);
+            setSelectStepWeights(w);
+        }
+    }, [step, roleCompetencies]);
     const [modelId, setModelId] = useState<string | null>(null);
     const [creatingModel, setCreatingModel] = useState(false);
 
@@ -94,9 +133,18 @@ export function AssessmentBuilderWizard({
         new Map()
     );
 
+    const effectiveCompetencies = useMemo(() => {
+        if (competencySelection) {
+            return competencies.filter((c) =>
+                competencySelection.selectedCompetencyIds.includes(c.id)
+            );
+        }
+        return competencies;
+    }, [competencies, competencySelection]);
+
     useEffect(() => {
         const newSelections = new Map<string, ComponentSelection>();
-        competencies.forEach((comp) => {
+        effectiveCompetencies.forEach((comp) => {
             const suggestions = ComponentSuggester.suggestComponents(
                 comp,
                 targetLevel
@@ -109,7 +157,7 @@ export function AssessmentBuilderWizard({
             });
         });
         setSelections(newSelections);
-    }, [competencies, targetLevel]);
+    }, [effectiveCompetencies, targetLevel]);
 
     const calculateProgress = (): number => {
         let totalComponents = 0;
@@ -206,8 +254,19 @@ export function AssessmentBuilderWizard({
                 targetLevel,
                 components,
             };
-            if (competencyWeightsRef.current && Object.keys(competencyWeightsRef.current).length > 0) {
-                body.competencyWeights = competencyWeightsRef.current;
+            const weights =
+                competencyWeightsRef.current && Object.keys(competencyWeightsRef.current).length > 0
+                    ? competencyWeightsRef.current
+                    : competencySelection?.selectedCompetencyIds?.length
+                      ? Object.fromEntries(
+                            competencySelection.selectedCompetencyIds.map((id) => [
+                                id,
+                                100 / competencySelection.selectedCompetencyIds.length,
+                            ])
+                        )
+                      : undefined;
+            if (weights && Object.keys(weights).length > 0) {
+                body.competencyWeights = weights;
             }
             const res = await fetch("/api/assessments/admin/models/from-wizard", {
                 method: "POST",
@@ -278,7 +337,81 @@ export function AssessmentBuilderWizard({
                             ))}
                         </div>
                     </div>
-                    <Button onClick={() => setStep("COMPONENTS")} className="w-full" size="lg">
+                    <Button
+                        onClick={() =>
+                            setStep(
+                                preSelectedCompetencyIds?.length
+                                    ? "COMPONENTS"
+                                    : "SELECT_COMPETENCIES"
+                            )
+                        }
+                        className="w-full"
+                        size="lg"
+                    >
+                        Continue{" "}
+                        {preSelectedCompetencyIds?.length
+                            ? "to Component Selection"
+                            : "to Select Competencies"}
+                        {" →"}
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+    );
+
+    const handleContinueFromSelectCompetencies = () => {
+        const selectedList = roleCompetencies.filter((c) =>
+            selectStepSelectedIds.has(c.competencyId)
+        );
+        const totalWeight = selectedList.reduce(
+            (sum, c) => sum + (selectStepWeights[c.competencyId] ?? 0),
+            0
+        );
+        if (selectStepSelectedIds.size === 0) {
+            toast.error("Select at least one competency");
+            return;
+        }
+        if (Math.abs(totalWeight - 100) > 0.5) {
+            toast.error("Weights must sum to 100%");
+            return;
+        }
+        setCompetencySelection({
+            selectedCompetencyIds: Array.from(selectStepSelectedIds),
+            weights: { ...selectStepWeights },
+        });
+        competencyWeightsRef.current = { ...selectStepWeights };
+        setStep("COMPONENTS");
+    };
+
+    const renderSelectCompetencies = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">Select Competencies & Weights</h2>
+                <Button variant="outline" onClick={() => setStep("OVERVIEW")}>
+                    ← Back
+                </Button>
+            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Choose competencies for this model</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                        Select competencies and set weights (must sum to 100%).
+                    </p>
+                </CardHeader>
+                <CardContent>
+                    <ModelCompetencySelector
+                        competencies={roleCompetencies}
+                        selectedIds={selectStepSelectedIds}
+                        onSelectionChange={setSelectStepSelectedIds}
+                        weights={selectStepWeights}
+                        onWeightsChange={setSelectStepWeights}
+                        roleId={roleId}
+                    />
+                    <Button
+                        onClick={handleContinueFromSelectCompetencies}
+                        className="w-full mt-6"
+                        size="lg"
+                    >
                         Continue to Component Selection →
                     </Button>
                 </CardContent>
@@ -290,7 +423,14 @@ export function AssessmentBuilderWizard({
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Select Assessment Components</h2>
-                <Button variant="outline" onClick={() => setStep("OVERVIEW")}>
+                <Button
+                    variant="outline"
+                    onClick={() =>
+                        setStep(
+                            preSelectedCompetencyIds?.length ? "OVERVIEW" : "SELECT_COMPETENCIES"
+                        )
+                    }
+                >
                     ← Back
                 </Button>
             </div>
@@ -308,14 +448,25 @@ export function AssessmentBuilderWizard({
                             </thead>
                             <tbody>
                                 {Array.from(selections.entries()).map(([compId, selection]) => {
-                                    const competency = competencies.find((c) => c.id === compId);
+                                    const competency = effectiveCompetencies.find((c) => c.id === compId);
                                     if (!competency) return null;
+                                    const weight =
+                                        competencyWeightsRef.current?.[compId] ??
+                                        competencySelection?.weights?.[compId] ??
+                                        (competencySelection?.selectedCompetencyIds?.length
+                                            ? 100 / competencySelection.selectedCompetencyIds.length
+                                            : 0);
                                     return (
                                         <tr key={compId} className="border-b">
                                             <td className="p-4">
                                                 <div className="font-medium">{competency.name}</div>
-                                                <div className="text-muted-foreground text-xs">
-                                                    {competency.category}
+                                                <div className="text-muted-foreground text-xs flex items-center gap-2">
+                                                    <span>{competency.category}</span>
+                                                    {weight > 0 && (
+                                                        <Badge variant="secondary" className="text-[10px]">
+                                                            {Math.round(weight)}%
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="p-4">
@@ -415,7 +566,7 @@ export function AssessmentBuilderWizard({
             <ComponentBuildingView
                 modelId={modelId}
                 selections={selections}
-                competencies={competencies}
+                competencies={effectiveCompetencies}
                 targetLevel={targetLevel}
                 onBack={() => setStep("COMPONENTS")}
                 onStatusUpdate={updateComponentStatus}
@@ -430,6 +581,7 @@ export function AssessmentBuilderWizard({
     return (
         <div className="container mx-auto py-8 max-w-5xl">
             {step === "OVERVIEW" && renderOverview()}
+            {step === "SELECT_COMPETENCIES" && renderSelectCompetencies()}
             {step === "COMPONENTS" && renderComponentSelection()}
             {step === "BUILD" && renderComponentBuilding()}
         </div>

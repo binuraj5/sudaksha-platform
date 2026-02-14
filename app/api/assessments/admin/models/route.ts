@@ -105,6 +105,7 @@ export async function POST(request: Request) {
                 tenantId: tenantId || session.user.tenantId, // Fallback to user tenant
                 createdBy: session.user.id,
                 code: nextCode,
+                slug: nextCode.toLowerCase(),
                 status: 'DRAFT'
             }
         });

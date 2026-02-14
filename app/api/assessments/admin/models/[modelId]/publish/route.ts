@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
+import { bumpVersion } from "@/lib/assessments/model-edit-permission";
 
 /**
  * POST /api/assessments/admin/models/[modelId]/publish
@@ -85,6 +86,7 @@ export async function POST(
                 });
             }
 
+            const nextVersion = bumpVersion(model.version || "1.0.0");
             await prisma.assessmentModel.update({
                 where: { id: modelId },
                 data: {
@@ -94,28 +96,33 @@ export async function POST(
                     globalPublishApprovedBy: session.user.id,
                     globalPublishApprovedAt: new Date(),
                     status: "PUBLISHED",
-                    publishedAt: new Date()
+                    publishedAt: new Date(),
+                    version: nextVersion
                 }
             });
 
             return NextResponse.json({
                 success: true,
-                message: "Model published globally"
+                message: "Model published globally",
+                version: nextVersion
             });
         }
 
+        const nextVersion = bumpVersion(model.version || "1.0.0");
         await prisma.assessmentModel.update({
             where: { id: modelId },
             data: {
                 visibility,
                 status: "PUBLISHED",
-                publishedAt: new Date()
+                publishedAt: new Date(),
+                version: nextVersion
             }
         });
 
         return NextResponse.json({
             success: true,
-            message: `Model published with ${visibility.toLowerCase()} visibility`
+            message: `Model published with ${visibility.toLowerCase()} visibility (v${nextVersion})`,
+            version: nextVersion
         });
     } catch (error) {
         console.error("Publishing error:", error);

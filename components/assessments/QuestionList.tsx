@@ -44,6 +44,7 @@ interface QuestionListProps {
     onEdit: (q: Question) => void;
     onDelete: (id: string) => void;
     onDuplicate: (q: Question) => void;
+    readOnly?: boolean;
 }
 
 export const QuestionList: React.FC<QuestionListProps> = ({
@@ -51,7 +52,8 @@ export const QuestionList: React.FC<QuestionListProps> = ({
     indicators,
     onEdit,
     onDelete,
-    onDuplicate
+    onDuplicate,
+    readOnly = false
 }) => {
     // Group questions by their first indicator (fallback to "Uncategorized")
     const groupedQuestions = questions.reduce((acc, q) => {
@@ -108,6 +110,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                                         <h4 className="text-sm font-medium text-sudaksha-navy-800 truncate">{q.questionText}</h4>
                                     </div>
 
+                                    {!readOnly && (
                                     <div className="flex items-center gap-0.5">
                                         <TooltipProvider>
                                             <Tooltip>
@@ -136,6 +139,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
+                                    )}
                                 </div>
                             </Card>
                         ))}

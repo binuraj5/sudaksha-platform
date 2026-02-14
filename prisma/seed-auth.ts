@@ -196,6 +196,21 @@ async function main() {
         },
     });
 
+    // 8. Create matching User for Super Admin (required for ComponentLibrary.createdBy, etc.)
+    console.log('Creating Super Admin (User table for createdBy)...');
+    await prisma.user.upsert({
+        where: { email: 'superadmin@sudaksha.com' },
+        update: { name: 'Super Admin', isActive: true },
+        create: {
+            email: 'superadmin@sudaksha.com',
+            name: 'Super Admin',
+            password: superAdminPasswordHash,
+            role: 'SUPER_ADMIN',
+            userType: 'SUPER_ADMIN',
+            isActive: true,
+        },
+    });
+
     console.log('✅ Authentication seeding complete.');
     console.log('Use password: password123');
 }

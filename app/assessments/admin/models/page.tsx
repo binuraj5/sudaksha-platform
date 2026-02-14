@@ -13,7 +13,8 @@ import {
     Archive,
     Loader2,
     Layout,
-    Trash2
+    Trash2,
+    XCircle
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,8 @@ export default function AssessmentModelsPage() {
     const [isCreating, setIsCreating] = useState(false);
     const [modelToDelete, setModelToDelete] = useState<AssessmentModel | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [publishingId, setPublishingId] = useState<string | null>(null);
+    const [unpublishingId, setUnpublishingId] = useState<string | null>(null);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -131,6 +134,57 @@ export default function AssessmentModelsPage() {
             toast.error("An error occurred while creating the model");
         } finally {
             setIsCreating(false);
+        }
+    };
+
+    const handleUnpublish = async (model: AssessmentModel) => {
+        if (model.status !== "PUBLISHED") {
+            toast.info("Model is not published");
+            return;
+        }
+        setUnpublishingId(model.id);
+        try {
+            const res = await fetch(`/api/assessments/admin/models/${model.id}/unpublish`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(data.message || "Model unpublished");
+                fetchModels();
+            } else {
+                toast.error(data.error || "Failed to unpublish");
+            }
+        } catch {
+            toast.error("An error occurred while unpublishing");
+        } finally {
+            setUnpublishingId(null);
+        }
+    };
+
+    const handlePublish = async (model: AssessmentModel) => {
+        if (model.status === "PUBLISHED") {
+            toast.info("Model is already published");
+            return;
+        }
+        setPublishingId(model.id);
+        try {
+            const res = await fetch(`/api/assessments/admin/models/${model.id}/publish`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ visibility: "ORGANIZATION" })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(data.message || "Model published successfully");
+                fetchModels();
+            } else {
+                toast.error(data.error || "Failed to publish model");
+            }
+        } catch {
+            toast.error("An error occurred while publishing");
+        } finally {
+            setPublishingId(null);
         }
     };
 
@@ -293,11 +347,35 @@ export default function AssessmentModelsPage() {
                                                         >
                                                             <Layout className="w-4 h-4 text-navy-600" /> Open Builder
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2 text-sm">
+                                                        <DropdownMenuItem
+                                                            className="gap-2 cursor-pointer font-medium py-2 text-sm"
+                                                            onClick={() => router.push(`/assessments/admin/models/${model.id}`)}
+                                                        >
                                                             <FileText className="w-4 h-4 text-navy-600" /> View Details
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2">
-                                                            <CheckCircle2 className="w-4 h-4 text-green-500" /> Publish
+                                                        <DropdownMenuItem
+                                                            className="gap-2 cursor-pointer font-medium py-2"
+                                                            onClick={() => handlePublish(model)}
+                                                            disabled={model.status === "PUBLISHED" || publishingId === model.id}
+                                                        >
+                                                            {publishingId === model.id ? (
+                                                                <Loader2 className="w-4 h-4 text-green-500 animate-spin" />
+                                                            ) : (
+                                                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                                            )}
+                                                            {model.status === "PUBLISHED" ? "Already Published" : "Publish"}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="gap-2 cursor-pointer font-medium py-2"
+                                                            onClick={() => handleUnpublish(model)}
+                                                            disabled={model.status !== "PUBLISHED" || unpublishingId === model.id}
+                                                        >
+                                                            {unpublishingId === model.id ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <XCircle className="w-4 h-4" />
+                                                            )}
+                                                            Unpublish
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             className="gap-2 cursor-pointer text-red-600 font-medium py-2 focus:text-red-600 focus:bg-red-50"

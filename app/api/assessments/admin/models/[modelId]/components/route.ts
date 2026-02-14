@@ -1,6 +1,7 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { canEditModelComponents } from "@/lib/assessments/model-edit-permission";
 
 /**
  * GET /api/assessments/admin/models/[modelId]/components
@@ -58,6 +59,19 @@ export async function POST(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { modelId: modelIdPost } = await params;
+        const model = await prisma.assessmentModel.findUnique({
+            where: { id: modelIdPost },
+            select: { id: true, status: true, tenantId: true, clientId: true }
+        });
+        if (!model) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+        const editCheck = await canEditModelComponents(model, session);
+        if (!editCheck.allowed) {
+            return NextResponse.json({ error: editCheck.reason }, { status: 403 });
+        }
+
         const body = await req.json();
         const { competencyId, weight, targetLevel, order, isRequired, isTimed, customDuration, componentType } = body;
 
@@ -75,7 +89,6 @@ export async function POST(
             indicatorIds = competency?.indicators.map(i => i.id) || [];
         }
 
-        const { modelId: modelIdPost } = await params;
         const component = await prisma.assessmentModelComponent.create({
             data: {
                 modelId: modelIdPost,

@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { QuestionType, ProficiencyLevel } from '@prisma/client';
+import { generateChatCompletion } from "@/lib/ai/providers";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
@@ -78,19 +79,35 @@ OUTPUT FORMAT (JSON):
 Ensure all "linkedIndicators" match the IDs provided in the context. Generate ${count} questions now.
 `;
 
+    const messages = [
+        {
+            role: 'system',
+            content: 'You are an expert assessment designer and psychometrician. Your goal is to generate high-quality, valid, and reliable assessment questions. Always respond in valid JSON format only, no markdown or extra text.'
+        },
+        {
+            role: 'user',
+            content: prompt
+        }
+    ];
+
+    try {
+        if (process.env.GEMINI_API_KEY) {
+            const response = await generateChatCompletion(messages);
+            const content = response.choices[0].message.content;
+            if (!content) throw new Error("Empty response from AI");
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            const jsonStr = jsonMatch ? jsonMatch[0] : content;
+            const parsed = JSON.parse(jsonStr);
+            return parsed.questions;
+        }
+    } catch (geminiError) {
+        console.warn("Gemini AI fallback:", geminiError);
+    }
+
     try {
         const response = await openai.chat.completions.create({
             model: 'gpt-4o',
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are an expert assessment designer and psychometrician. Your goal is to generate high-quality, valid, and reliable assessment questions. Always respond in valid JSON format.'
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
+            messages,
             response_format: { type: 'json_object' },
             temperature: 0.7,
             max_tokens: 3000

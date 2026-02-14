@@ -14,20 +14,29 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         const { modelId } = await params;
-        const model = await prisma.assessmentModel.findFirst({
-            where: { id: modelId, isActive: true },
-            include: {
-                role: true,
-                components: {
-                    include: {
-                        competency: true,
-                        questions: true
+        const include = {
+            role: true,
+            components: {
+                include: {
+                    competency: {
+                        include: { indicators: true }
                     },
-                    orderBy: { order: 'asc' }
-                }
+                    _count: { select: { questions: true } }
+                },
+                orderBy: { order: 'asc' as const }
             }
+        };
+        let model = await prisma.assessmentModel.findFirst({
+            where: { id: modelId, isActive: true },
+            include
         });
-
+        // Fallback: model may exist but isActive=false (e.g. just created, or edge case)
+        if (!model) {
+            model = await prisma.assessmentModel.findUnique({
+                where: { id: modelId },
+                include
+            });
+        }
         if (!model) {
             return NextResponse.json({ error: "Model not found" }, { status: 404 });
         }
