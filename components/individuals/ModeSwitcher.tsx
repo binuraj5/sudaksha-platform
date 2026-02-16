@@ -7,11 +7,12 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 interface ModeSwitcherProps {
+    /** Current mode from server (serializable). After switch, router.refresh() re-fetches this. */
     currentMode: "PROFESSIONAL" | "STUDENT";
-    onModeChange: (mode: "PROFESSIONAL" | "STUDENT") => void;
+    // Do NOT add onModeChange or any function props - Server Components cannot pass them.
 }
 
-export function ModeSwitcher({ currentMode, onModeChange }: ModeSwitcherProps) {
+export function ModeSwitcher({ currentMode }: ModeSwitcherProps) {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -31,7 +32,6 @@ export function ModeSwitcher({ currentMode, onModeChange }: ModeSwitcherProps) {
                 throw new Error(data.error || "Failed to switch mode");
             }
 
-            onModeChange(newMode);
             toast.success(`Switched to ${newMode === "PROFESSIONAL" ? "Professional" : "Student"} Mode`);
             router.refresh();
         } catch (error: any) {

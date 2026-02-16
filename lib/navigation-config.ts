@@ -120,38 +120,38 @@ const ALL_PROFILE_ROLES = ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TE
 const ROLES_WITH_HIERARCHY = ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER', 'EMPLOYEE', 'STUDENT', 'ASSESSOR']; // Excludes INDIVIDUAL
 const basePathOrPortal = (base: string, portal: string, segment: string) => (base ? `${base}${segment}` : portal);
 const MY_PAGE_NAV_ITEMS: NavigationItem[] = [
-    { id: 'my-details', icon: User, label: 'My Details', path: (base) => basePathOrPortal(base, '/assessments/profile', '/profile'), permission: '*', roles: ALL_PROFILE_ROLES },
+    { id: 'my-details', icon: User, label: 'My Details', path: (base) => basePathOrPortal(base, '/assessments/individuals/profile', '/profile'), permission: '*', roles: ALL_PROFILE_ROLES },
     { id: 'my-hierarchy', icon: Users, label: 'My Hierarchy', path: (base) => basePathOrPortal(base, '/assessments/hierarchy', '/hierarchy'), permission: '*', roles: ROLES_WITH_HIERARCHY },
-    { id: 'my-projects', icon: Briefcase, label: (t) => t === 'SYSTEM' ? 'My Goals' : 'My Projects', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/projects'), permission: '*', roles: ALL_PROFILE_ROLES },
+    { id: 'my-projects', icon: Briefcase, label: (t) => t === 'SYSTEM' ? 'My Goals' : 'My Projects', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/projects'), permission: '*', roles: ALL_PROFILE_ROLES },
     {
         id: 'my-career',
         icon: Briefcase,
         label: 'My Career',
-        path: (base) => basePathOrPortal(base, '/assessments/career', '/career'),
+        path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'),
         permission: '*',
         roles: ALL_PROFILE_ROLES,
         children: [
-            { id: 'my-current-role', icon: User, label: 'My Current Role', path: (base) => basePathOrPortal(base, '/assessments/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-previous-roles', icon: User, label: 'My Previous Roles', path: (base) => basePathOrPortal(base, '/assessments/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-aspirational-role', icon: User, label: 'My Aspirational Role', path: (base) => basePathOrPortal(base, '/assessments/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-competencies', icon: FileText, label: 'My Competencies', path: (base) => basePathOrPortal(base, '/assessments/career', '/career'), permission: '*', roles: ['*'] },
+            { id: 'my-current-role', icon: User, label: 'My Current Role', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
+            { id: 'my-previous-roles', icon: User, label: 'My Previous Roles', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
+            { id: 'my-aspirational-role', icon: User, label: 'My Aspirational Role', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
+            { id: 'my-competencies', icon: FileText, label: 'My Competencies', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
         ]
     },
     {
         id: 'my-assessments',
         icon: FileText,
         label: 'My Assessments',
-        path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/assessments'),
+        path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'),
         permission: '*',
         roles: ALL_PROFILE_ROLES,
         children: [
-            { id: 'take-assessment', icon: FileText, label: 'Take Assessment', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessments-role-wise', icon: FileText, label: 'My Assessments - Role-Wise', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessments-competency-wise', icon: FileText, label: 'My Assessments - Competency-Wise', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessment-scores', icon: BarChart, label: 'Assessment Scores', path: (base) => basePathOrPortal(base, '/assessments/results', '/results'), permission: '*', roles: ['*'] },
+            { id: 'take-assessment', icon: FileText, label: 'Take Assessment', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
+            { id: 'assessments-role-wise', icon: FileText, label: 'My Assessments - Role-Wise', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
+            { id: 'assessments-competency-wise', icon: FileText, label: 'My Assessments - Competency-Wise', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
+            { id: 'assessment-scores', icon: BarChart, label: 'Assessment Scores', path: (base) => basePathOrPortal(base, '/assessments/individuals/results', '/results'), permission: '*', roles: ['*'] },
         ]
     },
-    { id: 'take-survey', icon: ClipboardList, label: 'Take Survey', path: (base) => basePathOrPortal(base, '/assessments/dashboard', '/surveys'), permission: '*', roles: ALL_PROFILE_ROLES },
+    { id: 'take-survey', icon: ClipboardList, label: 'Take Survey', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/surveys'), permission: '*', roles: ALL_PROFILE_ROLES },
     { id: 'my-curriculum', icon: BookOpen, label: 'My Curriculum', path: (base) => basePathOrPortal(base, '/assessments/curriculum', '/curriculum'), permission: '*', roles: ALL_PROFILE_ROLES, tenantTypes: ['INSTITUTION'] },
     { id: 'individual-dashboard', icon: Home, label: 'Dashboard', path: () => '/assessments/individuals/dashboard', permission: '*', roles: ['INDIVIDUAL', 'STUDENT'] },
 ];

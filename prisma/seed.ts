@@ -504,6 +504,18 @@ async function main() {
   const createdPrograms = await prisma.finishingSchool.count();
   console.log(`✅ Created ${createdPrograms} finishing school programs`);
 
+  // MasterDepartment for role request form (HR, Sales, Marketing, Finance, etc.)
+  const departmentNames = ['HR', 'Sales', 'Marketing', 'Finance', 'Operations', 'Technology', 'Engineering', 'Customer Success', 'Legal', 'Product'];
+  for (const name of departmentNames) {
+    const slug = name.toLowerCase().replace(/\s+/g, '-');
+    await prisma.masterDepartment.upsert({
+      where: { slug },
+      update: { name, isActive: true },
+      create: { name, slug, isActive: true },
+    });
+  }
+  console.log(`✅ Seeded ${departmentNames.length} MasterDepartment options`);
+
   console.log('🎉 Database seeding completed successfully!');
 }
 

@@ -72,18 +72,41 @@ export function AdaptiveConfigForm({
         }
         setSaving(true);
         try {
-            const res = await fetch(`/api/assessments/admin/models/${modelId}/components/${componentId}`, {
+            const patchRes = await fetch(`/api/assessments/admin/models/${modelId}/components/${componentId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ config }),
             });
-            if (res.ok) {
-                toast.success("Adaptive configuration saved");
-                onComplete();
-            } else {
-                const err = await res.json();
+            if (!patchRes.ok) {
+                const err = await patchRes.json();
                 toast.error(err.error || "Failed to save");
+                return;
             }
+            const bulkRes = await fetch(
+                `/api/assessments/admin/components/${componentId}/questions/bulk-json`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        questions: [
+                            {
+                                questionText: `Adaptive AI – ${competencyName} (${targetLevel})`,
+                                questionType: "MULTIPLE_CHOICE",
+                                points: 100,
+                                linkedIndicators: [],
+                                metadata: { type: "ADAPTIVE_PLACEHOLDER", ...config },
+                            },
+                        ],
+                    }),
+                }
+            );
+            if (!bulkRes.ok) {
+                const err = await bulkRes.json();
+                toast.error(err.error || "Failed to save placeholder question");
+                return;
+            }
+            toast.success("Adaptive configuration saved");
+            onComplete();
         } catch {
             toast.error("Failed to save configuration");
         } finally {
@@ -172,53 +195,6 @@ export function AdaptiveConfigForm({
                             </Badge>
                         ))}
                     </div>
-                </div>
-
-                <div className="space-y-3">
-                    <Label>Adaptation Settings</Label>
-                    <label className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-muted/50">
-                        <input
-                            type="checkbox"
-                            checked={config.difficulty_adaptation_enabled}
-                            onChange={(e) =>
-                                setConfig({ ...config, difficulty_adaptation_enabled: e.target.checked })
-                            }
-                            className="w-4 h-4"
-                        />
-                        <span className="text-sm">Adaptive difficulty (adjust based on performance)</span>
-                    </label>
-                    <label className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-muted/50">
-                        <input
-                            type="checkbox"
-                            checked={config.context_aware_followups}
-                            onChange={(e) =>
-                                setConfig({ ...config, context_aware_followups: e.target.checked })
-                            }
-                            className="w-4 h-4"
-                        />
-                        <span className="text-sm">Context-aware follow-ups (build on previous answers)</span>
-                    </label>
-                </div>
-
-                <div>
-                    <Label>Stopping Criteria</Label>
-                    <select
-                        className="w-full mt-2 px-3 py-2 border rounded-md bg-background"
-                        value={config.stopping_criteria}
-                        onChange={(e) =>
-                            setConfig({
-                                ...config,
-                                stopping_criteria: e.target.value as AdaptiveConfig["stopping_criteria"],
-                            })
-                        }
-                    >
-                        <option value="MAX_QUESTIONS">Maximum questions only</option>
-                        <option value="HIGH_CONFIDENCE">High confidence (may stop early)</option>
-                        <option value="BOTH">Both (recommended)</option>
-                    </select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        &quot;Both&quot; stops when max reached OR when ability level is confident
-                    </p>
                 </div>
 
                 <div className="flex gap-2 pt-4">

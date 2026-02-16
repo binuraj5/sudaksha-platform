@@ -14,18 +14,22 @@ export default async function B2CUserDashboard() {
         redirect("/assessments/login");
     }
 
-    // Fetch user's assigned assessments
-    const memberAssessments = await prisma.memberAssessment.findMany({
+    // B2C: resolve Member by session user email (type INDIVIDUAL), then fetch MemberAssessment by memberId
+    const member = await prisma.member.findFirst({
         where: {
-            memberId: session.user.id, // Assuming user.id maps to Member ID in your unified model
+            email: (session.user as { email?: string }).email ?? "",
+            type: "INDIVIDUAL",
         },
-        include: {
-            assessmentModel: true,
-        },
-        orderBy: {
-            updatedAt: 'desc'
-        }
+        select: { id: true },
     });
+
+    const memberAssessments = member
+        ? await prisma.memberAssessment.findMany({
+              where: { memberId: member.id },
+              include: { assessmentModel: true },
+              orderBy: { updatedAt: "desc" },
+          })
+        : [];
 
     const pendingCount = memberAssessments.filter(a => a.status === 'DRAFT' || a.status === 'ACTIVE').length;
     const completedCount = memberAssessments.filter(a => a.status === 'COMPLETED').length;

@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 
             await prisma.adaptiveSession.update({
                 where: { id: sessionId },
-                data: { currentAbility: engine.state.currentAbility },
+                data: { currentAbility: nextDifficulty },
             });
 
             const previousQuestions = await prisma.adaptiveQuestion.findMany({

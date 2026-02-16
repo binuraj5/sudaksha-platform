@@ -1,9 +1,6 @@
 /**
- * Adaptive Assessment Engine
- * Based on M9-5_ADAPTIVE_AI_COMPONENT_IMPLEMENTATION.md
- * - Difficulty calculation based on performance
- * - Stopping criteria (min/max questions, high confidence)
- * - Linear conversion scoring: ability 1-10 → 10-100
+ * Adaptive Engine – difficulty calculation and stopping logic (M9-5, Master doc).
+ * Linear conversion: ability 1–10 → score 0–100 (e.g. 7.5/10 = 75/100).
  */
 
 export interface AdaptiveConfig {
@@ -25,52 +22,38 @@ export interface AdaptiveState {
 }
 
 export class AdaptiveEngine {
-    private _state: AdaptiveState;
+    public state: AdaptiveState;
 
     constructor(state: AdaptiveState) {
-        this._state = { ...state };
-    }
-
-    get state(): AdaptiveState {
-        return { ...this._state };
+        this.state = { ...state };
     }
 
     /**
-     * Calculate next question difficulty based on performance
+     * Next question difficulty from recent performance (M9-5).
      */
     calculateNextDifficulty(): number {
-        if (!this._state.config.difficulty_adaptation_enabled) {
-            return this._state.config.starting_difficulty;
+        if (!this.state.config.difficulty_adaptation_enabled) {
+            return this.state.config.starting_difficulty;
         }
-
-        if (this._state.questionsAsked === 0) {
-            return this._state.config.starting_difficulty;
+        if (this.state.questionsAsked === 0) {
+            return this.state.config.starting_difficulty;
         }
-
-        const accuracy = this._state.questionsCorrect / this._state.questionsAsked;
-        let newAbility = this._state.currentAbility;
-
-        if (accuracy >= 0.75) {
-            newAbility += 0.5;
-        } else if (accuracy <= 0.4) {
-            newAbility -= 0.5;
-        }
-
+        const accuracy = this.state.questionsCorrect / this.state.questionsAsked;
+        let newAbility = this.state.currentAbility;
+        if (accuracy >= 0.75) newAbility += 0.5;
+        else if (accuracy <= 0.4) newAbility -= 0.5;
         newAbility = Math.max(1, Math.min(10, newAbility));
-        this._state.currentAbility = newAbility;
-
+        this.state.currentAbility = newAbility;
         return Math.min(10, newAbility + 0.3);
     }
 
     /**
-     * Determine if assessment should continue
+     * Whether to ask another question (min/max and stopping criteria).
      */
     shouldContinue(): boolean {
-        const { min_questions, max_questions, stopping_criteria } = this._state.config;
-
-        if (this._state.questionsAsked < min_questions) return true;
-        if (this._state.questionsAsked >= max_questions) return false;
-
+        const { min_questions, max_questions, stopping_criteria } = this.state.config;
+        if (this.state.questionsAsked < min_questions) return true;
+        if (this.state.questionsAsked >= max_questions) return false;
         if (stopping_criteria === "MAX_QUESTIONS") return true;
         if (stopping_criteria === "HIGH_CONFIDENCE" || stopping_criteria === "BOTH") {
             return !this.hasHighConfidence();
@@ -79,27 +62,26 @@ export class AdaptiveEngine {
     }
 
     private hasHighConfidence(): boolean {
-        if (this._state.questionsAsked < 8) return false;
-
-        const accuracy = this._state.questionsCorrect / this._state.questionsAsked;
+        if (this.state.questionsAsked < 8) return false;
+        const accuracy = this.state.questionsCorrect / this.state.questionsAsked;
         if (accuracy >= 0.9 || accuracy <= 0.2) return true;
-        if (this._state.questionsAsked >= 12 && (accuracy >= 0.7 || accuracy <= 0.3)) return true;
+        if (this.state.questionsAsked >= 12 && (accuracy >= 0.7 || accuracy <= 0.3)) return true;
         return false;
     }
 
     /**
-     * Calculate final score (linear conversion: ability 1-10 → 10-100)
+     * Final score: linear conversion ability 1–10 → 0–100 (M9-5).
      */
     calculateFinalScore(): { percentage: number; ability: number; accuracy: number } {
-        const percentage = ((this._state.currentAbility - 1) / 9) * 90 + 10;
+        const ability = this.state.currentAbility;
+        const percentage = (ability - 1) / 9 * 90 + 10;
         const accuracy =
-            this._state.questionsAsked > 0
-                ? (this._state.questionsCorrect / this._state.questionsAsked) * 100
+            this.state.questionsAsked > 0
+                ? (this.state.questionsCorrect / this.state.questionsAsked) * 100
                 : 0;
-
         return {
             percentage: Math.round(percentage * 100) / 100,
-            ability: Math.round(this.state.currentAbility * 100) / 100,
+            ability: Math.round(ability * 100) / 100,
             accuracy: Math.round(accuracy * 100) / 100,
         };
     }
@@ -111,16 +93,14 @@ export class AdaptiveEngine {
             SENIOR: 7,
             EXPERT: 9,
         };
-        return baselines[targetLevel?.toUpperCase()] ?? 5;
+        return baselines[targetLevel] ?? 5;
     }
 
     estimateRemainingQuestions(): string {
-        const asked = this._state.questionsAsked;
-        const min = this._state.config.min_questions;
-        const max = this._state.config.max_questions;
-
-        if (asked < min) return `${min - asked}-${max - asked}`;
+        const asked = this.state.questionsAsked;
+        const { min_questions, max_questions } = this.state.config;
+        if (asked < min_questions) return `${min_questions - asked}-${max_questions - asked}`;
         if (this.hasHighConfidence()) return "1-2";
-        return `2-${max - asked}`;
+        return `2-${max_questions - asked}`;
     }
 }

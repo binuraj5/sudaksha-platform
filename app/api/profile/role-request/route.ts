@@ -10,7 +10,19 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { roleName, description, totalExperienceYears, context, tenantSlug, tenantId } = body;
+        const {
+            roleName,
+            description,
+            totalExperienceYears,
+            context,
+            tenantSlug,
+            tenantId,
+            isB2C,
+            departmentId,
+            departmentOtherText,
+            industryId,
+            industryOtherText,
+        } = body;
 
         if (!roleName || typeof roleName !== "string" || roleName.trim().length < 2) {
             return NextResponse.json(
@@ -53,9 +65,28 @@ export async function POST(req: NextRequest) {
             if (tenant) resolvedTenantId = tenant.id;
         }
 
+        // B2C individual (no org): use a platform B2C tenant for role requests (slug "b2c" or first SYSTEM tenant)
+        if (!resolvedTenantId) {
+            const b2cTenant = await prisma.tenant.findFirst({
+                where: { slug: "b2c" },
+                select: { id: true },
+            });
+            if (b2cTenant) resolvedTenantId = b2cTenant.id;
+            if (!resolvedTenantId) {
+                const systemTenant = await prisma.tenant.findFirst({
+                    where: { type: "SYSTEM" },
+                    select: { id: true },
+                });
+                if (systemTenant) resolvedTenantId = systemTenant.id;
+            }
+        }
+
         if (!resolvedTenantId) {
             return NextResponse.json(
-                { error: "Tenant context is required. Please access from your organization profile." },
+                {
+                    error:
+                        "Select your role from the list above. To request a new role to be created, contact support or ask your administrator to configure B2C role requests.",
+                },
                 { status: 400 }
             );
         }
@@ -69,6 +100,10 @@ export async function POST(req: NextRequest) {
                 totalExperienceYears: Number(totalExperienceYears),
                 context,
                 status: "PENDING",
+                departmentId: departmentId && typeof departmentId === "string" ? departmentId : null,
+                departmentOtherText: departmentOtherText && typeof departmentOtherText === "string" ? departmentOtherText.trim() || null : null,
+                industryId: industryId && typeof industryId === "string" ? industryId : null,
+                industryOtherText: industryOtherText && typeof industryOtherText === "string" ? industryOtherText.trim() || null : null,
             },
         });
 

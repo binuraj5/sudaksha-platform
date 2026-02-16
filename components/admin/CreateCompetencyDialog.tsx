@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { COMPETENCY_CATEGORY_OPTIONS } from "@/lib/competency-categories";
 
 const formSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -50,7 +51,7 @@ export function CreateCompetencyDialog({ trigger }: { trigger?: React.ReactNode 
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
-            category: "Technical",
+            category: "TECHNICAL",
             description: "",
         },
     });
@@ -122,11 +123,11 @@ export function CreateCompetencyDialog({ trigger }: { trigger?: React.ReactNode 
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="Technical">Technical</SelectItem>
-                                            <SelectItem value="Behavioral">Behavioral</SelectItem>
-                                            <SelectItem value="Leadership">Leadership</SelectItem>
-                                            <SelectItem value="Cognitive">Cognitive</SelectItem>
-                                            <SelectItem value="Language">Language</SelectItem>
+                                            {COMPETENCY_CATEGORY_OPTIONS.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

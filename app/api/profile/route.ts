@@ -10,8 +10,16 @@ export async function GET(req: NextRequest) {
         const member = await prisma.member.findUnique({
             where: { email: session.user.email },
             include: {
-                currentRole: true,
-                aspirationalRole: true,
+                currentRole: {
+                    include: {
+                        competencies: { include: { competency: true } }
+                    }
+                },
+                aspirationalRole: {
+                    include: {
+                        competencies: { include: { competency: true } }
+                    }
+                },
                 orgUnit: true,
                 reportingManager: { select: { id: true, name: true, designation: true } }
             }
@@ -40,7 +48,20 @@ export async function PATCH(req: NextRequest) {
         const { careerFormData, currentRoleId, aspirationalRoleId, bio, phone, metadata, studentInfo, professionalInfo } = body;
 
         const updateData: any = {};
-        if (careerFormData) updateData.careerFormData = careerFormData; // Needs care to merge? Or full replacement? Usually merge.
+        if (careerFormData !== undefined && typeof careerFormData === "object") {
+            const existing = await prisma.member.findUnique({
+                where: { email: session.user.email },
+                select: { careerFormData: true },
+            });
+            const existingForm = (existing?.careerFormData as Record<string, unknown>) || {};
+            const merged = { ...existingForm };
+            for (const key of Object.keys(careerFormData)) {
+                if ((careerFormData as Record<string, unknown>)[key] !== undefined) {
+                    merged[key] = (careerFormData as Record<string, unknown>)[key];
+                }
+            }
+            updateData.careerFormData = merged;
+        }
         if (currentRoleId !== undefined) updateData.currentRoleId = currentRoleId;
         if (aspirationalRoleId !== undefined) updateData.aspirationalRoleId = aspirationalRoleId;
         if (bio !== undefined) updateData.bio = bio;

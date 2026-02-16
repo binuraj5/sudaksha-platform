@@ -240,6 +240,7 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
 
     const currentComponent = model?.components.find((c: any) => c.id === selectedComponentId);
     const indicators = currentComponent?.competency?.indicators || [];
+    const isSpecializedComponent = currentComponent && ["VOICE", "VIDEO", "CODE", "ADAPTIVE_AI", "ADAPTIVE_QUESTIONNAIRE", "PANEL"].includes(currentComponent.componentType);
 
     return (
         <div className="container mx-auto max-w-7xl py-8 px-4 space-y-6 font-sans">
@@ -254,7 +255,13 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                             </Button>
                         </Link>
                         <span>/</span>
-                        <span>Questions</span>
+                        <Link href={`/assessments/admin/models/${modelId}`}>
+                            <Button variant="ghost" size="sm" className="h-8 text-muted-foreground hover:text-foreground hover:bg-muted -ml-1">
+                                {model?.name ?? "Details"}
+                            </Button>
+                        </Link>
+                        <span>/</span>
+                        <span className="text-foreground font-medium">Questions</span>
                     </div>
                     <h1 className="text-xl font-bold tracking-tight text-foreground">
                         {model?.name}
@@ -279,8 +286,8 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                         onPublished={() => fetchModel()}
                     />
                     <Link href={`/assessments/admin/models/${modelId}/builder`}>
-                        <Button size="sm" className="h-9 bg-navy-700 hover:bg-navy-600 gap-1">
-                            Review <ArrowRight className="w-4 h-4" />
+                        <Button variant="outline" size="sm" className="h-9 gap-1">
+                            Builder <ArrowRight className="w-4 h-4" />
                         </Button>
                     </Link>
                 </div>
@@ -352,10 +359,18 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                                             <h3 className="text-sm font-medium truncate">
                                                 {comp.competency?.name ?? comp.id}
                                             </h3>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="secondary" className="text-xs font-medium">
-                                                    {comp._count?.questions ?? comp.questions?.length ?? 0} Q
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <Badge variant="outline" className="text-[10px] font-medium px-1.5 py-0">
+                                                    {comp.componentType ?? "MCQ"}
                                                 </Badge>
+                                                {(() => {
+                                                    const qCount = comp._count?.questions ?? comp.questions?.length ?? 0;
+                                                    const isSpecialized = ["VOICE", "VIDEO", "CODE", "ADAPTIVE_AI", "ADAPTIVE_QUESTIONNAIRE", "PANEL"].includes(comp.componentType);
+                                                    if (isSpecialized) {
+                                                        return <span className="text-xs text-muted-foreground">{qCount > 0 ? `${qCount} Q` : "Configured"}</span>;
+                                                    }
+                                                    return <Badge variant="secondary" className="text-xs font-medium">{qCount} Q</Badge>;
+                                                })()}
                                                 <span className="text-xs text-muted-foreground">
                                                     {comp.weight}%
                                                 </span>
@@ -382,13 +397,13 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                                         <TabsTrigger value="list" className="px-4 rounded-lg data-[state=active]:bg-red-50 data-[state=active]:text-red-700">
                                             <FileText className="w-4 h-4 mr-2" /> Questions
                                         </TabsTrigger>
-                                        <TabsTrigger value="manual" disabled={isPublished} className="px-4 rounded-lg data-[state=active]:bg-red-50 data-[state=active]:text-red-700 disabled:opacity-50 disabled:pointer-events-none">
+                                        <TabsTrigger value="manual" disabled={isPublished || isSpecializedComponent} className="px-4 rounded-lg data-[state=active]:bg-red-50 data-[state=active]:text-red-700 disabled:opacity-50 disabled:pointer-events-none">
                                             <Plus className="w-4 h-4 mr-2" /> Manual
                                         </TabsTrigger>
-                                        <TabsTrigger value="bulk" disabled={isPublished} className="px-4 rounded-lg data-[state=active]:bg-red-50 data-[state=active]:text-red-700 disabled:opacity-50 disabled:pointer-events-none">
+                                        <TabsTrigger value="bulk" disabled={isPublished || isSpecializedComponent} className="px-4 rounded-lg data-[state=active]:bg-red-50 data-[state=active]:text-red-700 disabled:opacity-50 disabled:pointer-events-none">
                                             <Upload className="w-4 h-4 mr-2" /> Bulk
                                         </TabsTrigger>
-                                        <TabsTrigger value="ai" disabled={isPublished} className="px-4 rounded-lg data-[state=active]:bg-red-50 data-[state=active]:text-red-700 disabled:opacity-50 disabled:pointer-events-none">
+                                        <TabsTrigger value="ai" disabled={isPublished || isSpecializedComponent} className="px-4 rounded-lg data-[state=active]:bg-red-50 data-[state=active]:text-red-700 disabled:opacity-50 disabled:pointer-events-none">
                                             <Brain className="w-4 h-4 mr-2" /> AI
                                         </TabsTrigger>
                                     </TabsList>
@@ -419,19 +434,33 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                                 </div>
 
                                 <TabsContent value="list" className="mt-0 focus-visible:ring-0">
-                                    <QuestionList
-                                        questions={questions}
-                                        indicators={indicators}
-                                        onEdit={(q) => {
-                                            toast.info("Edit functionality coming soon. Currently focused on build flow.");
-                                        }}
-                                        onDelete={handleDeleteQuestion}
-                                        onDuplicate={(q) => {
-                                            const { id, ...rest } = q;
-                                            handleSaveQuestion(rest);
-                                        }}
-                                        readOnly={isPublished}
-                                    />
+                                    {isSpecializedComponent && questions.length === 0 ? (
+                                        <div className="rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center">
+                                            <p className="text-sm font-medium text-foreground mb-1">
+                                                {currentComponent?.componentType} component
+                                            </p>
+                                            <p className="text-sm text-muted-foreground mb-4">
+                                                This component is configured in the Builder. Voice, Video, Code, and Adaptive components use runtime configuration rather than a static question bank.
+                                            </p>
+                                            <Link href={`/assessments/admin/models/${modelId}/builder`}>
+                                                <Button variant="outline" size="sm">Open Builder to configure</Button>
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <QuestionList
+                                            questions={questions}
+                                            indicators={indicators}
+                                            onEdit={(q) => {
+                                                toast.info("Edit functionality coming soon. Currently focused on build flow.");
+                                            }}
+                                            onDelete={handleDeleteQuestion}
+                                            onDuplicate={(q) => {
+                                                const { id, ...rest } = q;
+                                                handleSaveQuestion(rest);
+                                            }}
+                                            readOnly={isPublished}
+                                        />
+                                    )}
                                 </TabsContent>
 
                                 <TabsContent value="manual" className="mt-0 focus-visible:ring-0">

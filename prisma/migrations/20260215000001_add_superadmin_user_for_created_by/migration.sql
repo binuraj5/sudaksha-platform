@@ -1,27 +1,23 @@
--- Ensure a User exists for superadmin@sudaksha.com (AdminUser login)
--- ComponentLibrary.createdBy and similar FKs require User.id
--- This allows AdminUser (Super Admin) to save to library without FK violation
+-- Ensure a User row exists for superadmin so ComponentLibrary.createdBy and similar FKs can reference it.
+-- Does not depend on AdminUser table (which may not exist in migration history).
+-- Password is a placeholder; sync from AdminUser or reset via app/seed if needed.
 INSERT INTO "User" (
     "id",
     "email",
     "password",
     "name",
     "role",
-    "userType",
     "isActive",
     "createdAt",
     "updatedAt"
 )
 SELECT
     'clsuperadmin000000000000001',
-    au."email",
-    au."passwordHash",
-    au."name",
-    'SUPER_ADMIN',
+    'superadmin@sudaksha.com',
+    '$2a$10$placeholder.hash.here',
+    'Super Admin',
     'SUPER_ADMIN',
     true,
     NOW(),
     NOW()
-FROM "AdminUser" au
-WHERE au."email" = 'superadmin@sudaksha.com'
-  AND NOT EXISTS (SELECT 1 FROM "User" u WHERE u."email" = 'superadmin@sudaksha.com');
+WHERE NOT EXISTS (SELECT 1 FROM "User" u WHERE u."email" = 'superadmin@sudaksha.com');

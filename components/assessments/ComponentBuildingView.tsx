@@ -21,6 +21,7 @@ import { LibraryBrowser } from "@/components/assessments/LibraryBrowser";
 import { VoiceComponentBuilder, type VoiceConfig } from "@/components/assessments/VoiceComponentBuilder";
 import { type VideoConfig } from "@/components/assessments/VideoComponentBuilder";
 import { type CodeConfig } from "@/components/assessments/CodeComponentBuilder";
+import { type PanelConfig } from "@/components/assessments/PanelComponentBuilder";
 import { VideoComponentBuilder } from "@/components/assessments/VideoComponentBuilder";
 import { CodeComponentBuilder } from "@/components/assessments/CodeComponentBuilder";
 import { AdaptiveConfigForm, type AdaptiveConfig } from "@/components/assessments/AdaptiveConfigForm";
@@ -104,6 +105,11 @@ export function ComponentBuildingView({
     }, [modelId]);
 
     const getComponentId = (competencyId: string, componentType: ComponentType): string | null => {
+        // Prefer componentId from selections (updated when component is just added)
+        const sel = selections.get(competencyId);
+        const statusId = sel?.componentStatus.get(componentType)?.componentId;
+        if (statusId) return statusId;
+
         const comp = components.find((c) => {
             if (c.competencyId !== competencyId) return false;
             if (c.componentType === componentType) return true;
@@ -121,6 +127,10 @@ export function ComponentBuildingView({
     const startBuilding = (competencyId: string, componentType: ComponentType) => {
         setCurrentBuild({ competencyId, componentType });
         setBuildMethod(null);
+        // Refetch components so newly added components (e.g. VOICE) are available
+        fetch(`/api/assessments/admin/models/${modelId}/components`)
+            .then((r) => r.ok ? r.json() : [])
+            .then((data) => Array.isArray(data) && setComponents(data));
     };
 
     const closeDialog = () => {
@@ -324,8 +334,14 @@ export function ComponentBuildingView({
                             </DialogHeader>
                             <PanelComponentBuilder
                                 componentId={componentId}
+                                modelId={modelId}
                                 competencyName={competency?.name ?? ""}
                                 targetLevel={targetLevel}
+                                initialConfig={
+                                    components.find(
+                                        (c) => c.id === componentId && c.componentType === "PANEL"
+                                    )?.config as PanelConfig | undefined
+                                }
                                 onComplete={handleSpecializedComplete}
                                 onCancel={closeDialog}
                             />
@@ -358,54 +374,50 @@ export function ComponentBuildingView({
                                 Choose how to create questions:
                             </p>
                             <div className="grid grid-cols-2 gap-4">
-                                <Card
-                                    className="cursor-pointer hover:border-navy-300 transition border"
+                                <button
+                                    type="button"
+                                    className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 pt-6 text-center cursor-pointer hover:border-navy-300 transition border w-full flex flex-col items-center"
                                     onClick={() => setBuildMethod("AI_GENERATE")}
                                 >
-                                    <CardContent className="pt-6 text-center">
-                                        <Brain className="w-10 h-10 mx-auto mb-2 text-navy-600" />
-                                        <div className="font-semibold">AI Generate</div>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            AI creates questions from indicators
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                                <Card
-                                    className="cursor-pointer hover:border-navy-300 transition border"
+                                    <Brain className="w-10 h-10 mb-2 text-navy-600" />
+                                    <div className="font-semibold">AI Generate</div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        AI creates questions from indicators
+                                    </p>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 pt-6 text-center cursor-pointer hover:border-navy-300 transition border w-full flex flex-col items-center"
                                     onClick={() => setBuildMethod("MANUAL")}
                                 >
-                                    <CardContent className="pt-6 text-center">
-                                        <FileEdit className="w-10 h-10 mx-auto mb-2 text-navy-600" />
-                                        <div className="font-semibold">Manual Entry</div>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Create questions one by one
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                                <Card
-                                    className="cursor-pointer hover:border-navy-300 transition border"
+                                    <FileEdit className="w-10 h-10 mb-2 text-navy-600" />
+                                    <div className="font-semibold">Manual Entry</div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Create questions one by one
+                                    </p>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 pt-6 text-center cursor-pointer hover:border-navy-300 transition border w-full flex flex-col items-center"
                                     onClick={() => setBuildMethod("USE_EXISTING")}
                                 >
-                                    <CardContent className="pt-6 text-center">
-                                        <Library className="w-10 h-10 mx-auto mb-2 text-navy-600" />
-                                        <div className="font-semibold">Use Existing</div>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Select from component library
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                                <Card
-                                    className="cursor-pointer hover:border-navy-300 transition border"
+                                    <Library className="w-10 h-10 mb-2 text-navy-600" />
+                                    <div className="font-semibold">Use Existing</div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Select from component library
+                                    </p>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 pt-6 text-center cursor-pointer hover:border-navy-300 transition border w-full flex flex-col items-center"
                                     onClick={() => setBuildMethod("BULK_UPLOAD")}
                                 >
-                                    <CardContent className="pt-6 text-center">
-                                        <Upload className="w-10 h-10 mx-auto mb-2 text-navy-600" />
-                                        <div className="font-semibold">Bulk Upload</div>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Upload via CSV/Excel
-                                        </p>
-                                    </CardContent>
-                                </Card>
+                                    <Upload className="w-10 h-10 mb-2 text-navy-600" />
+                                    <div className="font-semibold">Bulk Upload</div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Upload via CSV/Excel
+                                    </p>
+                                </button>
                             </div>
                         </div>
                     ) : buildMethod === "AI_GENERATE" ? (

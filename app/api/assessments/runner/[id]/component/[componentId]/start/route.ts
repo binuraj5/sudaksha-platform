@@ -31,33 +31,27 @@ export async function POST(
         const useRuntimeAI = metadata?.useRuntimeAI === true;
         const totalRuntimeQuestions = metadata?.runtimeQuestionCount ?? 5;
         const componentType = (component as { componentType?: string }).componentType ?? "";
-        let componentConfig = (component as { config?: unknown }).config as {
-            questionCount?: number;
-            maxDurationPerQuestion?: number;
-            retakesAllowed?: number;
-            competencyName?: string;
-            targetLevel?: string;
-            min_questions?: number;
-            max_questions?: number;
-            starting_difficulty?: number;
-            allowed_question_types?: string[];
-        } | null;
+        let componentConfig = (component as { config?: unknown }).config as { questionCount?: number; maxDurationPerQuestion?: number; retakesAllowed?: number; competencyName?: string; targetLevel?: string; min_questions?: number } | null;
         // Fallback: config may be in first question metadata (legacy)
-        if (!componentConfig?.competencyName && !componentConfig?.min_questions && component.questions[0]) {
+        if (!componentConfig?.competencyName && component.questions[0]) {
             const meta = (component.questions[0] as { metadata?: unknown }).metadata as { competencyName?: string; targetLevel?: string; questionCount?: number; maxDurationPerQuestion?: number; retakesAllowed?: number; min_questions?: number } | null;
             if (meta?.competencyName && meta?.targetLevel) {
                 componentConfig = meta;
-            } else if (meta?.min_questions) {
-                componentConfig = meta;
             }
         }
-        if (!componentConfig && (component as { config?: unknown }).config) {
-            componentConfig = (component as { config: unknown }).config as typeof componentConfig;
-        }
+        const adaptiveConfig = (component as { config?: unknown }).config as { min_questions?: number; max_questions?: number } | null;
+        const panelConfig = (component as { config?: unknown }).config as { panelId?: string; competencyName?: string; targetLevel?: string; durationMinutes?: number } | null;
         const isVoiceInterview = componentType === "VOICE" && componentConfig?.competencyName && componentConfig?.targetLevel;
         const isVideoInterview = componentType === "VIDEO" && componentConfig?.competencyName && componentConfig?.targetLevel;
-        const isAdaptiveAI = componentType === "ADAPTIVE_AI" && componentConfig;
-        const maxScore = useRuntimeAI ? totalRuntimeQuestions * 10 : (isVoiceInterview || isVideoInterview || isAdaptiveAI ? 100 : component.questions.reduce((sum, q) => sum + (q.points ?? 1), 0));
+        const isAdaptiveAI =
+            (componentType === "ADAPTIVE_AI" || componentType === "ADAPTIVE_QUESTIONNAIRE") &&
+            (adaptiveConfig?.min_questions != null || componentConfig?.competencyName);
+        const isPanelInterview = componentType === "PANEL" && panelConfig?.panelId;
+        const maxScore = useRuntimeAI
+            ? totalRuntimeQuestions * 10
+            : isVoiceInterview || isVideoInterview || isAdaptiveAI || isPanelInterview
+              ? 100
+              : component.questions.reduce((sum, q) => sum + (q.points ?? 1), 0);
 
         // 1. Org flow: ProjectUserAssessment
         const projectAssessment = await prisma.projectUserAssessment.findFirst({
@@ -116,7 +110,22 @@ export async function POST(
                     },
                     videoQuestionId: component.questions[0]?.id ?? null,
                 }),
-                // Adaptive AI: Member flow only (AdaptiveSession uses memberAssessmentId)
+                ...(isAdaptiveAI && {
+                    useAdaptiveInterview: true,
+                    adaptiveAssessmentId: assessmentId,
+                    adaptiveComponentId: componentId,
+                    adaptiveQuestionId: component.questions[0]?.id ?? null,
+                }),
+                ...(isPanelInterview && {
+                    usePanelInterview: true,
+                    panelConfig: {
+                        panelId: panelConfig!.panelId,
+                        competencyName: panelConfig?.competencyName ?? "",
+                        targetLevel: panelConfig?.targetLevel ?? "",
+                        durationMinutes: panelConfig?.durationMinutes ?? 60,
+                    },
+                    panelQuestionId: component.questions[0]?.id ?? null,
+                }),
             });
         }
 
@@ -199,8 +208,20 @@ export async function POST(
                         videoQuestionId: component.questions[0]?.id ?? null,
                     }),
                     ...(isAdaptiveAI && {
-                        useAdaptiveAI: true,
-                        adaptiveConfig: componentConfig as Record<string, unknown>,
+                        useAdaptiveInterview: true,
+                        adaptiveAssessmentId: assessmentId,
+                        adaptiveComponentId: componentId,
+                        adaptiveQuestionId: component.questions[0]?.id ?? null,
+                    }),
+                    ...(isPanelInterview && {
+                        usePanelInterview: true,
+                        panelConfig: {
+                            panelId: panelConfig!.panelId,
+                            competencyName: panelConfig?.competencyName ?? "",
+                            targetLevel: panelConfig?.targetLevel ?? "",
+                            durationMinutes: panelConfig?.durationMinutes ?? 60,
+                        },
+                        panelQuestionId: component.questions[0]?.id ?? null,
                     }),
                 });
             }

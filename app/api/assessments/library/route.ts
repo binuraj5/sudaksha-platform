@@ -22,19 +22,22 @@ export async function GET(req: NextRequest) {
         const search = searchParams.get("search");
         const category = searchParams.get("category");
 
-        const userId = session.user.id;
-        const tenantId = session.user.tenantId ?? undefined;
+        const user = session.user as { id?: string; role?: string; userType?: string; tenantId?: string };
+        const userId = user.id;
+        const tenantId = user.tenantId ?? undefined;
+        const isSuperAdmin = user.role === "SUPER_ADMIN" || user.userType === "SUPER_ADMIN";
 
-        // Build where: user can see GLOBAL + ORG + their own PRIVATE
-        const andClauses: Record<string, unknown>[] = [
-            {
+        // Super admins see all library components; others see GLOBAL + ORG + own PRIVATE
+        const andClauses: Record<string, unknown>[] = [];
+        if (!isSuperAdmin) {
+            andClauses.push({
                 OR: [
                     { visibility: "GLOBAL", publishedToGlobal: true },
                     ...(tenantId ? [{ visibility: "ORGANIZATION" as const, tenantId }] : []),
                     { visibility: "PRIVATE" as const, createdBy: userId }
                 ]
-            }
-        ];
+            });
+        }
         if (competencyId) andClauses.push({ competencyId });
         if (componentType) andClauses.push({ componentType });
         if (targetLevel) andClauses.push({ targetLevel });
@@ -49,7 +52,7 @@ export async function GET(req: NextRequest) {
                 ]
             });
         }
-        const where = andClauses.length > 1 ? { AND: andClauses } : andClauses[0];
+        const where = andClauses.length === 0 ? {} : andClauses.length === 1 ? andClauses[0] : { AND: andClauses };
 
         const components = await prisma.componentLibrary.findMany({
             where,

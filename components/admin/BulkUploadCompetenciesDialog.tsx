@@ -11,10 +11,44 @@ import {
     DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, FileJson, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Upload, FileJson, FileSpreadsheet, Loader2, X, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+const JSON_TEMPLATE = [
+    {
+        name: "Problem Solving",
+        category: "BEHAVIORAL",
+        description: "Ability to identify and resolve complex issues",
+        indicators: [
+            { text: "Identifies root cause of issues", level: "JUNIOR", type: "POSITIVE" },
+            { text: "Proposes multiple solutions", level: "MIDDLE", type: "POSITIVE" },
+            { text: "Leads problem resolution across teams", level: "SENIOR", type: "POSITIVE" }
+        ]
+    },
+    {
+        name: "Technical Communication",
+        category: "TECHNICAL",
+        description: "Clear communication of technical concepts",
+        indicators: []
+    }
+];
+
+const CSV_TEMPLATE = `name,category,description,indicators
+"Problem Solving",BEHAVIORAL,"Ability to identify and resolve complex issues","[{""text"":""Identifies root cause"",""level"":""JUNIOR"",""type"":""POSITIVE""}]"
+"Technical Communication",TECHNICAL,"Clear communication of technical concepts",""
+"Team Collaboration",BEHAVIORAL,"Works effectively with others to achieve goals",""
+`;
+
+function downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
 export function BulkUploadCompetenciesDialog() {
     const [open, setOpen] = useState(false);
@@ -22,6 +56,18 @@ export function BulkUploadCompetenciesDialog() {
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<any[] | null>(null);
     const router = useRouter();
+
+    const handleDownloadJsonTemplate = () => {
+        const blob = new Blob([JSON.stringify(JSON_TEMPLATE, null, 2)], { type: "application/json" });
+        downloadBlob(blob, "competencies-template.json");
+        toast.success("JSON template downloaded");
+    };
+
+    const handleDownloadCsvTemplate = () => {
+        const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
+        downloadBlob(blob, "competencies-template.csv");
+        toast.success("CSV template downloaded");
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
@@ -144,11 +190,29 @@ export function BulkUploadCompetenciesDialog() {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-3 border rounded-lg bg-gray-50">
                             <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">JSON Format</h4>
-                            <p className="text-[10px] text-gray-500">Array of objects with name, category, description, and optional indicators.</p>
+                            <p className="text-[10px] text-gray-500 mb-2">Array of objects with name, category, description, and optional indicators.</p>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs h-8 border-gray-200"
+                                onClick={handleDownloadJsonTemplate}
+                            >
+                                <Download className="mr-1.5 h-3.5 w-3.5" />
+                                Download JSON Template
+                            </Button>
                         </div>
                         <div className="p-3 border rounded-lg bg-gray-50">
                             <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">CSV Format</h4>
-                            <p className="text-[10px] text-gray-500">Columns: name, category, description. Indicators require JSON format.</p>
+                            <p className="text-[10px] text-gray-500 mb-2">Columns: name, category, description, indicators (JSON string).</p>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs h-8 border-gray-200"
+                                onClick={handleDownloadCsvTemplate}
+                            >
+                                <Download className="mr-1.5 h-3.5 w-3.5" />
+                                Download CSV Template
+                            </Button>
                         </div>
                     </div>
                 </div>

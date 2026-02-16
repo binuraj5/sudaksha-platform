@@ -35,6 +35,8 @@ export async function GET(req: NextRequest) {
                         slug: true,
                     },
                 },
+                department: { select: { id: true, name: true } },
+                industry: { select: { id: true, name: true } },
             },
             orderBy: { createdAt: "desc" },
         });

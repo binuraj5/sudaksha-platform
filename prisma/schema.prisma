@@ -764,6 +764,17 @@ model MasterIndustry {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  roleAssignmentRequests RoleAssignmentRequest[]
+}
+
+model MasterDepartment {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roleAssignmentRequests RoleAssignmentRequest[]
 }
 
 model MasterCourseType {
@@ -2066,12 +2077,18 @@ model RoleAssignmentRequest {
   processedBy            String?
   processedAt           DateTime?
   rejectionReason       String?
+  departmentId          String?  // FK to MasterDepartment; null when departmentOtherText used
+  departmentOtherText   String?  // When user selects "Other" department (can be added to MasterDepartment on approval)
+  industryId            String?  // FK to MasterIndustry; null when industryOtherText used
+  industryOtherText     String?  // When user selects "Other" industry (can be added to MasterIndustry on approval)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
   member                Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
   tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assignedRole          Role?    @relation("RoleAssignmentRequestRole", fields: [assignedRoleId], references: [id])
+  department            MasterDepartment? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  industry              MasterIndustry?   @relation(fields: [industryId], references: [id], onDelete: SetNull)
 
   @@index([memberId])
   @@index([tenantId])

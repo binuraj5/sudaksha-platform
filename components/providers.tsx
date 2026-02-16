@@ -21,7 +21,11 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider basePath="/api/auth">
+    <SessionProvider
+      basePath="/api/auth"
+      refetchOnWindowFocus={false}
+      refetchInterval={60}
+    >
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           {children}

@@ -1,0 +1,44 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - link "SudAssess" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e14]: SudAssess
+      - heading "Welcome Back" [level=1] [ref=e15]
+      - paragraph [ref=e16]: Sign in to your account to continue.
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - text: Email Address
+          - generic [ref=e20]:
+            - img [ref=e21]
+            - textbox "Email Address" [ref=e24]:
+              - /placeholder: name@company.com
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]: Password
+            - link "Forgot password?" [ref=e28] [cursor=pointer]:
+              - /url: /assessments/forgot-password
+          - generic [ref=e29]:
+            - img [ref=e30]
+            - textbox "Password" [ref=e33]:
+              - /placeholder: ••••••••
+        - generic [ref=e34]:
+          - checkbox "Remember me for 30 days" [ref=e35]
+          - generic [ref=e36] [cursor=pointer]: Remember me for 30 days
+        - button "Sign In" [ref=e37] [cursor=pointer]
+      - paragraph [ref=e38]:
+        - text: Don't have an account?
+        - link "Create one free" [ref=e39] [cursor=pointer]:
+          - /url: /assessments/register
+      - link "Super Admin Access" [ref=e41] [cursor=pointer]:
+        - /url: /assessments/auth/admin/login
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e47] [cursor=pointer]:
+    - img [ref=e48]
+  - alert [ref=e51]
+```

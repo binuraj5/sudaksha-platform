@@ -9,27 +9,59 @@ export async function GET(req: Request) {
     }
 
     try {
-        const user = session.user as any;
-        const tenantId = user.tenantId; // Might be null if B2C, but this is Corporate module
+        const user = session.user as { tenantId?: string | null; email?: string } | undefined;
+        const tenantId = user?.tenantId ?? null;
+
+        // Include role IDs assigned to this member (current, aspirational, or via approved requests)
+        // so approved role requests always show in the profile dropdown
+        let memberAssignedRoleIds: string[] = [];
+        const email = user?.email;
+        if (email) {
+            const member = await prisma.member.findUnique({
+                where: { email },
+                select: {
+                    currentRoleId: true,
+                    aspirationalRoleId: true,
+                },
+            });
+            if (member) {
+                memberAssignedRoleIds = [member.currentRoleId, member.aspirationalRoleId].filter(
+                    (id): id is string => id != null
+                );
+            }
+            const approvedAssigned = await prisma.roleAssignmentRequest.findMany({
+                where: {
+                    member: { email },
+                    status: "APPROVED",
+                    assignedRoleId: { not: null },
+                },
+                select: { assignedRoleId: true },
+            });
+            const fromRequests = approvedAssigned
+                .map((r) => r.assignedRoleId)
+                .filter((id): id is string => id != null);
+            memberAssignedRoleIds = [...new Set([...memberAssignedRoleIds, ...fromRequests])];
+        }
 
         const whereClause: any = {
-            status: 'APPROVED',
-            isActive: true
+            status: "APPROVED",
+            isActive: true,
         };
 
+        const orConditions: any[] = [];
         if (tenantId) {
-            whereClause.OR = [
-                { tenantId: tenantId },
-                { visibility: 'UNIVERSAL' },
-                { tenantId: null } // Legacy support for global roles
-            ];
-        } else {
-            // If no tenant (e.g. B2C), just show universal/public
-            whereClause.OR = [
-                { visibility: 'UNIVERSAL' },
+            orConditions.push(
+                { tenantId },
+                { visibility: "UNIVERSAL" },
                 { tenantId: null }
-            ];
+            );
+        } else {
+            orConditions.push({ visibility: "UNIVERSAL" }, { tenantId: null });
         }
+        if (memberAssignedRoleIds.length > 0) {
+            orConditions.push({ id: { in: memberAssignedRoleIds } });
+        }
+        whereClause.OR = orConditions;
 
         const roles = await prisma.role.findMany({
             where: whereClause,
@@ -40,12 +72,12 @@ export async function GET(req: Request) {
                 competencies: {
                     select: {
                         competency: {
-                            select: { id: true, name: true, category: true }
-                        }
-                    }
-                }
+                            select: { id: true, name: true, category: true },
+                        },
+                    },
+                },
             },
-            orderBy: { name: 'asc' }
+            orderBy: { name: "asc" },
         });
 
         return NextResponse.json(roles);

@@ -5,11 +5,6 @@ import { AdaptiveEngine } from "@/lib/assessment/adaptive-engine";
 import { generateAdaptiveQuestion } from "@/lib/assessment/adaptive-question-generator";
 import type { AdaptiveConfig } from "@/components/assessments/AdaptiveConfigForm";
 
-/**
- * POST /api/assessments/adaptive/start
- * Start adaptive session for MemberAssessment flow.
- * Body: { assessmentId (memberAssessmentId), componentId }
- */
 export async function POST(req: NextRequest) {
     try {
         const session = await getApiSession();
@@ -19,7 +14,6 @@ export async function POST(req: NextRequest) {
 
         const body = await req.json();
         const { assessmentId, componentId } = body;
-
         if (!assessmentId || !componentId) {
             return NextResponse.json(
                 { error: "assessmentId and componentId are required" },
@@ -27,36 +21,49 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const memberAssessment = await prisma.memberAssessment.findFirst({
-            where: { id: assessmentId },
-            include: { member: true, assessmentModel: true },
+        const member = await prisma.member.findFirst({
+            where: { email: session.user.email ?? "", type: "INDIVIDUAL" },
+            select: { id: true },
         });
+        if (!member) {
+            return NextResponse.json({ error: "Member not found" }, { status: 404 });
+        }
 
-        if (!memberAssessment?.member) {
+        const memberAssessment = await prisma.memberAssessment.findFirst({
+            where: { id: assessmentId, memberId: member.id },
+            include: { assessmentModel: true },
+        });
+        if (!memberAssessment) {
             return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
         }
 
         const component = await prisma.assessmentModelComponent.findFirst({
             where: { id: componentId, modelId: memberAssessment.assessmentModelId },
+            include: { competency: { include: { indicators: true } } },
         });
-
-        if (!component || component.componentType !== "ADAPTIVE_AI") {
-            return NextResponse.json({ error: "Component not found or not adaptive" }, { status: 404 });
+        if (!component) {
+            return NextResponse.json({ error: "Component not found" }, { status: 404 });
         }
 
-        const config = (component.config ?? component) as AdaptiveConfig;
-        if (!config.min_questions || !config.allowed_question_types?.length) {
-            return NextResponse.json({ error: "Invalid adaptive config" }, { status: 400 });
+        const componentType = (component as { componentType?: string }).componentType ?? "";
+        if (componentType !== "ADAPTIVE_AI" && componentType !== "ADAPTIVE_QUESTIONNAIRE") {
+            return NextResponse.json(
+                { error: "Component is not adaptive" },
+                { status: 400 }
+            );
         }
 
-        const competency = await prisma.competency.findUnique({
-            where: { id: component.competencyId ?? "" },
-            include: { indicators: true },
-        });
+        const config = (component as { config?: unknown }).config as AdaptiveConfig | null;
+        if (!config?.min_questions || !config?.max_questions) {
+            return NextResponse.json(
+                { error: "Adaptive config missing" },
+                { status: 400 }
+            );
+        }
 
         const targetLevel =
-            (memberAssessment.assessmentModel?.targetLevel as string) ??
             (component as { targetLevel?: string }).targetLevel ??
+            (memberAssessment.assessmentModel as { targetLevel?: string })?.targetLevel ??
             "MIDDLE";
         const initialAbility = AdaptiveEngine.getBaselineAbility(targetLevel);
 
@@ -64,12 +71,12 @@ export async function POST(req: NextRequest) {
             data: {
                 memberAssessmentId: assessmentId,
                 componentId,
-                memberId: memberAssessment.memberId,
+                memberId: member.id,
                 competencyId: component.competencyId ?? "",
                 currentAbility: initialAbility,
                 initialAbility,
                 targetLevel,
-                config: config as unknown as Record<string, unknown>,
+                config: config as object,
                 status: "IN_PROGRESS",
             },
         });
@@ -77,12 +84,12 @@ export async function POST(req: NextRequest) {
         const firstQuestion = await generateAdaptiveQuestion({
             sessionId: adaptiveSession.id,
             competencyId: component.competencyId ?? "",
-            competencyName: competency?.name ?? "Competency",
+            competencyName: component.competency?.name ?? "Competency",
             difficulty: config.starting_difficulty ?? 5,
-            allowedTypes: config.allowed_question_types,
+            allowedTypes: config.allowed_question_types ?? ["MCQ"],
             previousQuestions: [],
             sequenceNumber: 1,
-            indicators: competency?.indicators?.map((i) => ({ id: i.id, text: (i as { text?: string }).text ?? "" })) ?? [],
+            indicators: (component.competency?.indicators as { id: string; text: string }[]) ?? [],
             contextAware: config.context_aware_followups ?? true,
             targetLevel,
         });

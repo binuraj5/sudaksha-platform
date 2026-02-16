@@ -13,12 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Users, AlertCircle, Pencil, Trash2, Link2, UserPlus, Upload } from "lucide-react";
+import { ArrowLeft, Users, AlertCircle, Pencil, Trash2, Link2, UserPlus, Upload, FileText } from "lucide-react";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { EditClassDialog } from "@/components/classes/EditClassDialog";
 import { DeleteClassDialog } from "@/components/classes/DeleteClassDialog";
 import { LinkClassToCourseDialog } from "@/components/classes/LinkClassToCourseDialog";
 import { AssignClassTeacherDialog } from "@/components/classes/AssignClassTeacherDialog";
+import { AssignAssessmentToClassDialog } from "@/components/classes/AssignAssessmentToClassDialog";
 import { BulkUploadStudentsDialog } from "@/components/members/BulkUploadStudentsDialog";
 
 const basePath = (slug: string) => `/assessments/org/${slug}`;
@@ -62,6 +63,7 @@ export function ClassDetailContent({ slug, clientId, classId, classData, userRol
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [assignTeacherOpen, setAssignTeacherOpen] = useState(false);
+  const [assignAssessmentOpen, setAssignAssessmentOpen] = useState(false);
   const [uploadStudentsOpen, setUploadStudentsOpen] = useState(false);
   const [courses, setCourses] = useState<Array<{ id: string; name: string; code: string }>>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
@@ -137,6 +139,12 @@ export function ClassDetailContent({ slug, clientId, classId, classData, userRol
               Assign Class Teacher
             </Button>
           )}
+          {(canEditDeleteClass || isClassTeacherOfThis) && (
+            <Button variant="outline" size="sm" onClick={() => setAssignAssessmentOpen(true)}>
+              <FileText className="h-4 w-4 mr-2" />
+              Assign assessment
+            </Button>
+          )}
           {canManageClassFull && !classData.course && departmentId && (
             <Button variant="outline" size="sm" onClick={() => setLinkOpen(true)}>
               <Link2 className="h-4 w-4 mr-2" />
@@ -185,6 +193,15 @@ export function ClassDetailContent({ slug, clientId, classId, classData, userRol
           onSuccess={() => router.refresh()}
         />
       )}
+
+      <AssignAssessmentToClassDialog
+        slug={slug}
+        classId={classData.id}
+        className={classData.name}
+        open={assignAssessmentOpen}
+        onOpenChange={setAssignAssessmentOpen}
+        onSuccess={() => router.refresh()}
+      />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>

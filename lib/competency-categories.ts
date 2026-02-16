@@ -1,3 +1,7 @@
+/**
+ * Unified competency category source - matches Prisma CompetencyCategory enum.
+ * Use this for all competency forms (manual, AI, bulk upload) to ensure consistency.
+ */
 export const COMPETENCY_CATEGORIES = {
     TECHNICAL: {
         label: 'Technical',
@@ -11,17 +15,11 @@ export const COMPETENCY_CATEGORIES = {
         icon: '🧠',
         examples: ['Problem Solving', 'Adaptability', 'Teamwork', 'Emotional Intelligence']
     },
-    LEADERSHIP: {
-        label: 'Leadership',
-        description: 'Abilities related to managing people, strategy, and vision',
-        icon: '👔',
-        examples: ['Decision Making', 'Delegation', 'Visionary Thinking', 'Strategic Planning']
-    },
-    COMMUNICATION: {
-        label: 'Communication',
-        description: 'Interpersonal skills and effective data transmission',
-        icon: '💬',
-        examples: ['Public Speaking', 'Writing', 'Active Listening', 'Conflict Resolution']
+    COGNITIVE: {
+        label: 'Cognitive',
+        description: 'Mental abilities for analysis, reasoning, and decision-making',
+        icon: '🧩',
+        examples: ['Critical Thinking', 'Analytical Reasoning', 'Problem Solving', 'Strategic Planning']
     },
     DOMAIN_SPECIFIC: {
         label: 'Domain Specific',
@@ -29,6 +27,11 @@ export const COMPETENCY_CATEGORIES = {
         icon: '🏢',
         examples: ['Supply Chain', 'Financial Compliance', 'Sales Strategy']
     }
-};
+} as const;
 
 export type CompetencyCategoryKey = keyof typeof COMPETENCY_CATEGORIES;
+
+/** Category keys in display order - use for dropdowns */
+export const COMPETENCY_CATEGORY_OPTIONS: { value: CompetencyCategoryKey; label: string }[] = Object.entries(
+    COMPETENCY_CATEGORIES
+).map(([key, config]) => ({ value: key as CompetencyCategoryKey, label: config.label }));

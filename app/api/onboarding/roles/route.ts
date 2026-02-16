@@ -21,7 +21,17 @@ export async function GET(req: Request) {
             orderBy: { name: 'asc' }
         });
 
-        return NextResponse.json(roles);
+        const mapped = roles.map((r) => ({
+            id: r.id,
+            name: r.name,
+            description: r.description ?? '',
+            competencies: (r.competencies ?? []).map((rc) => ({
+                id: rc.competency.id,
+                name: rc.competency.name
+            }))
+        }));
+
+        return NextResponse.json(mapped);
     } catch (error) {
         console.error("[ONBOARDING_ROLES]", error);
         return new NextResponse("Internal Error", { status: 500 });

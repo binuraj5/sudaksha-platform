@@ -1,0 +1,47 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - link "SudAssess" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e14]: SudAssess
+      - heading "Welcome Back" [level=1] [ref=e15]
+      - paragraph [ref=e16]: Sign in to your account to continue.
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - alert [ref=e19]:
+          - img [ref=e20]
+          - text: Invalid email or password. Please try again.
+        - generic [ref=e22]:
+          - text: Email Address
+          - generic [ref=e23]:
+            - img [ref=e24]
+            - textbox "Email Address" [ref=e27]:
+              - /placeholder: name@company.com
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: Password
+            - link "Forgot password?" [ref=e31] [cursor=pointer]:
+              - /url: /assessments/forgot-password
+          - generic [ref=e32]:
+            - img [ref=e33]
+            - textbox "Password" [ref=e36]:
+              - /placeholder: ••••••••
+        - generic [ref=e37]:
+          - checkbox "Remember me for 30 days" [ref=e38]
+          - generic [ref=e39] [cursor=pointer]: Remember me for 30 days
+        - button "Sign In" [ref=e40] [cursor=pointer]
+      - paragraph [ref=e41]:
+        - text: Don't have an account?
+        - link "Create one free" [ref=e42] [cursor=pointer]:
+          - /url: /assessments/register
+      - link "Super Admin Access" [ref=e44] [cursor=pointer]:
+        - /url: /assessments/auth/admin/login
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e50] [cursor=pointer]:
+    - img [ref=e51]
+  - alert [ref=e54]
+```

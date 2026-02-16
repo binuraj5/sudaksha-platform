@@ -32,9 +32,9 @@ export default async function IndividualDashboard() {
         return <div>Profile not found. Please contact support.</div>;
     }
 
-    // Enforce Onboarding
+    // Enforce Onboarding (individuals onboarding is in nav sidebar)
     if (!member.currentRoleId || !member.aspirationalRoleId) {
-        redirect("/onboarding");
+        redirect("/assessments/individuals/onboarding");
     }
 
     const metadata = (member.metadata as any) || { userMode: 'PROFESSIONAL', freeAssessmentsUsed: 0 };
@@ -76,13 +76,7 @@ export default async function IndividualDashboard() {
                     </p>
                 </div>
 
-                {/* Mode Switcher needs client interaction, handled by component */}
-                <ModeSwitcher currentMode={userMode} onModeChange={(mode) => {
-                    // This is client-side, but we are in server component. 
-                    // The Switcher component handles the logic/API call.
-                    // Ideally we need to refresh the page to see changes reflecting in server data.
-                    // ModeSwitcher calls router.refresh().
-                }} />
+                <ModeSwitcher currentMode={userMode} />
             </div>
 
             {/* Main Grid */}
@@ -173,13 +167,13 @@ export default async function IndividualDashboard() {
                             </Link>
                         </Button>
                         <Button size="lg" className="h-24 flex flex-col items-center justify-center gap-2 bg-white text-gray-700 hover:bg-slate-50 border shadow-sm transition-all hover:scale-105" asChild>
-                            <Link href="/assessments/results">
+                            <Link href="/assessments/individuals/results">
                                 <Clock className="w-8 h-8 text-blue-500" />
                                 <span>View Results</span>
                             </Link>
                         </Button>
                         <Button size="lg" className="h-24 flex flex-col items-center justify-center gap-2 bg-white text-gray-700 hover:bg-slate-50 border shadow-sm transition-all hover:scale-105" asChild>
-                            <Link href="/assessments/career">
+                            <Link href="/assessments/individuals/career">
                                 <Target className="w-8 h-8 text-green-500" />
                                 <span>My Career</span>
                             </Link>

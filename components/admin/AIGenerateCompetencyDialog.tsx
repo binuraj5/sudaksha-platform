@@ -19,12 +19,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { COMPETENCY_CATEGORY_OPTIONS } from "@/lib/competency-categories";
 
 export function AIGenerateCompetencyDialog() {
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState<"input" | "generating" | "review">("input");
     const [topic, setTopic] = useState("");
-    const [category, setCategory] = useState("Technical");
+    const [category, setCategory] = useState("TECHNICAL");
     const [generated, setGenerated] = useState<{
         name: string;
         description: string;
@@ -138,10 +139,11 @@ export function AIGenerateCompetencyDialog() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Technical">Technical</SelectItem>
-                                        <SelectItem value="Behavioral">Behavioral</SelectItem>
-                                        <SelectItem value="Leadership">Leadership</SelectItem>
-                                        <SelectItem value="Process">Process</SelectItem>
+                                        {COMPETENCY_CATEGORY_OPTIONS.map((opt) => (
+                                            <SelectItem key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>

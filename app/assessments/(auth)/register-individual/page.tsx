@@ -60,7 +60,7 @@ export default function RegisterIndividualPage() {
             }
 
             toast.success("Account created successfully! Please log in.");
-            router.push("/assessments/login?callbackUrl=/assessments/onboarding");
+            router.push("/assessments/login?callbackUrl=/assessments/individuals/onboarding");
         } catch (error: any) {
             toast.error(error.message);
         } finally {

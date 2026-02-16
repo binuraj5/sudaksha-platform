@@ -343,15 +343,21 @@ export default function AssessmentModelsPage() {
                                                     <DropdownMenuContent align="end" className="w-48 shadow-xl border-gray-100 ring-1 ring-black/5">
                                                         <DropdownMenuItem
                                                             className="gap-2 cursor-pointer font-medium py-2 text-sm"
+                                                            onClick={() => router.push(`/assessments/admin/models/${model.id}`)}
+                                                        >
+                                                            <FileText className="w-4 h-4 text-navy-600" /> View Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="gap-2 cursor-pointer font-medium py-2 text-sm"
                                                             onClick={() => router.push(`/assessments/admin/models/${model.id}/builder`)}
                                                         >
                                                             <Layout className="w-4 h-4 text-navy-600" /> Open Builder
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             className="gap-2 cursor-pointer font-medium py-2 text-sm"
-                                                            onClick={() => router.push(`/assessments/admin/models/${model.id}`)}
+                                                            onClick={() => router.push(`/assessments/admin/models/${model.id}/questions`)}
                                                         >
-                                                            <FileText className="w-4 h-4 text-navy-600" /> View Details
+                                                            <FileText className="w-4 h-4 text-navy-600" /> Questions
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             className="gap-2 cursor-pointer font-medium py-2"

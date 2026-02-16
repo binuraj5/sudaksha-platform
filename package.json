@@ -19,7 +19,9 @@
     "db:seed:auth": "tsx prisma/seed-auth.ts",
     "db:seed:university-edu": "tsx prisma/seed-university-edu.ts",
     "admin:create": "tsx scripts/create-super-admin.ts",
-    "reset-passwords": "tsx scripts/reset-test-passwords.ts"
+    "reset-passwords": "tsx scripts/reset-test-passwords.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "keywords": [],
   "author": "",
@@ -79,6 +81,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
+    "@playwright/test": "^1.58.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",

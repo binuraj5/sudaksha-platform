@@ -1,10 +1,10 @@
 /**
- * Adaptive AI Question Generator
- * Generates questions at specified difficulty for adaptive assessments.
- * Based on M9-5_ADAPTIVE_AI_COMPONENT_IMPLEMENTATION.md
+ * Generate a single adaptive question via AI and persist as AdaptiveQuestion (M9-5).
  */
+import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
-import { generateChatCompletion } from "@/lib/ai/providers";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export interface GenerateAdaptiveQuestionParams {
     sessionId: string;
@@ -12,93 +12,78 @@ export interface GenerateAdaptiveQuestionParams {
     competencyName: string;
     difficulty: number;
     allowedTypes: string[];
-    previousQuestions: { questionText: string; isCorrect: boolean | null }[];
+    previousQuestions: { questionText: string; isCorrect: boolean }[];
     sequenceNumber: number;
     indicators: { id: string; text: string }[];
     contextAware: boolean;
     targetLevel: string;
 }
 
-export interface GeneratedAdaptiveQuestion {
+export interface AdaptiveQuestionResult {
     id: string;
     questionText: string;
     questionType: string;
-    options: { key: string; text: string; isCorrect?: boolean }[];
-    correctAnswer: string;
+    options: unknown;
+    correctAnswer: string | null;
     explanation: string | null;
     difficulty: number;
 }
 
 export async function generateAdaptiveQuestion(
     params: GenerateAdaptiveQuestionParams
-): Promise<GeneratedAdaptiveQuestion> {
-    const {
-        sessionId,
-        competencyId,
-        competencyName,
-        difficulty,
-        allowedTypes,
-        previousQuestions,
-        sequenceNumber,
-        indicators,
-        contextAware,
-        targetLevel,
-    } = params;
+): Promise<AdaptiveQuestionResult> {
+    const type =
+        params.allowedTypes.length > 0
+            ? params.allowedTypes[params.sequenceNumber % params.allowedTypes.length]
+            : "MCQ";
+    const prompt = buildPrompt(params, type);
 
-    const questionType = allowedTypes.includes("MCQ") ? "MCQ" : allowedTypes[0] ?? "MCQ";
-    const context = contextAware ? buildContext(previousQuestions) : "";
-    const prompt = buildPrompt({
-        competencyName,
-        difficulty,
-        questionType,
-        indicators,
-        context,
-        previousQuestions,
-        targetLevel,
-    });
+    let raw: Record<string, unknown>;
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                {
+                    role: "system",
+                    content:
+                        "You generate a single assessment question in JSON. Return only valid JSON with keys: questionText, questionType, options (array of {text, isCorrect}), correctAnswer (text of correct option), explanation.",
+                },
+                { role: "user", content: prompt },
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.7,
+            max_tokens: 800,
+        });
+        const content = response.choices[0].message.content;
+        if (!content) throw new Error("Empty AI response");
+        raw = JSON.parse(content) as Record<string, unknown>;
+    } catch (e) {
+        console.error("Adaptive question generation failed:", e);
+        raw = fallbackQuestion(params, type);
+    }
 
-    const messages = [
-        {
-            role: "system",
-            content:
-                "You are an expert assessment designer creating adaptive difficulty questions for competency-based assessments. Always respond with valid JSON only, no markdown.",
-        },
-        { role: "user", content: prompt },
-    ];
-
-    const response = await generateChatCompletion(messages);
-    const content = response.choices?.[0]?.message?.content ?? "";
-    if (!content) throw new Error("Empty response from AI");
-
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const jsonStr = jsonMatch ? jsonMatch[0] : content;
-    const generated = JSON.parse(jsonStr) as Record<string, unknown>;
-
-    const questionText = (generated.question as string) || (generated.text as string) || "Question";
-    const rawOptions = (generated.options as Array<{ key?: string; text: string; isCorrect?: boolean }>) ?? [];
-    const correctKey = String((generated.correctAnswer as string) ?? "").trim();
-    const explanation = (generated.explanation as string) || null;
-
-    const options = rawOptions.map((opt) => {
-        const text = typeof opt === "string" ? opt : (opt.text as string);
-        const key = (opt.key as string) || text?.slice(0, 1) || "A";
-        const isCorrect = key === correctKey || text === correctKey;
-        return { key, text, isCorrect };
-    });
-    const correctOpt = options.find((o) => o.isCorrect);
-    const correctAnswer = correctOpt?.text ?? correctKey;
+    const questionText = (raw.questionText as string) || (raw.text as string) || "Explain your approach.";
+    const questionType = (raw.questionType as string) || type;
+    const options = (raw.options as unknown) ?? [];
+    const optionsArr = Array.isArray(options) ? options : [];
+    const correctOpt = optionsArr.find((o: { isCorrect?: boolean }) => o.isCorrect);
+    const correctAnswer =
+        (raw.correctAnswer as string) ||
+        (correctOpt && (correctOpt as { text?: string }).text) ||
+        null;
+    const explanation = (raw.explanation as string) || null;
 
     const question = await prisma.adaptiveQuestion.create({
         data: {
-            sessionId,
+            sessionId: params.sessionId,
             questionText,
-            questionType,
-            options: options as unknown as Record<string, unknown>,
+            questionType: questionType === "SCENARIO_BASED" ? "SCENARIO_BASED" : "MULTIPLE_CHOICE",
+            options: optionsArr.length ? optionsArr : undefined,
             correctAnswer,
             explanation,
-            difficulty,
-            sequenceNumber,
-            generationPrompt: prompt,
+            difficulty: params.difficulty,
+            sequenceNumber: params.sequenceNumber,
+            generationPrompt: prompt.slice(0, 2000),
         },
     });
 
@@ -106,86 +91,47 @@ export async function generateAdaptiveQuestion(
         id: question.id,
         questionText: question.questionText,
         questionType: question.questionType,
-        options: options,
-        correctAnswer,
-        explanation,
-        difficulty,
+        options: question.options,
+        correctAnswer: question.correctAnswer,
+        explanation: question.explanation,
+        difficulty: Number(question.difficulty),
     };
 }
 
-function buildContext(previousQuestions: { questionText: string; isCorrect: boolean | null }[]): string {
-    if (previousQuestions.length === 0) return "";
-    const recent = previousQuestions.slice(-2);
-    const correctCount = recent.filter((q) => q.isCorrect).length;
-    if (correctCount === recent.length) return "Candidate is performing well.";
-    if (correctCount === 0) return "Candidate is struggling.";
-    return "";
+function buildPrompt(
+    params: GenerateAdaptiveQuestionParams,
+    type: string
+): string {
+    const prevContext = params.contextAware && params.previousQuestions.length > 0
+        ? `Previous questions (do not repeat): ${params.previousQuestions.map((q) => q.questionText.slice(0, 80)).join("; ")}`
+        : "";
+    const indicatorsText =
+        params.indicators.length > 0
+            ? params.indicators.map((i) => i.text).join(", ")
+            : params.competencyName;
+    return `Generate ONE ${type} question for competency "${params.competencyName}" at ${params.targetLevel} level.
+Difficulty (1-10): ${params.difficulty}.
+Indicators to assess: ${indicatorsText}
+${prevContext}
+
+Return JSON: { "questionText": "...", "questionType": "${type}", "options": [{"text":"A","isCorrect":false},{"text":"B","isCorrect":true}], "correctAnswer": "B", "explanation": "..." }
+For MCQ/SCENARIO_BASED include 4 options and one correct. Return only JSON.`;
 }
 
-function buildPrompt(params: {
-    competencyName: string;
-    difficulty: number;
-    questionType: string;
-    indicators: { id: string; text: string }[];
-    context: string;
-    previousQuestions: { questionText: string; isCorrect: boolean | null }[];
-    targetLevel: string;
-}): string {
-    const { competencyName, difficulty, questionType, indicators, context, previousQuestions, targetLevel } = params;
-
-    const difficultyDesc =
-        difficulty <= 3
-            ? "Basic/Foundational"
-            : difficulty <= 6
-              ? "Intermediate/Practical"
-              : difficulty <= 8
-                ? "Advanced/Strategic"
-                : "Expert/Thought Leadership";
-
-    const prevSection =
-        previousQuestions.length > 0
-            ? `
-Previous Questions:
-${previousQuestions
-    .slice(-3)
-    .map(
-        (q, i) =>
-            `Q${i + 1}: ${q.questionText}\nCandidate: ${q.isCorrect ? "Correct" : "Incorrect"}`
-    )
-    .join("\n\n")}
-
-CRITICAL: Do NOT repeat or be too similar to previous questions.
-`
-            : "";
-
-    return `Generate ONE ${questionType} question for adaptive assessment.
-
-Competency: ${competencyName}
-Target Level: ${targetLevel}
-Difficulty: ${difficulty}/10 (${difficultyDesc})
-
-Indicators to test:
-${indicators.map((i) => `- ${i.text}`).join("\n")}
-${prevSection}
-${context ? `Context: ${context}` : ""}
-
-Requirements:
-1. Difficulty must match ${difficulty}/10
-2. Include 4 options (A, B, C, D)
-3. Mark ONE correct answer
-4. Provide clear explanation
-5. Be practical and role-relevant
-
-Return JSON:
-{
-  "question": "Question text...",
-  "options": [
-    {"key": "A", "text": "Option A"},
-    {"key": "B", "text": "Option B"},
-    {"key": "C", "text": "Option C"},
-    {"key": "D", "text": "Option D"}
-  ],
-  "correctAnswer": "B",
-  "explanation": "Why B is correct..."
-}`;
+function fallbackQuestion(
+    params: GenerateAdaptiveQuestionParams,
+    type: string
+): Record<string, unknown> {
+    return {
+        questionText: `Describe your approach to ${params.competencyName} at ${params.targetLevel} level (question ${params.sequenceNumber}).`,
+        questionType: type,
+        options: [
+            { text: "Option A", isCorrect: false },
+            { text: "Option B", isCorrect: true },
+            { text: "Option C", isCorrect: false },
+            { text: "Option D", isCorrect: false },
+        ],
+        correctAnswer: "Option B",
+        explanation: "Fallback question.",
+    };
 }

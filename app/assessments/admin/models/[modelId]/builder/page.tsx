@@ -319,10 +319,18 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
                     <Button variant="ghost" size="sm" asChild>
                         <Link href={backHref} className="gap-1.5">
                             <ArrowLeft className="w-3.5 h-3.5" />
-                            Back to Models
+                            Models
                         </Link>
                     </Button>
-                    <div className="h-4 w-px bg-border" />
+                    <span className="text-muted-foreground">/</span>
+                    <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/assessments/admin/models/${modelId}`} className="text-muted-foreground hover:text-foreground -ml-1">
+                            {model?.name}
+                        </Link>
+                    </Button>
+                    <span className="text-muted-foreground">/</span>
+                    <span className="text-sm font-medium text-foreground">Builder</span>
+                    <div className="hidden sm:block h-4 w-px bg-border" />
                     <div>
                         <h1 className="text-lg font-bold flex items-center gap-2">
                             {model.name}

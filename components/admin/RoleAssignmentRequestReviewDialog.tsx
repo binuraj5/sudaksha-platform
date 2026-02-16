@@ -19,7 +19,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { CheckCircle2, XCircle, User, Briefcase, AlertCircle, Loader2, Plus, Sparkles } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { RoleBasicInfo } from "@/components/assessments/admin/roles/RoleBasicInfo";
@@ -28,25 +27,31 @@ import type { GeneratedCompetency } from "@/lib/actions/ai-competency";
 
 interface RoleAssignmentRequest {
     id: string;
-    requestedRoleName: string;
-    description: string | null;
-    totalExperienceYears: number;
-    context: string;
+    requestedRoleName?: string | null;
+    description?: string | null;
+    totalExperienceYears?: number | null;
+    context?: string | null;
     status: string;
     assignedRoleId?: string | null;
     createdAt: string;
+    departmentId?: string | null;
+    departmentOtherText?: string | null;
+    industryId?: string | null;
+    industryOtherText?: string | null;
     member: {
         id: string;
         name: string;
         email: string;
-        designation: string | null;
-        type: string;
+        designation?: string | null;
+        type?: string;
     };
     tenant: {
         id: string;
         name: string;
         slug: string | null;
     };
+    department?: { id: string; name: string } | null;
+    industry?: { id: string; name: string } | null;
 }
 
 interface RoleAssignmentRequestReviewDialogProps {
@@ -106,11 +111,13 @@ export function RoleAssignmentRequestReviewDialog({
     }, [open]);
 
     useEffect(() => {
-        if (request && open && request.requestedRoleName) {
-            fetch(`/api/admin/roles/search?q=${encodeURIComponent(request.requestedRoleName)}`)
+        if (request && open && (request.requestedRoleName?.trim() ?? "")) {
+            fetch(`/api/admin/roles/search?q=${encodeURIComponent(request.requestedRoleName!.trim())}`)
                 .then((r) => r.json())
                 .then((data) => setSimilarRoles(Array.isArray(data) ? data : []))
                 .catch(() => setSimilarRoles([]));
+        } else {
+            setSimilarRoles([]);
         }
     }, [request?.id, request?.requestedRoleName, open]);
 
@@ -121,12 +128,13 @@ export function RoleAssignmentRequestReviewDialog({
             setShowRejectionInput(false);
             setView(request.assignedRoleId ? "choose" : "choose");
             setCreatedRoleId(request.assignedRoleId || null);
+            const roleName = (request.requestedRoleName?.trim() ?? "") || "New role";
             setFormData({
-                name: request.requestedRoleName,
-                code: request.requestedRoleName.toUpperCase().replace(/[^A-Z0-9]/g, "_").slice(0, 20),
+                name: roleName,
+                code: roleName.toUpperCase().replace(/[^A-Z0-9]/g, "_").slice(0, 20),
                 overallLevel: "JUNIOR",
                 department: "",
-                description: request.description || "",
+                description: request.description?.trim() ?? "",
             });
             setSelectedIndustries([]);
             setCompetencies([]);
@@ -244,35 +252,35 @@ export function RoleAssignmentRequestReviewDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden rounded-[2.5rem] border-none shadow-2xl p-0 flex flex-col">
+            <DialogContent className="max-w-5xl w-[95vw] sm:w-full h-[90vh] max-h-[90vh] overflow-hidden rounded-2xl sm:rounded-[2.5rem] border-none shadow-2xl p-0 flex flex-col">
                 <DialogTitle className="sr-only">Role Assignment Request</DialogTitle>
-                <div className="p-8 border-b border-sudaksha-blue-50 flex justify-between items-center bg-white shrink-0">
-                    <div className="flex gap-4 items-center">
-                        <div className="w-12 h-12 rounded-2xl bg-sudaksha-blue-600 flex items-center justify-center text-white shadow-lg shadow-sudaksha-blue-100">
-                            <Briefcase className="w-6 h-6" />
+                <div className="p-4 sm:p-6 border-b border-sudaksha-blue-50 flex justify-between items-center bg-white shrink-0">
+                    <div className="flex gap-3 sm:gap-4 items-center min-w-0">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-sudaksha-blue-600 flex items-center justify-center text-white shadow-lg shadow-sudaksha-blue-100 shrink-0">
+                            <Briefcase className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-2xl font-black italic tracking-tighter text-sudaksha-navy-900 lowercase">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h2 className="text-lg sm:text-2xl font-black italic tracking-tighter text-sudaksha-navy-900 lowercase truncate">
                                     Role <span className="text-sudaksha-blue-600 font-serif not-italic">Assignment</span>
                                 </h2>
-                                <Badge className="bg-sudaksha-orange-50 text-sudaksha-orange-600 border-sudaksha-orange-200 font-bold italic h-6">
+                                <Badge className="bg-sudaksha-orange-50 text-sudaksha-orange-600 border-sudaksha-orange-200 font-bold italic h-6 shrink-0">
                                     {request.status}
                                 </Badge>
                                 {(createdRoleId || request.assignedRoleId) && (
-                                    <Badge className="bg-sudaksha-success-50 text-sudaksha-success-600 border-sudaksha-success-200 font-bold italic h-6">
+                                    <Badge className="bg-sudaksha-success-50 text-sudaksha-success-600 border-sudaksha-success-200 font-bold italic h-6 shrink-0">
                                         Role & competencies created
                                     </Badge>
                                 )}
                             </div>
-                            <p className="text-sudaksha-navy-500 font-medium italic text-sm">
+                            <p className="text-sudaksha-navy-500 font-medium italic text-xs sm:text-sm truncate">
                                 {request.member.name} • {request.tenant.name}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <ScrollArea className="flex-1 p-8 bg-sudaksha-blue-50/30">
+                <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 md:p-8 bg-sudaksha-blue-50/30">
                     <div className="space-y-6 pb-4">
                         {/* Requester info */}
                         <div className="p-4 rounded-2xl bg-white border border-sudaksha-blue-100 shadow-sm">
@@ -290,20 +298,27 @@ export function RoleAssignmentRequestReviewDialog({
                         </div>
 
                         {/* Request details */}
-                        <div className="p-4 rounded-2xl bg-sudaksha-blue-50/80 border border-sudaksha-blue-200 shadow-sm">
+                        <div className="p-4 rounded-2xl bg-sudaksha-blue-50/80 border border-sudaksha-blue-200 shadow-sm min-h-[120px]">
                             <div className="flex items-center gap-2 text-sm font-medium text-sudaksha-blue-600 mb-2">
                                 <Briefcase className="w-4 h-4" /> Requested Role
                             </div>
-                            <p className="font-semibold text-sudaksha-navy-900">{request.requestedRoleName}</p>
-                            <p className="text-sm text-sudaksha-navy-600 mt-1">
-                                Total experience: <strong>{request.totalExperienceYears}</strong> years
+                            <p className="font-semibold text-sudaksha-navy-900 text-foreground">
+                                {request.requestedRoleName?.trim() || "—"}
                             </p>
-                            <p className="text-xs text-sudaksha-navy-500 mt-1">
-                                Context: {request.context === "current" ? "Current role" : "Aspirational role"}
+                            <p className="text-sm text-sudaksha-navy-600 text-muted-foreground mt-1">
+                                Total experience: <strong>{request.totalExperienceYears ?? "—"}</strong> years
                             </p>
-                            {request.description && (
-                                <p className="text-sm text-sudaksha-navy-600 mt-2 italic">&quot;{request.description}&quot;</p>
+                            <p className="text-xs text-sudaksha-navy-500 text-muted-foreground mt-1">
+                                Context: {request.context === "current" ? "Current role" : request.context === "aspirational" ? "Aspirational role" : (request.context || "—")}
+                            </p>
+                            {(request.department?.name || request.departmentOtherText || request.industry?.name || request.industryOtherText) && (
+                                <p className="text-xs text-sudaksha-navy-500 text-muted-foreground mt-1">
+                                    {[request.department?.name || request.departmentOtherText, request.industry?.name || request.industryOtherText].filter(Boolean).join(" • ")}
+                                </p>
                             )}
+                            {(request.description?.trim()) ? (
+                                <p className="text-sm text-sudaksha-navy-600 text-muted-foreground mt-2 italic">&quot;{request.description}&quot;</p>
+                            ) : null}
                         </div>
 
                         {view === "create" ? (
@@ -401,7 +416,7 @@ export function RoleAssignmentRequestReviewDialog({
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value={CREATE_NEW_ROLE_VALUE}>
-                                                Create new: {request.requestedRoleName}
+                                                Create new: {request.requestedRoleName?.trim() || "New role"}
                                             </SelectItem>
                                             {roles.map((r) => (
                                                 <SelectItem key={r.id} value={r.id}>
@@ -443,9 +458,9 @@ export function RoleAssignmentRequestReviewDialog({
                             </div>
                         )}
                     </div>
-                </ScrollArea>
+                </div>
 
-                <DialogFooter className="p-8 bg-white border-t border-sudaksha-blue-50 shrink-0">
+                <DialogFooter className="p-4 sm:p-6 md:p-8 bg-white border-t border-sudaksha-blue-50 shrink-0">
                     {showRejectionInput ? (
                         <div className="flex justify-end gap-3 w-full">
                             <Button
@@ -466,15 +481,15 @@ export function RoleAssignmentRequestReviewDialog({
                             </Button>
                         </div>
                     ) : (
-                        <div className="flex justify-between items-center w-full">
+                        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 w-full">
                             <Button
                                 variant="ghost"
                                 onClick={() => onOpenChange(false)}
-                                className="rounded-xl font-black italic text-sudaksha-navy-500"
+                                className="rounded-xl font-black italic text-sudaksha-navy-500 order-2 sm:order-1"
                             >
                                 Skip for now
                             </Button>
-                            <div className="flex gap-3">
+                            <div className="flex flex-wrap gap-2 sm:gap-3 order-1 sm:order-2">
                                 <Button
                                     variant="outline"
                                     onClick={() => setShowRejectionInput(true)}

@@ -41,8 +41,9 @@ export default function CareerPortalPage() {
             const memberData = await memberRes.json();
             const planData = await planRes.json();
 
-            if (memberData.member) setMember(memberData.member);
-            if (planData.plan) setPlan(planData.plan);
+            // /api/profile returns the member object directly (not { member })
+            if (memberRes.ok && memberData?.id && !memberData.error) setMember(memberData);
+            if (planRes.ok && planData?.plan) setPlan(planData.plan);
 
         } catch (error) {
             console.error("Error fetching data:", error);

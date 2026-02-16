@@ -12,21 +12,28 @@ export async function GET(
 ) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        const user = session?.user as { id?: string; role?: string; userType?: string; tenantId?: string } | undefined;
+        const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" || user?.userType === "SUPER_ADMIN";
+        if (!session?.user || !isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const { id } = await params;
+        const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.userType === "SUPER_ADMIN";
+
+        const whereClause = isSuperAdmin
+            ? { id }
+            : {
+                  id,
+                  OR: [
+                      { visibility: "GLOBAL" as const, publishedToGlobal: true },
+                      ...(user?.tenantId ? [{ visibility: "ORGANIZATION" as const, tenantId: user.tenantId }] : []),
+                      { visibility: "PRIVATE" as const, createdBy: user?.id }
+                  ]
+              };
 
         const component = await prisma.componentLibrary.findFirst({
-            where: {
-                id,
-                OR: [
-                    { visibility: "GLOBAL", publishedToGlobal: true },
-                    ...(session.user.tenantId ? [{ visibility: "ORGANIZATION", tenantId: session.user.tenantId }] : []),
-                    { visibility: "PRIVATE", createdBy: session.user.id }
-                ]
-            },
+            where: whereClause,
             include: {
                 competency: true,
                 creator: { select: { id: true, name: true, email: true } }
@@ -54,22 +61,29 @@ export async function PATCH(
 ) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        const user = session?.user as { id?: string; role?: string; userType?: string; tenantId?: string } | undefined;
+        const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" || user?.userType === "SUPER_ADMIN";
+        if (!session?.user || !isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const { id } = await params;
         const body = await req.json();
+        const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.userType === "SUPER_ADMIN";
+
+        const whereClause = isSuperAdmin
+            ? { id }
+            : {
+                  id,
+                  OR: [
+                      { visibility: "GLOBAL" as const, publishedToGlobal: true },
+                      ...(user?.tenantId ? [{ visibility: "ORGANIZATION" as const, tenantId: user.tenantId }] : []),
+                      { visibility: "PRIVATE" as const, createdBy: user?.id }
+                  ]
+              };
 
         const existing = await prisma.componentLibrary.findFirst({
-            where: {
-                id,
-                OR: [
-                    { visibility: "GLOBAL", publishedToGlobal: true },
-                    ...(session.user.tenantId ? [{ visibility: "ORGANIZATION", tenantId: session.user.tenantId }] : []),
-                    { visibility: "PRIVATE", createdBy: session.user.id }
-                ]
-            }
+            where: whereClause
         });
 
         if (!existing) {
