@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 /**
  * POST /api/assessments/runner/[id]/component/[componentId]/start
@@ -129,19 +130,49 @@ export async function POST(
             });
         }
 
-        // 2. B2C: MemberAssessment – create UserAssessmentModel and UserAssessmentComponent (Member has email, not userId)
+        // 2. B2C: MemberAssessment – create UserAssessmentModel and UserAssessmentComponent (Member has email; session.user.id may be member.id, so resolve User by email)
         const member = await prisma.member.findFirst({
             where: { email: session.user.email ?? "", type: "INDIVIDUAL" },
-            select: { id: true }
+            select: { id: true, email: true, name: true }
         });
         if (member) {
             const memberAssessment = await prisma.memberAssessment.findFirst({
                 where: { id: assessmentId, memberId: member.id }
             });
             if (memberAssessment) {
+                // UserAssessmentModel.userId must reference User.id. For Member-only login, session.user.id is member.id, so resolve or create User by email.
+                const emailNorm = (session.user.email ?? member.email).trim().toLowerCase();
+                let user = await prisma.user.findFirst({
+                    where: { email: { equals: emailNorm, mode: "insensitive" } },
+                    select: { id: true }
+                });
+                if (!user) {
+                    try {
+                        const placeholderPassword = await bcrypt.hash(`member-${member.id}-${Date.now()}`, 10);
+                        user = await prisma.user.create({
+                            data: {
+                                email: member.email,
+                                name: member.name,
+                                password: placeholderPassword,
+                                accountType: "INDIVIDUAL"
+                            },
+                            select: { id: true }
+                        });
+                    } catch (createErr: unknown) {
+                        // Race: User may have been created by another request (e.g. same member, same assessment)
+                        const existing = await prisma.user.findFirst({
+                            where: { email: { equals: emailNorm, mode: "insensitive" } },
+                            select: { id: true }
+                        });
+                        if (existing) user = existing;
+                        else throw createErr;
+                    }
+                }
+                const userIdForModel = user.id;
+
                 let uam = await prisma.userAssessmentModel.findFirst({
                     where: {
-                        userId: session.user.id!,
+                        userId: userIdForModel,
                         modelId: memberAssessment.assessmentModelId
                     },
                     orderBy: { createdAt: "desc" }
@@ -149,7 +180,7 @@ export async function POST(
                 if (!uam) {
                     uam = await prisma.userAssessmentModel.create({
                         data: {
-                            userId: session.user.id!,
+                            userId: userIdForModel,
                             modelId: memberAssessment.assessmentModelId,
                             status: "ACTIVE",
                             startedAt: new Date()
