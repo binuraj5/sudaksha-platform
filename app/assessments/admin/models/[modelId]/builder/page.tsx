@@ -524,7 +524,7 @@ export function AssessmentBuilder({ modelId, backHref = "/assessments/admin/mode
     );
 }
 
-export default function AssessmentBuilderPage({ params }: { params: Promise<{ modelId: string }> }) {
+export default function AssessmentBuilderPageWrapper({ params }: { params: Promise<{ modelId: string }> }) {
     const resolved = use(params);
     const modelId = resolved?.modelId;
     if (!modelId) {

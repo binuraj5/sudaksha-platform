@@ -88,16 +88,23 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Model with this code already exists" }, { status: 409 });
         }
 
+        // Build data object conditionally to handle optional clientId
+        const createData: any = {
+            name: data.name,
+            code: code ?? `model-${Date.now()}`,
+            description: data.description ?? null,
+            createdBy: session.user.id,
+            status: "DRAFT",
+            isTemplate: false,
+        };
+        
+        // Only add clientId if it exists (for CLIENT_ADMIN role)
+        if (clientId) {
+            createData.clientId = clientId;
+        }
+
         const model = await prisma.assessmentModel.create({
-            data: {
-                name: data.name,
-                code: code ?? `model-${Date.now()}`,
-                description: data.description ?? null,
-                clientId: clientId ?? undefined,
-                createdBy: session.user.id,
-                status: "DRAFT",
-                isTemplate: false,
-            }
+            data: createData
         });
 
         return NextResponse.json(model, { status: 201 });

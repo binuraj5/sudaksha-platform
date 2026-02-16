@@ -20,13 +20,16 @@ export async function POST(
         const { id: assessmentId, componentId } = await params;
 
         // Resolve component and maxScore
+        console.log('🔍 Looking for component with ID:', componentId);
         const component = await prisma.assessmentModelComponent.findFirst({
             where: { id: componentId },
             include: { questions: { orderBy: { order: "asc" } } }
         });
         if (!component) {
+            console.error('❌ Component not found with ID:', componentId);
             return NextResponse.json({ error: "Component not found" }, { status: 404 });
         }
+        console.log('✅ Found component:', { id: component.id, modelId: component.modelId, componentType: (component as any).componentType });
 
         // Additional validation: ensure componentId is valid before creating UserAssessmentComponent
         if (!component.id || component.id !== componentId) {
@@ -75,6 +78,12 @@ export async function POST(
 
             if (!userComponent) {
                 // Final validation before creation
+                console.log('🔍 Project flow - Creating UserAssessmentComponent with:', {
+                    projectUserAssessmentId: assessmentId,
+                    componentId,
+                    componentExists: !!component
+                });
+                
                 if (!componentId || !assessmentId) {
                     return NextResponse.json({ error: "Missing required fields for component creation" }, { status: 400 });
                 }
@@ -88,6 +97,7 @@ export async function POST(
                             startedAt: new Date()
                         }
                     });
+                    console.log('✅ UserAssessmentComponent created successfully (project):', userComponent.id);
                 } catch (createError: any) {
                     console.error("UserAssessmentComponent creation error:", createError);
                     if (createError.code === 'P2003') {
@@ -217,6 +227,12 @@ export async function POST(
                 });
                 if (!userComponent) {
                     // Final validation before creation
+                    console.log('🔍 Member flow - Creating UserAssessmentComponent with:', {
+                        userAssessmentModelId: uam.id,
+                        componentId,
+                        componentExists: !!component
+                    });
+                    
                     if (!componentId || !uam.id) {
                         return NextResponse.json({ error: "Missing required fields for component creation" }, { status: 400 });
                     }
@@ -230,6 +246,7 @@ export async function POST(
                                 startedAt: new Date()
                             }
                         });
+                        console.log('✅ UserAssessmentComponent created successfully:', userComponent.id);
                     } catch (createError: any) {
                         console.error("UserAssessmentComponent creation error (member flow):", createError);
                         if (createError.code === 'P2003') {
