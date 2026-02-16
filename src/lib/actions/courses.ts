@@ -709,7 +709,7 @@ export const getDashboardStats = async () => {
 }
 
 // Upcoming batches
-export const getUpcomingBatches = async () => {
+export const getUpcomingBatches = async (limit?: number) => {
     console.log('📅 Getting upcoming batches from database');
 
     try {
@@ -720,6 +720,7 @@ export const getUpcomingBatches = async () => {
                     { status: 'ONGOING' }
                 ]
             },
+            ...(limit && { take: limit }),
             include: {
                 course: {
                     select: { name: true }
@@ -728,8 +729,7 @@ export const getUpcomingBatches = async () => {
                     select: { name: true }
                 }
             },
-            orderBy: { startDate: 'asc' },
-            take: 20 // Limit to reasonable amount
+            orderBy: { startDate: 'asc' }
         });
 
         return batches.map(batch => ({
