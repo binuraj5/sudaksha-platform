@@ -37,14 +37,11 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedTimeRange, setSelectedTimeRange] = useState('7d');
 
-  const isLiveActivityFeedEnabled = false;
-
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
         const dashboardStats = await getDashboardStats();
-        const allBatches = await getUpcomingBatches();
-        const batches = allBatches.slice(0, 10);
+        const batches = await getUpcomingBatches(10);
         setStats(dashboardStats);
         setUpcomingBatches(batches);
       } catch (error) {
@@ -118,22 +115,20 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Live Activity Feed – link */}
-        {isLiveActivityFeedEnabled ? (
-          <Card className="lg:col-span-2">
-            <CardContent className="pt-6">
-              <Link
-                href="/admin/activity"
-                className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-blue-200 transition-colors group"
-              >
-                <div className="flex items-center gap-3">
-                  <Activity className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-gray-900">Live Activity Feed</span>
-                </div>
-                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
-              </Link>
-            </CardContent>
-          </Card>
-        ) : null}
+        <Card className="lg:col-span-2">
+          <CardContent className="pt-6">
+            <Link
+              href="/admin/activity"
+              className="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-blue-200 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <Activity className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-gray-900">Live Activity Feed</span>
+              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+            </Link>
+          </CardContent>
+        </Card>
 
         {/* Right Sidebar */}
         <div className="space-y-6">
