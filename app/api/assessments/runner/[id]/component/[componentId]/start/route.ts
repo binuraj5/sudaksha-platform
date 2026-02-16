@@ -28,6 +28,11 @@ export async function POST(
             return NextResponse.json({ error: "Component not found" }, { status: 404 });
         }
 
+        // Additional validation: ensure componentId is valid before creating UserAssessmentComponent
+        if (!component.id || component.id !== componentId) {
+            return NextResponse.json({ error: "Invalid component ID" }, { status: 400 });
+        }
+
         const metadata = (component as any).metadata as { useRuntimeAI?: boolean; runtimeQuestionCount?: number } | null;
         const useRuntimeAI = metadata?.useRuntimeAI === true;
         const totalRuntimeQuestions = metadata?.runtimeQuestionCount ?? 5;
@@ -69,15 +74,30 @@ export async function POST(
             });
 
             if (!userComponent) {
-                userComponent = await prisma.userAssessmentComponent.create({
-                    data: {
-                        projectUserAssessmentId: assessmentId,
-                        componentId,
-                        maxScore,
-                        status: "ACTIVE",
-                        startedAt: new Date()
+                // Final validation before creation
+                if (!componentId || !assessmentId) {
+                    return NextResponse.json({ error: "Missing required fields for component creation" }, { status: 400 });
+                }
+                try {
+                    userComponent = await prisma.userAssessmentComponent.create({
+                        data: {
+                            projectUserAssessmentId: assessmentId,
+                            componentId,
+                            maxScore,
+                            status: "ACTIVE",
+                            startedAt: new Date()
+                        }
+                    });
+                } catch (createError: any) {
+                    console.error("UserAssessmentComponent creation error:", createError);
+                    if (createError.code === 'P2003') {
+                        return NextResponse.json({ 
+                            error: "Foreign key constraint violation. Ensure componentId and projectUserAssessmentId are valid.", 
+                            details: { componentId, projectUserAssessmentId: assessmentId }
+                        }, { status: 400 });
                     }
-                });
+                    throw createError;
+                }
             } else if (userComponent.status === "DRAFT") {
                 userComponent = await prisma.userAssessmentComponent.update({
                     where: { id: userComponent.id },
@@ -196,15 +216,30 @@ export async function POST(
                     orderBy: { createdAt: "desc" }
                 });
                 if (!userComponent) {
-                    userComponent = await prisma.userAssessmentComponent.create({
-                        data: {
-                            userAssessmentModelId: uam.id,
-                            componentId,
-                            maxScore,
-                            status: "ACTIVE",
-                            startedAt: new Date()
+                    // Final validation before creation
+                    if (!componentId || !uam.id) {
+                        return NextResponse.json({ error: "Missing required fields for component creation" }, { status: 400 });
+                    }
+                    try {
+                        userComponent = await prisma.userAssessmentComponent.create({
+                            data: {
+                                userAssessmentModelId: uam.id,
+                                componentId,
+                                maxScore,
+                                status: "ACTIVE",
+                                startedAt: new Date()
+                            }
+                        });
+                    } catch (createError: any) {
+                        console.error("UserAssessmentComponent creation error (member flow):", createError);
+                        if (createError.code === 'P2003') {
+                            return NextResponse.json({ 
+                                error: "Foreign key constraint violation. Ensure componentId and userAssessmentModelId are valid.", 
+                                details: { componentId, userAssessmentModelId: uam.id }
+                            }, { status: 400 });
                         }
-                    });
+                        throw createError;
+                    }
                 } else if (userComponent.status === "DRAFT") {
                     userComponent = await prisma.userAssessmentComponent.update({
                         where: { id: userComponent.id },
