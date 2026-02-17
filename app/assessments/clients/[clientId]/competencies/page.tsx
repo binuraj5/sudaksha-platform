@@ -13,13 +13,21 @@ export default function ClientCompetenciesPage({ params }: { params: Promise<{ c
     const [competencies, setCompetencies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const fetchCompetencies = () => {
+        fetch("/api/admin/competencies")
+            .then((r) => r.json())
+            .then((data) => {
+                const list = data?.competencies ?? (Array.isArray(data) ? data : []);
+                setCompetencies(Array.isArray(list) ? list : []);
+            })
+            .catch(() => setCompetencies([]))
+            .finally(() => setLoading(false));
+    };
+
     useEffect(() => {
         if (clientId) {
-            fetch(`/api/clients/${clientId}/competencies`)
-                .then(r => r.json())
-                .then(data => setCompetencies(Array.isArray(data) ? data : []))
-                .catch(() => setCompetencies([]))
-                .finally(() => setLoading(false));
+            setLoading(true);
+            fetchCompetencies();
         }
     }, [clientId]);
 
@@ -39,9 +47,7 @@ export default function ClientCompetenciesPage({ params }: { params: Promise<{ c
                     </h1>
                     <p className="text-gray-500 font-medium">Global and organization-specific competencies for roles and assessments.</p>
                 </div>
-                <CreateCompetencyDialog clientId={clientId} onCreated={() => {
-                    fetch(`/api/clients/${clientId}/competencies`).then(r => r.json()).then(data => setCompetencies(Array.isArray(data) ? data : []));
-                }} />
+                <CreateCompetencyDialog clientId={clientId} onCreated={fetchCompetencies} />
             </div>
 
             {loading ? (
