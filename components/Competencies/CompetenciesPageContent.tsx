@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, Target, Briefcase, ChevronRight, BrainCircuit, Loader2, Globe, Building, Users, UserCheck } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -47,6 +48,17 @@ function ScopeBadge({ scope }: { scope: string }) {
             {config.label}
         </Badge>
     );
+}
+
+function GlobalStatusBadge({ status }: { status: string | null | undefined }) {
+    if (!status || status === "APPROVED") return null;
+    if (status === "PENDING")
+        return <Badge className="ml-1 bg-amber-100 text-amber-700 text-[10px]">Pending</Badge>;
+    if (status === "CHANGES_REQUESTED")
+        return <Badge className="ml-1 bg-orange-100 text-orange-700 text-[10px]">Changes requested</Badge>;
+    if (status === "REJECTED")
+        return <Badge className="ml-1 bg-red-100 text-red-700 text-[10px]">Rejected</Badge>;
+    return null;
 }
 
 /**
@@ -155,8 +167,23 @@ export function CompetenciesPageContent() {
                     )}
                     {permissions.canCreate && (
                         <>
-                            <CreateRoleDialog />
-                            <CreateCompetencyDialog />
+                            <CreateRoleDialog
+                                scopeInfo={
+                                    !permissions.isSuperAdmin && permissions.creatableScope
+                                        ? `This will be created at ${SCOPE_CONFIG[permissions.creatableScope]?.label ?? permissions.creatableScope} level.`
+                                        : undefined
+                                }
+                                onSuccess={fetchData}
+                            />
+                            <CreateCompetencyDialog
+                                scopeInfo={
+                                    !permissions.isSuperAdmin && permissions.creatableScope
+                                        ? `This will be created at ${SCOPE_CONFIG[permissions.creatableScope]?.label ?? permissions.creatableScope} level.`
+                                        : undefined
+                                }
+                                levelInfo={permissions.isInstitution ? "Junior/Fresher only." : undefined}
+                                onSuccess={fetchData}
+                            />
                         </>
                     )}
                 </div>
@@ -222,10 +249,10 @@ export function CompetenciesPageContent() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <ScopeBadge scope={comp.scope ?? "GLOBAL"} />
-                                            {comp.globalSubmissionStatus === "PENDING" && (
-                                                <Badge className="ml-1 bg-amber-100 text-amber-700 text-[10px]">Pending</Badge>
-                                            )}
+                                            <div className="flex flex-wrap items-center gap-1">
+                                                <ScopeBadge scope={comp.scope ?? "GLOBAL"} />
+                                                <GlobalStatusBadge status={comp.globalSubmissionStatus} />
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-none px-2 py-0 text-[10px] uppercase whitespace-nowrap">
@@ -243,11 +270,32 @@ export function CompetenciesPageContent() {
                                             </span>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" asChild className="hover:text-red-600 h-8 px-3">
-                                                <Link href={`/assessments/admin/competencies/${comp.id}`}>
-                                                    Manage <ChevronRight className="ml-1 h-3 w-3" />
-                                                </Link>
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-1">
+                                                {comp._canSubmitGlobal && permissions.canSubmitForGlobal && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                        onClick={async () => {
+                                                            try {
+                                                                const res = await fetch(`/api/admin/competencies/${comp.id}/submit-global`, { method: "POST" });
+                                                                if (!res.ok) throw new Error("Failed to submit");
+                                                                toast.success("Submitted for global review");
+                                                                fetchData();
+                                                            } catch {
+                                                                toast.error("Failed to submit for global review");
+                                                            }
+                                                        }}
+                                                    >
+                                                        Go Global
+                                                    </Button>
+                                                )}
+                                                <Button variant="ghost" size="sm" asChild className="hover:text-red-600 h-8 px-3">
+                                                    <Link href={`/assessments/admin/competencies/${comp.id}`}>
+                                                        Manage <ChevronRight className="ml-1 h-3 w-3" />
+                                                    </Link>
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -314,10 +362,10 @@ export function CompetenciesPageContent() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <ScopeBadge scope={role.scope ?? "GLOBAL"} />
-                                            {role.globalSubmissionStatus === "PENDING" && (
-                                                <Badge className="ml-1 bg-amber-100 text-amber-700 text-[10px]">Pending</Badge>
-                                            )}
+                                            <div className="flex flex-wrap items-center gap-1">
+                                                <ScopeBadge scope={role.scope ?? "GLOBAL"} />
+                                                <GlobalStatusBadge status={role.globalSubmissionStatus} />
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-none px-2 py-0 text-[10px] uppercase whitespace-nowrap">

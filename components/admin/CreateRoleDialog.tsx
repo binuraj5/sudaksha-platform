@@ -34,7 +34,11 @@ const formSchema = z.object({
     description: z.string().optional(),
 });
 
-export function CreateRoleDialog({ trigger }: { trigger?: React.ReactNode }) {
+export function CreateRoleDialog({
+    trigger,
+    scopeInfo,
+    onSuccess,
+}: { trigger?: React.ReactNode; scopeInfo?: string; onSuccess?: () => void }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -62,6 +66,7 @@ export function CreateRoleDialog({ trigger }: { trigger?: React.ReactNode }) {
             toast.success("Role created successfully");
             setOpen(false);
             form.reset();
+            onSuccess?.();
             router.refresh();
         } catch (error) {
             toast.error("Something went wrong");
@@ -85,6 +90,11 @@ export function CreateRoleDialog({ trigger }: { trigger?: React.ReactNode }) {
                     <DialogTitle>Create Role Framework</DialogTitle>
                     <DialogDescription>
                         Define a professional role to map competencies to.
+                        {scopeInfo && (
+                            <span className="mt-2 block text-amber-700 text-sm font-medium">
+                                {scopeInfo}
+                            </span>
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>

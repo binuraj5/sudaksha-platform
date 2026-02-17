@@ -42,7 +42,12 @@ const formSchema = z.object({
     description: z.string().optional(),
 });
 
-export function CreateCompetencyDialog({ trigger }: { trigger?: React.ReactNode }) {
+export function CreateCompetencyDialog({
+    trigger,
+    scopeInfo,
+    levelInfo,
+    onSuccess,
+}: { trigger?: React.ReactNode; scopeInfo?: string; levelInfo?: string; onSuccess?: () => void }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -70,6 +75,7 @@ export function CreateCompetencyDialog({ trigger }: { trigger?: React.ReactNode 
             toast.success("Competency created successfully");
             setOpen(false);
             form.reset();
+            onSuccess?.();
             router.refresh();
         } catch (error) {
             toast.error("Something went wrong");
@@ -93,6 +99,11 @@ export function CreateCompetencyDialog({ trigger }: { trigger?: React.ReactNode 
                     <DialogTitle>Create Competency</DialogTitle>
                     <DialogDescription>
                         Define a new skill or behavioral area for assessments.
+                        {(scopeInfo || levelInfo) && (
+                            <span className="mt-2 block text-amber-700 text-sm font-medium">
+                                {[scopeInfo, levelInfo].filter(Boolean).join(" ")}
+                            </span>
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
