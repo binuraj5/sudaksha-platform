@@ -83,3 +83,40 @@ Doc uses `globalReviewedBy` / `globalReviewNotes`. Schema uses `globalApprovedBy
 - **Permission hook:** Add classId; normalize DEPT_HEAD/TEAM_LEAD to DEPARTMENT_HEAD/TEAM_LEADER for permission util.
 
 Implementation order follows doc Part 10 (audit → no DB migration → permission/hook fixes → API submit/approve → shared components → client pages → competencies mirror).
+
+---
+
+## IMPLEMENTATION COMPLETED (POST-AUDIT)
+
+### 1. Permission utility (`src/lib/permissions/role-competency-permissions.ts`)
+- **Normalized roles:** `normalizeUserRole()` maps `DEPT_HEAD` → `DEPARTMENT_HEAD`, `TEAM_LEAD` → `TEAM_LEADER` so auth role names match the permission util.
+- **UserContext:** `role` type allows string (auth can send DEPT_HEAD/TEAM_LEAD); all permission functions use normalized role via `withNormalizedRole()` or `normalizeUserRole()`.
+
+### 2. Hook (`hooks/useRoleCompetencyPermissions.ts`)
+- **classId:** Passes `classId` from session into `getRoleCompetencyPermissions()` so CLASS scope and Class Teacher permissions work correctly.
+
+### 3. Roles API
+- **submit-global** (`app/api/admin/roles/[id]/submit-global/route.ts`): Implemented: sets role `globalSubmissionStatus` to PENDING, creates `GlobalApprovalRequest` with entitySnapshot; uses `params: Promise<{ id }>` and `await params`.
+- **approve-global** (`app/api/admin/roles/[id]/approve-global/route.ts`): Implemented: Super Admin only; APPROVE → role becomes GLOBAL (tenantId/departmentId/teamId null), REJECT/REQUEST_CHANGES → status and notes; updates `GlobalApprovalRequest`; uses `normalizeUserRole()` for role check.
+- **Admin roles page:** Handlers moved in-component so `fetchRoles()` is called after submit/approve/reject. Pending tab filter fixed to `r.globalSubmissionStatus === 'PENDING'`. CLASS tab and ScopeBadge added.
+
+### 4. Shared Roles UI
+- **RolesPageContent** (`components/Roles/RolesPageContent.tsx`): New shared client component with full roles list UI (header, filters, scope tabs including CLASS and Pending Review, table, scope badges, action dropdown with Edit/Go Global/Approve/Reject/Delete). Fetches from `/api/admin/roles`; RLS scopes data by session.
+- **Admin roles page** (`app/assessments/admin/roles/page.tsx`): Now only renders `<RolesPageContent />`.
+- **Client roles page** (`app/assessments/clients/[clientId]/roles/page.tsx`): Now renders `<RolesPageContent />` (same UI; data scoped by same API).
+
+### 5. Competencies API
+- **GET** (`app/api/admin/competencies/route.ts`): Uses `buildCompetencyVisibilityFilter(userContext)` for RLS; returns `{ competencies: annotated, permissions }`; each competency has `_canEdit`, `_canDelete`, `_canSubmitGlobal`.
+- **POST:** Uses `getRoleCompetencyPermissions()` and `creatableScope`; enforces scope, tenantId, departmentId, teamId, createdByUserId, allowedLevels (institution → JUNIOR only).
+- **submit-global** (`app/api/admin/competencies/[id]/submit-global/route.ts`): Same pattern as roles: PENDING + GlobalApprovalRequest with entityType COMPETENCY.
+- **approve-global** (`app/api/admin/competencies/[id]/approve-global/route.ts`): Same pattern as roles: Super Admin only; APPROVE → GLOBAL, REJECT/REQUEST_CHANGES → status and notes.
+- **Admin competencies page:** Response handling updated to use `data?.competencies` for the list.
+
+### 6. Client competencies page
+- **Fetch:** Now uses `/api/admin/competencies` instead of `/api/clients/[clientId]/competencies` so list is RLS-scoped. Response shape: `data.competencies`.
+- **CreateCompetencyDialog:** Still used with `clientId`; if it POSTs to a client-specific endpoint, that path is unchanged (optional follow-up: create via admin API with RLS).
+
+### 7. Not done (per doc optional / existing)
+- **DB migration:** Not run; schema already had Role/Competency scope fields and GlobalApprovalRequest.
+- **GlobalApprovalRequest.submittedBy:** References User.id; member-only logins use member.id as session user id, so submit for global may fail for member-only users unless they have a linked User (acceptable for current design).
+- **CompetenciesPageContent:** Done. Shared component `components/Competencies/CompetenciesPageContent.tsx` contains the full admin competencies UI (Competency Library + Role Frameworks tabs). Both admin and client competencies pages now render `<CompetenciesPageContent />`; data scoped by same APIs (RLS). Doc’s “exact same UI” for competencies can be done later by extracting a shared CompetenciesPageContent and using it on both admin and client routes.
