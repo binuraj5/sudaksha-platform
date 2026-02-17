@@ -76,7 +76,8 @@ export default function CompetencyLibraryPage() {
             }
             if (rolesRes.ok) {
                 const rolesData = await rolesRes.json();
-                setRoles(rolesData);
+                const list = rolesData?.roles ?? (Array.isArray(rolesData) ? rolesData : []);
+                setRoles(Array.isArray(list) ? list : []);
             }
         } catch (error) {
             console.error("Failed to fetch data:", error);

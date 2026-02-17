@@ -8,6 +8,9 @@ declare module "next-auth" {
             memberType?: string;
             orgUnitId?: string | null;
             managedOrgUnitId?: string | null;
+            departmentId?: string | null;
+            teamId?: string | null;
+            classId?: string | null;
             employeeId?: string | null;
             accountType?: string;
         } & DefaultSession["user"];
@@ -21,6 +24,9 @@ declare module "next-auth" {
         type?: string;
         orgUnitId?: string | null;
         managedOrgUnitId?: string | null;
+        departmentId?: string | null;
+        teamId?: string | null;
+        classId?: string | null;
         employeeId?: string | null;
         accountType?: string;
     }
@@ -35,6 +41,9 @@ declare module "next-auth/jwt" {
         type?: string;
         orgUnitId?: string | null;
         managedOrgUnitId?: string | null;
+        departmentId?: string | null;
+        teamId?: string | null;
+        classId?: string | null;
         employeeId?: string | null;
         accountType?: string;
     }

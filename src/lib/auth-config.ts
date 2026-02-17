@@ -102,19 +102,32 @@ export const authOptions: NextAuthOptions = {
                                 ? (member.type === "INDIVIDUAL" ? "INDIVIDUAL" : "STUDENT")
                                 : "TENANT";
                         const isB2C = member.type === "INDIVIDUAL";
-                        // Preserve actual role (DEPT_HEAD, TEAM_LEAD, etc.) and managedOrgUnitId from managedUnits
+                        // Preserve actual role (DEPT_HEAD, TEAM_LEAD, CLASS_TEACHER) and scope ids from managedUnits
                         let role: string = member.role === "TENANT_ADMIN" ? "TENANT_ADMIN" : member.type === "INDIVIDUAL" ? "INDIVIDUAL" : "EMPLOYEE";
                         let managedOrgUnitId: string | null = null;
+                        let departmentId: string | null = null;
+                        let teamId: string | null = null;
+                        let classId: string | null = null;
                         if (member.managedUnits?.length > 0) {
                             const dept = member.managedUnits.find((u: any) => u.type === "DEPARTMENT");
+                            const team = member.managedUnits.find((u: any) => u.type === "TEAM");
+                            const classUnit = member.managedUnits.find((u: any) => u.type === "CLASS");
                             if (dept) {
                                 role = "DEPT_HEAD";
                                 managedOrgUnitId = dept.id;
-                            } else {
-                                const team = member.managedUnits.find((u: any) => u.type === "TEAM");
-                                if (team) {
-                                    role = "TEAM_LEAD";
-                                    managedOrgUnitId = team.id;
+                                departmentId = dept.id;
+                            } else if (team) {
+                                role = "TEAM_LEAD";
+                                managedOrgUnitId = team.id;
+                                teamId = team.id;
+                            }
+                            if (classUnit) {
+                                classId = classUnit.id;
+                                if (role === "EMPLOYEE" && member.role === "CLASS_TEACHER") {
+                                    role = "CLASS_TEACHER";
+                                }
+                                if (!managedOrgUnitId) {
+                                    managedOrgUnitId = classUnit.id;
                                 }
                             }
                         }
@@ -131,7 +144,10 @@ export const authOptions: NextAuthOptions = {
                             clientId: isB2C ? null : resolvedClientId,
                             tenantId: isB2C ? null : resolvedClientId,
                             tenantSlug: isB2C ? null : tenantSlug,
-                            managedOrgUnitId
+                            managedOrgUnitId,
+                            departmentId: departmentId ?? undefined,
+                            teamId: teamId ?? undefined,
+                            classId: classId ?? undefined,
                         };
                     }
 
@@ -198,20 +214,29 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     let role = user.role;
-                    let managedOrgUnitId = null;
+                    let managedOrgUnitId: string | null = null;
+                    let departmentId: string | undefined;
+                    let teamId: string | undefined;
+                    let classId: string | undefined;
                     let tenantSlug = user.client?.slug || (member?.tenant as any)?.slug || null;
 
                     if (member && member.managedUnits?.length > 0) {
                         const dept = member.managedUnits.find((u: any) => u.type === 'DEPARTMENT');
+                        const team = member.managedUnits.find((u: any) => u.type === 'TEAM');
+                        const classUnit = member.managedUnits.find((u: any) => u.type === 'CLASS');
                         if (dept) {
                             role = 'DEPT_HEAD' as any;
                             managedOrgUnitId = dept.id;
-                        } else {
-                            const team = member.managedUnits.find((u: any) => u.type === 'TEAM');
-                            if (team) {
-                                role = 'TEAM_LEAD' as any;
-                                managedOrgUnitId = team.id;
-                            }
+                            departmentId = dept.id;
+                        } else if (team) {
+                            role = 'TEAM_LEAD' as any;
+                            managedOrgUnitId = team.id;
+                            teamId = team.id;
+                        }
+                        if (classUnit) {
+                            classId = classUnit.id;
+                            if (!managedOrgUnitId) managedOrgUnitId = classUnit.id;
+                            if (role === (user.role as string) && member.role === 'CLASS_TEACHER') role = 'CLASS_TEACHER' as any;
                         }
                     }
 
@@ -234,7 +259,10 @@ export const authOptions: NextAuthOptions = {
                         clientId: resolvedClientId,
                         tenantId: resolvedClientId,
                         tenantSlug: resolvedTenantSlug,
-                        managedOrgUnitId: managedOrgUnitId
+                        managedOrgUnitId: managedOrgUnitId ?? undefined,
+                        departmentId,
+                        teamId,
+                        classId,
                     };
                 } catch (error: any) {
                     console.error("[AUTH] Authorize Error:", error.message);
@@ -253,6 +281,9 @@ export const authOptions: NextAuthOptions = {
                 token.tenantId = (user as any).tenantId ?? (user as any).clientId;
                 token.tenantSlug = (user as any).tenantSlug;
                 token.managedOrgUnitId = (user as any).managedOrgUnitId;
+                token.departmentId = (user as any).departmentId;
+                token.teamId = (user as any).teamId;
+                token.classId = (user as any).classId;
             }
 
             if (trigger === "update" && session) {
@@ -272,6 +303,9 @@ export const authOptions: NextAuthOptions = {
                 (session.user as Record<string, unknown>).tenantId = t.tenantId ?? t.clientId;
                 (session.user as Record<string, unknown>).tenantSlug = t.tenantSlug;
                 (session.user as Record<string, unknown>).managedOrgUnitId = t.managedOrgUnitId;
+                (session.user as Record<string, unknown>).departmentId = t.departmentId;
+                (session.user as Record<string, unknown>).teamId = t.teamId;
+                (session.user as Record<string, unknown>).classId = t.classId;
             }
             return session as import("next-auth").Session;
         },

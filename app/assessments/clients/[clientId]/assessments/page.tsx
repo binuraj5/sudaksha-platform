@@ -6,24 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Plus, FileText, UserPlus } from "lucide-react";
 import Link from "next/link";
 
-// DB schema uses: id, name, slug, description, sourceType, isPublished, createdAt (schema may have diverged)
-type AssessmentRow = { id: string; name: string; description: string | null; sourceType: string };
-
 export default async function AssessmentsPage({ params }: { params: Promise<{ clientId: string }> }) {
     const session = await getServerSession(authOptions);
     const { clientId } = await params;
 
-    let assessments: AssessmentRow[] = [];
+    let assessments: { id: string; name: string; description: string | null; sourceType: string }[] = [];
     try {
-        // Use raw query to match actual DB columns (schema may have code/slug, status/isPublished divergence)
-        const rows = await prisma.$queryRaw<AssessmentRow[]>`
-            SELECT id, name, description, "sourceType"
-            FROM "AssessmentModel"
-            WHERE "isActive" = true AND ("isPublished" = true OR "isPublished" IS NULL)
-            ORDER BY "createdAt" DESC
-            LIMIT 20
-        `;
-        assessments = rows;
+        assessments = await prisma.assessmentModel.findMany({
+            where: { isActive: true, status: "PUBLISHED" },
+            select: { id: true, name: true, description: true, sourceType: true },
+            orderBy: { createdAt: "desc" },
+            take: 20,
+        });
     } catch (e) {
         console.error("[AssessmentsPage] Failed to fetch assessments:", e);
     }

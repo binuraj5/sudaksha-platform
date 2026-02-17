@@ -106,7 +106,10 @@ export default function CreateAssessmentPage() {
     useEffect(() => {
         fetch("/api/admin/roles")
             .then((r) => r.json())
-            .then((data) => setRoles(Array.isArray(data) ? data : []))
+            .then((data) => {
+                const list = data?.roles ?? (Array.isArray(data) ? data : []);
+                setRoles(Array.isArray(list) ? list : []);
+            })
             .catch(() => setRoles([]));
     }, []);
 
