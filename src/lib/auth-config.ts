@@ -1,8 +1,9 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import type { NextAuthOptions } from "next-auth";
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
     trustHost: true,
     useSecureCookies: process.env.NODE_ENV === "production",
