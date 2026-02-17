@@ -1,0 +1,230 @@
+// This is the SINGLE SOURCE OF TRUTH for all role/competency permissions.
+// Every UI component and API route should use these functions.
+
+export type UserRole = 
+  | 'SUPER_ADMIN'
+  | 'TENANT_ADMIN'
+  | 'DEPARTMENT_HEAD'
+  | 'TEAM_LEADER'
+  | 'INSTITUTION_ADMIN'
+  | 'DEPT_HEAD_INST'
+  | 'CLASS_TEACHER'
+  | 'MEMBER';
+
+export type TenantType = 'CORPORATE' | 'INSTITUTION' | 'B2C';
+export type Scope = 'GLOBAL' | 'ORGANIZATION' | 'DEPARTMENT' | 'TEAM';
+export type ExperienceLevel = 'JUNIOR' | 'MIDDLE' | 'SENIOR' | 'EXPERT';
+
+export interface UserContext {
+  id: string;
+  role: UserRole;
+  tenantId: string;
+  tenantType: TenantType;
+  departmentId?: string;
+  teamId?: string;
+}
+
+// ─────────────────────────────────────────
+// VISIBILITY: What can this user SEE?
+// ─────────────────────────────────────────
+
+export function getVisibleScopes(user: UserContext): Scope[] {
+  // Everyone sees GLOBAL
+  const scopes: Scope[] = ['GLOBAL'];
+
+  // Org-level and below: see ORGANIZATION scope in their org
+  if (['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEADER',
+       'INSTITUTION_ADMIN', 'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(user.role)) {
+    scopes.push('ORGANIZATION');
+  }
+
+  // Dept-level and below: see DEPARTMENT scope in their dept
+  if (['DEPARTMENT_HEAD', 'TEAM_LEADER',
+       'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(user.role)) {
+    scopes.push('DEPARTMENT');
+  }
+
+  // Team-level: see TEAM scope
+  if (['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role)) {
+    scopes.push('TEAM');
+  }
+
+  return scopes;
+}
+
+// ─────────────────────────────────────────
+// EXPERIENCE LEVELS: What levels can this user access?
+// ─────────────────────────────────────────
+
+export function getAllowedExperienceLevels(user: UserContext): ExperienceLevel[] {
+  // Institution users only see JUNIOR/FRESHER
+  if (user.tenantType === 'INSTITUTION') {
+    return ['JUNIOR'];
+  }
+
+  // Corporate and B2C see all levels
+  return ['JUNIOR', 'MIDDLE', 'SENIOR', 'EXPERT'];
+}
+
+// ─────────────────────────────────────────
+// CREATION: What scope can this user CREATE in?
+// ─────────────────────────────────────────
+
+export function getCreatableScope(user: UserContext): Scope | null {
+  switch (user.role) {
+    case 'SUPER_ADMIN':
+      return 'GLOBAL'; // Super admin creates global items
+
+    case 'TENANT_ADMIN':
+    case 'INSTITUTION_ADMIN':
+      return 'ORGANIZATION';
+
+    case 'DEPARTMENT_HEAD':
+    case 'DEPT_HEAD_INST':
+      return 'DEPARTMENT';
+
+    case 'TEAM_LEADER':
+    case 'CLASS_TEACHER':
+      return 'TEAM';
+
+    case 'MEMBER':
+    default:
+      return null; // Cannot create
+  }
+}
+
+// ─────────────────────────────────────────
+// ACTIONS: What can this user DO?
+// ─────────────────────────────────────────
+
+export interface RoleCompetencyPermissions {
+  canView: boolean;
+  canCreate: boolean;
+  canEditOwn: boolean;       // Edit items they created
+  canEditOrg: boolean;       // Edit any org-level item
+  canEditGlobal: boolean;    // Only Super Admin
+  canDeleteOwn: boolean;
+  canDeleteOrg: boolean;
+  canDeleteGlobal: boolean;
+  canSubmitForGlobal: boolean; // Submit local item for global approval
+  canApproveGlobal: boolean;   // Approve global submissions (Super Admin only)
+  canPublishToOrg: boolean;    // Make a team/dept item visible org-wide
+  creatableScope: Scope | null;
+  allowedLevels: ExperienceLevel[];
+  visibleScopes: Scope[];
+  isInstitution: boolean;
+}
+
+export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyPermissions {
+  const isSuperAdmin = user.role === 'SUPER_ADMIN';
+  const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+  const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(user.role);
+  const isTeamLead = ['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role);
+  const isInstitution = user.tenantType === 'INSTITUTION';
+  const canCreate = !!getCreatableScope(user);
+
+  return {
+    canView: true,
+    canCreate,
+    canEditOwn: canCreate,
+    canEditOrg: isSuperAdmin || isTenantAdmin,
+    canEditGlobal: isSuperAdmin,
+    canDeleteOwn: canCreate,
+    canDeleteOrg: isSuperAdmin || isTenantAdmin,
+    canDeleteGlobal: isSuperAdmin,
+    canSubmitForGlobal: canCreate && !isSuperAdmin,
+    canApproveGlobal: isSuperAdmin,
+    canPublishToOrg: isSuperAdmin || isTenantAdmin || isDeptHead,
+    creatableScope: getCreatableScope(user),
+    allowedLevels: getAllowedExperienceLevels(user),
+    visibleScopes: getVisibleScopes(user),
+    isInstitution,
+  };
+}
+
+// ─────────────────────────────────────────
+// PRISMA FILTER: Build the WHERE clause for queries
+// ─────────────────────────────────────────
+
+export function buildRoleVisibilityFilter(user: UserContext) {
+  const levelFilter = user.tenantType === 'INSTITUTION'
+    ? { allowedLevels: { hasSome: ['JUNIOR'] } }
+    : {};
+
+  if (user.role === 'SUPER_ADMIN') {
+    return { isActive: true, ...levelFilter };
+  }
+
+  return {
+    isActive: true,
+    ...levelFilter,
+    OR: [
+      // Global roles
+      { scope: 'GLOBAL' },
+
+      // Org-level roles belonging to their tenant
+      {
+        scope: 'ORGANIZATION',
+        tenantId: user.tenantId,
+      },
+
+      // Dept-level roles in their department
+      ...(user.departmentId ? [{
+        scope: 'DEPARTMENT',
+        tenantId: user.tenantId,
+        departmentId: user.departmentId,
+      }] : []),
+
+      // Team-level roles in their team
+      ...(user.teamId ? [{
+        scope: 'TEAM',
+        tenantId: user.tenantId,
+        teamId: user.teamId,
+      }] : []),
+    ],
+  };
+}
+
+// Same pattern for competencies
+export function buildCompetencyVisibilityFilter(user: UserContext) {
+  return buildRoleVisibilityFilter(user); // Same logic
+}
+
+// ─────────────────────────────────────────
+// OWNERSHIP CHECK: Can this user edit/delete this item?
+// ─────────────────────────────────────────
+
+export function canUserModifyRole(
+  user: UserContext,
+  role: { scope: Scope; tenantId?: string; departmentId?: string; teamId?: string; createdByUserId?: string }
+): boolean {
+  if (user.role === 'SUPER_ADMIN') return true;
+
+  // Global roles: only Super Admin
+  if (role.scope === 'GLOBAL') return false;
+
+  // Must be in same tenant
+  if (role.tenantId !== user.tenantId) return false;
+
+  // Org scope: Tenant Admin can modify
+  if (role.scope === 'ORGANIZATION') {
+    return ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+  }
+
+  // Dept scope: Dept head or above in same dept
+  if (role.scope === 'DEPARTMENT') {
+    const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(user.role);
+    const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+    return (isTenantAdmin) ||
+      (isDeptHead && role.departmentId === user.departmentId);
+  }
+
+  // Team scope: Team leader who created it, or dept head above
+  if (role.scope === 'TEAM') {
+    return role.createdByUserId === user.id ||
+      ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
+       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+  }
+
+  return false;
+}

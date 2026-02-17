@@ -837,6 +837,12 @@ model User {
   adaptiveComponentLibrariesCreated AdaptiveComponentLibrary[]
   publishRequestsAsRequester GlobalPublishRequest[] @relation("PublishRequester")
   publishRequestsAsReviewer  GlobalPublishRequest[] @relation("PublishReviewer")
+  
+  // NEW: Relations for role/competency creation and approval
+  rolesCreated              Role[]                   @relation("RoleCreatedBy")
+  competenciesCreated       Competency[]              @relation("CompetencyCreatedBy")
+  submittedApprovals        GlobalApprovalRequest[]   @relation("SubmittedApprovals")
+  reviewedApprovals         GlobalApprovalRequest[]   @relation("ReviewedApprovals")
 
   @@index([email])
   @@index([employeeId])
@@ -1178,6 +1184,9 @@ model Tenant {
   assessmentModels  AssessmentModel[]
   componentLibraries ComponentLibrary[]
   adaptiveComponentLibraries AdaptiveComponentLibrary[]
+  
+  // NEW: Global approval requests
+  globalApprovalRequests GlobalApprovalRequest[]
 
   @@index([slug])
   @@index([type])
@@ -1739,6 +1748,31 @@ model Role {
   tenantId            String?
   status              ApprovalStatus   @default(APPROVED) // DRAFT for new tenant roles
 
+  // NEW: Scope & Visibility
+  scope              String           @default("GLOBAL")
+  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM
+  
+  departmentId       String?          // null = org-wide, set = department-specific
+  teamId             String?          // null = dept-wide, set = team-specific
+  createdByUserId    String?          // who created this role
+  
+  // NEW: Experience Level Restriction
+  allowedLevels      String[]         @default(["JUNIOR","MIDDLE","SENIOR","EXPERT"])
+  // Institutions: ["JUNIOR"] only
+  
+  // NEW: Global Approval Workflow
+  globalSubmissionStatus  String?
+  // null | PENDING | APPROVED | REJECTED | CHANGES_REQUESTED
+  
+  globalSubmittedBy       String?
+  globalSubmittedAt       DateTime?
+  globalApprovedBy        String?
+  globalApprovedAt        DateTime?
+  globalRejectionReason   String?
+  
+  // Soft delete
+  deletedAt          DateTime?
+
   // M1-8 Approval Fields
   visibility      RoleVisibility @default(TENANT_SPECIFIC)
   approvedBy      String?
@@ -1752,6 +1786,13 @@ model Role {
   memberCurrent               Member[]                 @relation("MemberCurrentRole")
   memberAspirational          Member[]                 @relation("MemberAspirationalRole")
   roleAssignmentRequestsFromProfile RoleAssignmentRequest[] @relation("RoleAssignmentRequestRole")
+  
+  // NEW: Relations
+  creator            User?             @relation("RoleCreatedBy", fields: [createdByUserId], references: [id])
+  
+  @@index([scope])
+  @@index([tenantId])
+  @@index([globalSubmissionStatus])
 }
 
 model Competency {
@@ -1767,6 +1808,29 @@ model Competency {
   lastUsedAt                DateTime?
   tenantId                  String?
   status                    ApprovalStatus             @default(APPROVED)
+  
+  // NEW: Scope & Visibility (same pattern as Role)
+  scope              String           @default("GLOBAL")
+  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM
+  
+  departmentId       String?          // null = org-wide, set = department-specific
+  teamId             String?          // null = dept-wide, set = team-specific
+  createdByUserId    String?          // who created this competency
+  
+  // NEW: Experience Level Restriction
+  allowedLevels      String[]         @default(["JUNIOR","MIDDLE","SENIOR","EXPERT"])
+  
+  // NEW: Global Approval
+  globalSubmissionStatus  String?
+  globalSubmittedBy       String?
+  globalSubmittedAt       DateTime?
+  globalApprovedBy        String?
+  globalApprovedAt        DateTime?
+  globalRejectionReason   String?
+  
+  // Soft delete
+  deletedAt          DateTime?
+  
   tenant                    Tenant?                    @relation(fields: [tenantId], references: [id])
   indicators                CompetencyIndicator[]
   roleLinks                 RoleCompetency[]
@@ -1774,6 +1838,13 @@ model Competency {
   componentLibraryEntries   ComponentLibrary[]
   adaptiveComponentLibraries AdaptiveComponentLibrary[]
   adaptiveSessions         AdaptiveSession[]
+  
+  // NEW: Relations
+  creator            User?             @relation("CompetencyCreatedBy", fields: [createdByUserId], references: [id])
+  
+  @@index([scope])
+  @@index([tenantId])
+  @@index([globalSubmissionStatus])
 }
 
 model CompetencyIndicator {
@@ -2861,4 +2932,34 @@ model AdminUser {
   lastLoginAt        DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+}
+
+// NEW TABLE: Global Approval Requests Queue
+model GlobalApprovalRequest {
+  id                 String   @id @default(cuid())
+  
+  entityType         String   // ROLE | COMPETENCY
+  entityId           String
+  
+  tenantId           String
+  submittedBy        String
+  submittedAt        DateTime @default(now())
+  
+  status             String   @default("PENDING")
+  // PENDING | APPROVED | REJECTED | CHANGES_REQUESTED
+  
+  reviewedBy         String?
+  reviewedAt         DateTime?
+  reviewNotes        String?
+  
+  // Snapshot of what was submitted (for review)
+  entitySnapshot     Json     // Full role/competency data at time of submission
+  
+  tenant             Tenant   @relation(fields: [tenantId], references: [id])
+  submitter          User     @relation("SubmittedApprovals", fields: [submittedBy], references: [id])
+  reviewer           User?    @relation("ReviewedApprovals", fields: [reviewedBy], references: [id])
+  
+  @@index([status])
+  @@index([tenantId])
+  @@index([entityType, entityId])
 }
