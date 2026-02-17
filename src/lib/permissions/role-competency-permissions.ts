@@ -12,7 +12,7 @@ export type UserRole =
   | 'MEMBER';
 
 export type TenantType = 'CORPORATE' | 'INSTITUTION' | 'B2C';
-export type Scope = 'GLOBAL' | 'ORGANIZATION' | 'DEPARTMENT' | 'TEAM';
+export type Scope = 'GLOBAL' | 'ORGANIZATION' | 'DEPARTMENT' | 'TEAM' | 'CLASS';
 export type ExperienceLevel = 'JUNIOR' | 'MIDDLE' | 'SENIOR' | 'EXPERT';
 
 export interface UserContext {
@@ -22,6 +22,8 @@ export interface UserContext {
   tenantType: TenantType;
   departmentId?: string;
   teamId?: string;
+  /** Institution: class (org unit) id for Class Teacher; used when scope is CLASS */
+  classId?: string;
 }
 
 // ─────────────────────────────────────────
@@ -44,9 +46,14 @@ export function getVisibleScopes(user: UserContext): Scope[] {
     scopes.push('DEPARTMENT');
   }
 
-  // Team-level: see TEAM scope
-  if (['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role)) {
+  // Team-level (Corporate): see TEAM scope
+  if (user.role === 'TEAM_LEADER') {
     scopes.push('TEAM');
+  }
+
+  // Class-level (Institution): see CLASS scope (logically the "team" for Class Teacher)
+  if (user.role === 'CLASS_TEACHER') {
+    scopes.push('CLASS');
   }
 
   return scopes;
@@ -84,8 +91,9 @@ export function getCreatableScope(user: UserContext): Scope | null {
       return 'DEPARTMENT';
 
     case 'TEAM_LEADER':
-    case 'CLASS_TEACHER':
       return 'TEAM';
+    case 'CLASS_TEACHER':
+      return 'CLASS'; // Institution: CLASS is logically the "team" for Class Teacher
 
     case 'MEMBER':
     default:
@@ -119,7 +127,7 @@ export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyP
   const isSuperAdmin = user.role === 'SUPER_ADMIN';
   const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
   const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(user.role);
-  const isTeamLead = ['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role);
+  const isNarrowestScope = ['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role);
   const isInstitution = user.tenantType === 'INSTITUTION';
   const canCreate = !!getCreatableScope(user);
 
@@ -134,7 +142,7 @@ export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyP
     canDeleteGlobal: isSuperAdmin,
     canSubmitForGlobal: canCreate && !isSuperAdmin,
     canApproveGlobal: isSuperAdmin,
-    canPublishToOrg: isSuperAdmin || isTenantAdmin || isDeptHead,
+    canPublishToOrg: isSuperAdmin || isTenantAdmin || isDeptHead || isNarrowestScope,
     creatableScope: getCreatableScope(user),
     allowedLevels: getAllowedExperienceLevels(user),
     visibleScopes: getVisibleScopes(user),
@@ -175,11 +183,18 @@ export function buildRoleVisibilityFilter(user: UserContext) {
         departmentId: user.departmentId,
       }] : []),
 
-      // Team-level roles in their team
+      // Team-level roles in their team (Corporate)
       ...(user.teamId ? [{
         scope: 'TEAM',
         tenantId: user.tenantId,
         teamId: user.teamId,
+      }] : []),
+
+      // Class-level roles in their class (Institution — Class Teacher; teamId stores class/org unit id)
+      ...(user.classId ? [{
+        scope: 'CLASS',
+        tenantId: user.tenantId,
+        teamId: user.classId,
       }] : []),
     ],
   };
@@ -219,9 +234,17 @@ export function canUserModifyRole(
       (isDeptHead && role.departmentId === user.departmentId);
   }
 
-  // Team scope: Team leader who created it, or dept head above
+  // Team scope (Corporate): Team leader who created it, or dept head above
   if (role.scope === 'TEAM') {
     return role.createdByUserId === user.id ||
+      ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
+       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+  }
+
+  // Class scope (Institution): Class Teacher for same class (teamId = class id), or above
+  if (role.scope === 'CLASS') {
+    const isSameClass = user.classId != null && role.teamId === user.classId;
+    return (user.role === 'CLASS_TEACHER' && isSameClass) || role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
        'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
   }

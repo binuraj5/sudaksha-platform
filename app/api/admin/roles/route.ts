@@ -15,7 +15,7 @@ export async function GET(req: Request) {
         const scope = searchParams.get('scope'); // optional filter
         const level = searchParams.get('level'); // optional filter
 
-        // Build user context for permissions
+        // Build user context for permissions (Class Teacher: classId = managed class/org unit)
         const user = session.user as any;
         const userContext = {
             id: user.id,
@@ -24,6 +24,7 @@ export async function GET(req: Request) {
             tenantType: user.tenant?.type || 'CORPORATE',
             departmentId: user.departmentId,
             teamId: user.teamId,
+            classId: user.classId,
         };
 
         // Build visibility filter using permission utility
@@ -58,12 +59,12 @@ export async function GET(req: Request) {
             ],
         });
 
-        // Add permission flags to each role (simplified for now)
+        // Add permission flags to each role
         const rolesWithPermissions = roles.map(role => ({
             ...role,
-            _canEdit: true, // TODO: Implement proper permission check
-            _canDelete: true, // TODO: Implement proper permission check
-            _canSubmitGlobal: false, // TODO: Implement proper permission check
+            _canEdit: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
+            _canDelete: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
+            _canSubmitGlobal: role.scope !== 'GLOBAL' && !role.globalSubmissionStatus,
             _isOwned: role.tenantId === user.tenantId,
         }));
 
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Build user context for permissions
+        // Build user context for permissions (Class Teacher: classId = managed class/org unit)
         const user = session.user as any;
         const userContext = {
             id: user.id,
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
             tenantType: user.tenant?.type || 'CORPORATE',
             departmentId: user.departmentId,
             teamId: user.teamId,
+            classId: user.classId,
         };
 
         const permissions = getRoleCompetencyPermissions(userContext);
@@ -114,11 +116,19 @@ export async function POST(request: Request) {
             body.allowedLevels = ['JUNIOR'];
         }
 
+        // Scope-specific ids: CLASS uses teamId to store class (org unit) id for Class Teacher
+        const departmentId = scope === 'DEPARTMENT' ? user.departmentId : null;
+        const teamId = scope === 'TEAM' ? user.teamId : (scope === 'CLASS' ? (body.classId ?? user.classId) : null);
+
         const role = await prisma.role.create({
             data: {
                 ...body,
-                tenantId: user.tenantId,
-                createdBy: user.id,
+                scope,
+                tenantId: scope === 'GLOBAL' ? null : user.tenantId,
+                departmentId: departmentId ?? undefined,
+                teamId: teamId ?? undefined,
+                createdByUserId: user.id,
+                ...(permissions.isInstitution && { allowedLevels: body.allowedLevels ?? ['JUNIOR'] }),
             },
             include: {
                 competencies: { select: { id: true } },
@@ -132,12 +142,12 @@ export async function POST(request: Request) {
             }
         });
 
-        // Add permission flags to response (simplified for now)
+        // Add permission flags to response
         const roleWithPermissions = {
             ...role,
-            _canEdit: true, // TODO: Implement proper permission check
-            _canDelete: true, // TODO: Implement proper permission check
-            _canSubmitGlobal: false, // TODO: Implement proper permission check
+            _canEdit: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
+            _canDelete: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
+            _canSubmitGlobal: role.scope !== 'GLOBAL' && !role.globalSubmissionStatus,
             _isOwned: role.tenantId === user.tenantId,
         };
 

@@ -1750,10 +1750,10 @@ model Role {
 
   // NEW: Scope & Visibility
   scope              String           @default("GLOBAL")
-  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM
+  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM | CLASS (CLASS = Class Teacher's class, Institution)
   
   departmentId       String?          // null = org-wide, set = department-specific
-  teamId             String?          // null = dept-wide, set = team-specific
+  teamId             String?          // TEAM scope: team id; CLASS scope: class (org unit) id
   createdByUserId    String?          // who created this role
   
   // NEW: Experience Level Restriction
@@ -1811,10 +1811,10 @@ model Competency {
   
   // NEW: Scope & Visibility (same pattern as Role)
   scope              String           @default("GLOBAL")
-  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM
+  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM | CLASS
   
   departmentId       String?          // null = org-wide, set = department-specific
-  teamId             String?          // null = dept-wide, set = team-specific
+  teamId             String?          // TEAM scope: team id; CLASS scope: class (org unit) id
   createdByUserId    String?          // who created this competency
   
   // NEW: Experience Level Restriction

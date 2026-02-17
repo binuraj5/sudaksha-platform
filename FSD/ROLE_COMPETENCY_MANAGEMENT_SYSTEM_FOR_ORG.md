@@ -96,25 +96,31 @@ DEPARTMENT
   Example: "Finance Dept Business Analyst" role
 
 TEAM
-  ↓ (managed by Team Leader)
+  ↓ (managed by Team Leader — Corporate)
   Available only to this team
   Example: "QA Team - Automation Tester" role
+
+CLASS
+  ↓ (managed by Class Teacher — Institution)
+  Logically the "team" for the class teacher; available only to their class(es)
+  Example: "Class 10A - Intro to Programming" role
 ```
 
 ### 1.3 Who Can See What (Visibility Matrix)
 
 ```
-USER              | GLOBAL | ORG | DEPT | TEAM | Others
-──────────────────────────────────────────────────────────
-Super Admin       | ALL    | ALL | ALL  | ALL  | ALL
-Tenant Admin      | ALL    | OWN | ALL  | ALL  | ✗
-Dept Head (HOD)   | ALL    | OWN | OWN  | ALL  | ✗
-Team Leader       | ALL    | OWN | OWN  | OWN  | ✗
-Institution Admin | ALL*   | OWN | ALL  | ALL  | ✗
-Dept Head (Inst)  | ALL*   | OWN | OWN  | ALL  | ✗
-Class Teacher     | ALL*   | OWN | OWN  | OWN  | ✗
+USER              | GLOBAL | ORG | DEPT | TEAM | CLASS | Others
+────────────────────────────────────────────────────────────────
+Super Admin       | ALL    | ALL | ALL  | ALL  | ALL   | ALL
+Tenant Admin      | ALL    | OWN | ALL  | ALL  | ALL   | ✗
+Dept Head (HOD)   | ALL    | OWN | OWN  | ALL  | ALL   | ✗
+Team Leader       | ALL    | OWN | OWN  | OWN  | ✗     | ✗
+Institution Admin | ALL*   | OWN | ALL  | ALL  | ALL   | ✗
+Dept Head (Inst)  | ALL*   | OWN | OWN  | ALL  | ALL   | ✗
+Class Teacher     | ALL*   | OWN | OWN  | ✗    | OWN   | ✗
 
 * = Institution users see GLOBAL roles but ONLY Junior/Fresher level
+TEAM = Corporate narrowest scope; CLASS = Institution narrowest scope (logically the "team" for Class Teacher)
 ```
 
 ### 1.4 Who Can Create What (Creation Matrix)
@@ -128,7 +134,8 @@ Tenant Admin      | ORGANIZATION             | None (Corporate)
 Dept Head (Corp)  | DEPARTMENT               | None
 Dept Head (Inst)  | DEPARTMENT               | Junior/Fresher only
 Team Leader       | TEAM                     | None (Corporate)
-Class Teacher     | CLASS (= team)           | Junior/Fresher only
+Class Teacher     | CLASS                    | Junior/Fresher only (Institution)
+                  | (CLASS is logically the "team" for Class Teacher — their class(es))
 ```
 
 ### 1.5 The Global Approval Workflow
@@ -170,7 +177,7 @@ model Role {
 
   // Scope & Visibility
   scope              String   @default("GLOBAL")
-  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM
+  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM | CLASS
   
   tenantId           String?  @db.Uuid
   // null = global role, set = org-specific role
@@ -179,7 +186,7 @@ model Role {
   // null = org-wide, set = department-specific
   
   teamId             String?  @db.Uuid
-  // null = dept-wide, set = team-specific
+  // TEAM scope: team-specific; CLASS scope: class (org unit) id for Institution
   
   createdByUserId    String?  @db.Uuid
   // who created this role
@@ -217,9 +224,11 @@ model Competency {
   
   // Scope & Visibility (same pattern as Role)
   scope              String   @default("GLOBAL")
+  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM | CLASS
   tenantId           String?  @db.Uuid
   departmentId       String?  @db.Uuid
   teamId             String?  @db.Uuid
+  // TEAM scope: team id; CLASS scope: class (org unit) id
   createdByUserId    String?  @db.Uuid
   
   // Experience Level Restriction
@@ -286,6 +295,7 @@ model User {
   // May need to add:
   departmentId       String?  @db.Uuid
   teamId             String?  @db.Uuid
+  classId            String?  @db.Uuid  // Institution: class (org unit) id for Class Teacher
   
   // Relations
   department         Department? @relation(fields: [departmentId], references: [id])
@@ -333,7 +343,7 @@ export type UserRole =
   | 'MEMBER';
 
 export type TenantType = 'CORPORATE' | 'INSTITUTION' | 'B2C';
-export type Scope = 'GLOBAL' | 'ORGANIZATION' | 'DEPARTMENT' | 'TEAM';
+export type Scope = 'GLOBAL' | 'ORGANIZATION' | 'DEPARTMENT' | 'TEAM' | 'CLASS';
 export type ExperienceLevel = 'JUNIOR' | 'MIDDLE' | 'SENIOR' | 'EXPERT';
 
 export interface UserContext {
@@ -343,6 +353,7 @@ export interface UserContext {
   tenantType: TenantType;
   departmentId?: string;
   teamId?: string;
+  classId?: string;  // Institution: class (org unit) id for Class Teacher; used when scope is CLASS
 }
 
 // ─────────────────────────────────────────
@@ -365,9 +376,14 @@ export function getVisibleScopes(user: UserContext): Scope[] {
     scopes.push('DEPARTMENT');
   }
 
-  // Team-level: see TEAM scope
-  if (['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role)) {
+  // Team-level (Corporate): see TEAM scope
+  if (user.role === 'TEAM_LEADER') {
     scopes.push('TEAM');
+  }
+
+  // Class-level (Institution): see CLASS scope (logically the "team" for Class Teacher)
+  if (user.role === 'CLASS_TEACHER') {
+    scopes.push('CLASS');
   }
 
   return scopes;
@@ -405,8 +421,9 @@ export function getCreatableScope(user: UserContext): Scope | null {
       return 'DEPARTMENT';
 
     case 'TEAM_LEADER':
-    case 'CLASS_TEACHER':
       return 'TEAM';
+    case 'CLASS_TEACHER':
+      return 'CLASS';  // Institution: CLASS is logically the "team" for Class Teacher
 
     case 'MEMBER':
     default:
@@ -440,7 +457,7 @@ export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyP
   const isSuperAdmin = user.role === 'SUPER_ADMIN';
   const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
   const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(user.role);
-  const isTeamLead = ['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role);
+  const isNarrowestScope = ['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role);
   const isInstitution = user.tenantType === 'INSTITUTION';
   const canCreate = !!getCreatableScope(user);
 
@@ -455,7 +472,7 @@ export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyP
     canDeleteGlobal: isSuperAdmin,
     canSubmitForGlobal: canCreate && !isSuperAdmin,
     canApproveGlobal: isSuperAdmin,
-    canPublishToOrg: isSuperAdmin || isTenantAdmin || isDeptHead,
+    canPublishToOrg: isSuperAdmin || isTenantAdmin || isDeptHead || isNarrowestScope,
     creatableScope: getCreatableScope(user),
     allowedLevels: getAllowedExperienceLevels(user),
     visibleScopes: getVisibleScopes(user),
@@ -496,11 +513,18 @@ export function buildRoleVisibilityFilter(user: UserContext) {
         departmentId: user.departmentId,
       }] : []),
 
-      // Team-level roles in their team
+      // Team-level roles in their team (Corporate)
       ...(user.teamId ? [{
         scope: 'TEAM',
         tenantId: user.tenantId,
         teamId: user.teamId,
+      }] : []),
+
+      // Class-level roles in their class (Institution — Class Teacher)
+      ...(user.classId ? [{
+        scope: 'CLASS',
+        tenantId: user.tenantId,
+        teamId: user.classId,  // reuse teamId to store class/org unit id when scope is CLASS
       }] : []),
     ],
   };
@@ -540,9 +564,17 @@ export function canUserModifyRole(
       (isDeptHead && role.departmentId === user.departmentId);
   }
 
-  // Team scope: Team leader who created it, or dept head above
+  // Team scope (Corporate): Team leader who created it, or dept head above
   if (role.scope === 'TEAM') {
     return role.createdByUserId === user.id ||
+      ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
+       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+  }
+
+  // Class scope (Institution): Class Teacher for same class (teamId stores class id), or above
+  if (role.scope === 'CLASS') {
+    const isSameClass = user.classId && role.teamId === user.classId;
+    return (user.role === 'CLASS_TEACHER' && isSameClass) || role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
        'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
   }
@@ -841,6 +873,7 @@ export default function RolesPage() {
     { value: 'ORGANIZATION', label: 'My Organization', show: permissions.visibleScopes.includes('ORGANIZATION') },
     { value: 'DEPARTMENT', label: 'My Department', show: permissions.visibleScopes.includes('DEPARTMENT') },
     { value: 'TEAM', label: 'My Team', show: permissions.visibleScopes.includes('TEAM') },
+    { value: 'CLASS', label: 'My Class', show: permissions.visibleScopes.includes('CLASS') },
     { value: 'pending_review', label: '⏳ Pending Review', show: permissions.canApproveGlobal },
   ].filter(t => t.show !== false);
 
@@ -919,6 +952,7 @@ export function RoleCard({ role, permissions }: RoleCardProps) {
     ORGANIZATION: { label: 'My Org', color: 'bg-green-100 text-green-700', icon: '🏢' },
     DEPARTMENT: { label: 'My Dept', color: 'bg-yellow-100 text-yellow-700', icon: '🏬' },
     TEAM: { label: 'My Team', color: 'bg-purple-100 text-purple-700', icon: '👥' },
+    CLASS: { label: 'My Class', color: 'bg-indigo-100 text-indigo-700', icon: '📚' },
   };
 
   const scopeInfo = scopeConfig[role.scope] || scopeConfig.GLOBAL;
