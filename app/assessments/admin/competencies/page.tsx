@@ -72,7 +72,8 @@ export default function CompetencyLibraryPage() {
 
             if (compRes.ok) {
                 const compData = await compRes.json();
-                setCompetencies(compData);
+                const list = compData?.competencies ?? (Array.isArray(compData) ? compData : []);
+                setCompetencies(Array.isArray(list) ? list : []);
             }
             if (rolesRes.ok) {
                 const rolesData = await rolesRes.json();

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getApiSession();
@@ -13,24 +13,55 @@ export async function POST(
     }
 
     const user = session.user as any;
-    const roleId = params.id;
+    const { id: roleId } = await params;
 
-    const role = await prisma.role.findUnique({ where: { id: roleId } });
+    const role = await prisma.role.findUnique({
+      where: { id: roleId },
+      include: { tenant: { select: { id: true, name: true } } },
+    });
     if (!role) {
       return NextResponse.json({ error: "Role not found" }, { status: 404 });
     }
 
-    // Must be in same tenant (unless Super Admin)
     if (role.tenantId !== user.tenantId && user.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // TODO: Implement global submission logic when schema is updated
-    // For now, just return success message
-    
-    return NextResponse.json({ 
-      message: "Role submitted for global review (implementation pending schema update)" 
-    });
+    if (role.scope === "GLOBAL") {
+      return NextResponse.json({ error: "Role is already global" }, { status: 400 });
+    }
+
+    if (role.globalSubmissionStatus === "PENDING") {
+      return NextResponse.json({ error: "Already pending global review" }, { status: 400 });
+    }
+
+    if (!role.tenantId) {
+      return NextResponse.json({ error: "Role has no tenant" }, { status: 400 });
+    }
+
+    const snapshot = JSON.parse(JSON.stringify(role)) as object;
+
+    await prisma.$transaction([
+      prisma.role.update({
+        where: { id: roleId },
+        data: {
+          globalSubmissionStatus: "PENDING",
+          globalSubmittedBy: user.id,
+          globalSubmittedAt: new Date(),
+        },
+      }),
+      prisma.globalApprovalRequest.create({
+        data: {
+          entityType: "ROLE",
+          entityId: roleId,
+          tenantId: role.tenantId,
+          submittedBy: user.id,
+          entitySnapshot: snapshot,
+        },
+      }),
+    ]);
+
+    return NextResponse.json({ message: "Submitted for global review" });
   } catch (error) {
     console.error("Submit role for global review error:", error);
     return NextResponse.json(

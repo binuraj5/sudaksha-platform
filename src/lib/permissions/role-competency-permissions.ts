@@ -17,7 +17,7 @@ export type ExperienceLevel = 'JUNIOR' | 'MIDDLE' | 'SENIOR' | 'EXPERT';
 
 export interface UserContext {
   id: string;
-  role: UserRole;
+  role: UserRole | string; // Auth may send DEPT_HEAD | TEAM_LEAD; we normalize below
   tenantId: string;
   tenantType: TenantType;
   departmentId?: string;
@@ -26,33 +26,45 @@ export interface UserContext {
   classId?: string;
 }
 
+/** Normalize auth role names to permission util enum (DEPT_HEAD → DEPARTMENT_HEAD, TEAM_LEAD → TEAM_LEADER). */
+export function normalizeUserRole(role: string): UserRole {
+  if (role === 'DEPT_HEAD') return 'DEPARTMENT_HEAD';
+  if (role === 'TEAM_LEAD') return 'TEAM_LEADER';
+  return role as UserRole;
+}
+
+function withNormalizedRole(user: UserContext): UserContext & { role: UserRole } {
+  return { ...user, role: normalizeUserRole(user.role as string) };
+}
+
 // ─────────────────────────────────────────
 // VISIBILITY: What can this user SEE?
 // ─────────────────────────────────────────
 
 export function getVisibleScopes(user: UserContext): Scope[] {
+  const u = withNormalizedRole(user);
   // Everyone sees GLOBAL
   const scopes: Scope[] = ['GLOBAL'];
 
   // Org-level and below: see ORGANIZATION scope in their org
   if (['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEADER',
-       'INSTITUTION_ADMIN', 'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(user.role)) {
+       'INSTITUTION_ADMIN', 'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(u.role)) {
     scopes.push('ORGANIZATION');
   }
 
   // Dept-level and below: see DEPARTMENT scope in their dept
   if (['DEPARTMENT_HEAD', 'TEAM_LEADER',
-       'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(user.role)) {
+       'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(u.role)) {
     scopes.push('DEPARTMENT');
   }
 
   // Team-level (Corporate): see TEAM scope
-  if (user.role === 'TEAM_LEADER') {
+  if (u.role === 'TEAM_LEADER') {
     scopes.push('TEAM');
   }
 
   // Class-level (Institution): see CLASS scope (logically the "team" for Class Teacher)
-  if (user.role === 'CLASS_TEACHER') {
+  if (u.role === 'CLASS_TEACHER') {
     scopes.push('CLASS');
   }
 
@@ -78,7 +90,8 @@ export function getAllowedExperienceLevels(user: UserContext): ExperienceLevel[]
 // ─────────────────────────────────────────
 
 export function getCreatableScope(user: UserContext): Scope | null {
-  switch (user.role) {
+  const r = normalizeUserRole(user.role as string);
+  switch (r) {
     case 'SUPER_ADMIN':
       return 'GLOBAL'; // Super admin creates global items
 
@@ -124,10 +137,11 @@ export interface RoleCompetencyPermissions {
 }
 
 export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyPermissions {
-  const isSuperAdmin = user.role === 'SUPER_ADMIN';
-  const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
-  const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(user.role);
-  const isNarrowestScope = ['TEAM_LEADER', 'CLASS_TEACHER'].includes(user.role);
+  const r = normalizeUserRole(user.role as string);
+  const isSuperAdmin = r === 'SUPER_ADMIN';
+  const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
+  const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(r);
+  const isNarrowestScope = ['TEAM_LEADER', 'CLASS_TEACHER'].includes(r);
   const isInstitution = user.tenantType === 'INSTITUTION';
   const canCreate = !!getCreatableScope(user);
 
@@ -155,11 +169,12 @@ export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyP
 // ─────────────────────────────────────────
 
 export function buildRoleVisibilityFilter(user: UserContext) {
+  const u = withNormalizedRole(user);
   const levelFilter = user.tenantType === 'INSTITUTION'
     ? { allowedLevels: { hasSome: ['JUNIOR'] } }
     : {};
 
-  if (user.role === 'SUPER_ADMIN') {
+  if (u.role === 'SUPER_ADMIN') {
     return { isActive: true, ...levelFilter };
   }
 
@@ -213,7 +228,8 @@ export function canUserModifyRole(
   user: UserContext,
   role: { scope: Scope; tenantId?: string; departmentId?: string; teamId?: string; createdByUserId?: string }
 ): boolean {
-  if (user.role === 'SUPER_ADMIN') return true;
+  const r = normalizeUserRole(user.role as string);
+  if (r === 'SUPER_ADMIN') return true;
 
   // Global roles: only Super Admin
   if (role.scope === 'GLOBAL') return false;
@@ -223,13 +239,13 @@ export function canUserModifyRole(
 
   // Org scope: Tenant Admin can modify
   if (role.scope === 'ORGANIZATION') {
-    return ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+    return ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
   }
 
   // Dept scope: Dept head or above in same dept
   if (role.scope === 'DEPARTMENT') {
-    const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(user.role);
-    const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+    const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(r);
+    const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
     return (isTenantAdmin) ||
       (isDeptHead && role.departmentId === user.departmentId);
   }
@@ -238,15 +254,15 @@ export function canUserModifyRole(
   if (role.scope === 'TEAM') {
     return role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
-       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
   }
 
   // Class scope (Institution): Class Teacher for same class (teamId = class id), or above
   if (role.scope === 'CLASS') {
     const isSameClass = user.classId != null && role.teamId === user.classId;
-    return (user.role === 'CLASS_TEACHER' && isSameClass) || role.createdByUserId === user.id ||
+    return (r === 'CLASS_TEACHER' && isSameClass) || role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
-       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role);
+       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
   }
 
   return false;

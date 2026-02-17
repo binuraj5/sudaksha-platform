@@ -25,5 +25,6 @@ export function useRoleCompetencyPermissions(): RoleCompetencyPermissions {
     tenantType: user.tenant?.type || 'CORPORATE',
     departmentId: user.departmentId,
     teamId: user.teamId,
+    classId: user.classId,
   });
 }

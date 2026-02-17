@@ -18,17 +18,17 @@ export async function POST(
       return NextResponse.json({ error: "Super Admin only" }, { status: 403 });
     }
 
-    const { id: roleId } = await params;
+    const { id: competencyId } = await params;
     const body = await req.json().catch(() => ({}));
-    const decision = (body.decision as string) || "REJECT"; // APPROVE | REJECT | REQUEST_CHANGES
+    const decision = (body.decision as string) || "REJECT";
     const notes = (body.notes as string) || "";
 
-    const existing = await prisma.role.findUnique({ where: { id: roleId } });
+    const existing = await prisma.competency.findUnique({ where: { id: competencyId } });
     if (!existing) {
-      return NextResponse.json({ error: "Role not found" }, { status: 404 });
+      return NextResponse.json({ error: "Competency not found" }, { status: 404 });
     }
     if (existing.globalSubmissionStatus !== "PENDING") {
-      return NextResponse.json({ error: "Role is not pending review" }, { status: 400 });
+      return NextResponse.json({ error: "Competency is not pending review" }, { status: 400 });
     }
 
     const reviewerId = (session.user as any).id;
@@ -40,8 +40,8 @@ export async function POST(
           : "REJECTED";
 
     await prisma.$transaction([
-      prisma.role.update({
-        where: { id: roleId },
+      prisma.competency.update({
+        where: { id: competencyId },
         data:
           decision === "APPROVE"
             ? {
@@ -63,8 +63,8 @@ export async function POST(
       }),
       prisma.globalApprovalRequest.updateMany({
         where: {
-          entityType: "ROLE",
-          entityId: roleId,
+          entityType: "COMPETENCY",
+          entityId: competencyId,
           status: "PENDING",
         },
         data: {
@@ -77,10 +77,10 @@ export async function POST(
     ]);
 
     return NextResponse.json({
-      message: `Role ${decision === "APPROVE" ? "approved" : decision === "REQUEST_CHANGES" ? "changes requested" : "rejected"}`,
+      message: `Competency ${decision === "APPROVE" ? "approved" : decision === "REQUEST_CHANGES" ? "changes requested" : "rejected"}`,
     });
   } catch (error) {
-    console.error("Approve role global error:", error);
+    console.error("Approve competency global error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
