@@ -101,9 +101,7 @@ export async function POST(
                     overallLevel: (overallLevel?.toUpperCase() || "JUNIOR") as any,
                     department: department?.trim() || null,
                     tenantId: request.tenantId,
-                    industries: {
-                        set: mapIndustries(industries),
-                    },
+                    industries: mapIndustries(industries) as any,
                 },
             });
 

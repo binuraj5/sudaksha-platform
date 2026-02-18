@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        const config = adaptiveSession.config as AdaptiveConfig;
+        const config = adaptiveSession.config as unknown as AdaptiveConfig;
         const engine = new AdaptiveEngine({
             sessionId: adaptiveSession.id,
             currentAbility: Number(updatedSession.currentAbility),
@@ -81,11 +81,14 @@ export async function POST(req: NextRequest) {
                 data: { currentAbility: nextDifficulty },
             });
 
-            const previousQuestions = await prisma.adaptiveQuestion.findMany({
+            const previousQuestions = (await prisma.adaptiveQuestion.findMany({
                 where: { sessionId },
                 orderBy: { sequenceNumber: "asc" },
                 select: { questionText: true, isCorrect: true },
-            });
+            })).map(q => ({
+                questionText: q.questionText,
+                isCorrect: q.isCorrect ?? false
+            }));
 
             nextQuestion = await generateAdaptiveQuestion({
                 sessionId,
@@ -108,12 +111,12 @@ export async function POST(req: NextRequest) {
             abilityUpdate: engine.state.currentAbility,
             nextQuestion: nextQuestion
                 ? {
-                      id: nextQuestion.id,
-                      questionText: nextQuestion.questionText,
-                      questionType: nextQuestion.questionType,
-                      options: nextQuestion.options,
-                      difficulty: nextQuestion.difficulty,
-                  }
+                    id: nextQuestion.id,
+                    questionText: nextQuestion.questionText,
+                    questionType: nextQuestion.questionType,
+                    options: nextQuestion.options,
+                    difficulty: nextQuestion.difficulty,
+                }
                 : null,
             shouldContinue,
             estimatedRemaining: shouldContinue ? engine.estimateRemainingQuestions() : "0",

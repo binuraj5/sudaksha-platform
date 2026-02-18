@@ -77,7 +77,7 @@ export async function GET(
       const teamIdList = teamIds.map((t) => t.id);
       const orgUnitIds = [deptId, ...teamIdList];
 
-      let memberWhere: { tenantId: string; orgUnitId: { in: string[] }; type?: string; role?: string } = {
+      let memberWhere: any = {
         tenantId: tenant.id,
         type: "EMPLOYEE",
         orgUnitId: { in: teamIdFilter ? [teamIdFilter] : orgUnitIds },
@@ -95,7 +95,7 @@ export async function GET(
           },
         },
         orderBy: { name: "asc" },
-      });
+      }) as any[];
 
       const list = members.map((m) => ({
         id: m.id,
@@ -122,7 +122,7 @@ export async function GET(
     const classIdList = classIds.map((c) => c.id);
     const orgUnitIds = [deptId, ...classIdList];
 
-    let memberWhere: { tenantId: string; orgUnitId: { in: string[] }; type?: string; role?: string } = {
+    let memberWhere: any = {
       tenantId: tenant.id,
       orgUnitId: { in: orgUnitIds },
     };
@@ -155,7 +155,7 @@ export async function GET(
         },
       },
       orderBy: { name: "asc" },
-    });
+    }) as any[];
 
     let list = members.map((m) => {
       const course = m.orgUnit?.type === "CLASS"

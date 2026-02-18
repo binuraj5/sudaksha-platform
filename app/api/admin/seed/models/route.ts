@@ -63,6 +63,7 @@ export async function POST(req: Request) {
                         name: m.name,
                         description: m.description ?? null,
                         code: m.slug,
+                        slug: m.slug,
                         createdBy: "system",
                         status: "DRAFT",
                         isTemplate: false,

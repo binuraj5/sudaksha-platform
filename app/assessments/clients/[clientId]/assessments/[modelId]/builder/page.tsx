@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { AssessmentBuilder } from "@/app/assessments/admin/models/[modelId]/builder/page";
+import { AssessmentBuilder } from "@/components/assessments/AssessmentBuilder";
 
 export default function ClientAssessmentBuilderPage({ params }: { params: Promise<{ clientId: string; modelId: string }> }) {
     const { clientId, modelId } = use(params);

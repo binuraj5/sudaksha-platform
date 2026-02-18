@@ -69,7 +69,7 @@ export async function POST(
                     description: (description && typeof description === "string" ? description.trim() : "") || `Requested: ${trimmedTitle}. ${justification && typeof justification === "string" ? justification.trim() : ""}`,
                     overallLevel,
                     department: departmentName,
-                    industries: { set: ["GENERIC" as const] },
+                    industries: ["GENERIC" as any],
                     scope: department ? "DEPARTMENT" : "ORGANIZATION",
                     departmentId: department || null,
                     tenantId: clientId,

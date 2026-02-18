@@ -2568,6 +2568,8 @@ enum AssessmentStatus {
   UNDER_REVIEW
   REVIEWED
   EXPIRED
+  IN_PROGRESS
+  ASSIGNED
 }
 
 enum TenantType {

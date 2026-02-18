@@ -13,6 +13,7 @@ async function test() {
             data: {
                 name: "Test Foundation Model",
                 code: "ASM-TEST-001",
+                slug: "ASM-TEST-001",
                 description: "Testing foundation implementation",
                 sourceType: "CUSTOM",
                 createdBy: "system-test",

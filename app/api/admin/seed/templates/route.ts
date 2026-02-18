@@ -71,6 +71,7 @@ export async function POST(req: Request) {
                 update: { name: (tmpl as { name?: string }).name, description: (tmpl as { description?: string }).description ?? null },
                 create: {
                     code,
+                    slug: code,
                     name: (tmpl as { name?: string }).name ?? "Template",
                     description: (tmpl as { description?: string }).description ?? null,
                     createdBy: "system",

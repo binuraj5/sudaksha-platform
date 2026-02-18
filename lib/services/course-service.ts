@@ -109,21 +109,21 @@ export async function listCourses(tenantId: string, departmentId?: string) {
   });
 
   // Filter by department if requested (course must be SCOPED_TO this department)
-  let list = activities;
+  let list = activities as any[];
   if (departmentId) {
-    list = activities.filter((a) =>
-      a.orgUnits.some((ou) => ou.relationship === "SCOPED_TO" && ou.orgUnitId === departmentId)
+    list = activities.filter((a: any) =>
+      a.orgUnits.some((ou: any) => ou.relationship === "SCOPED_TO" && ou.orgUnitId === departmentId)
     );
   }
 
-  const courseIds = list.map((c) => c.id);
+  const courseIds = list.map((c: any) => c.id);
   const containsLinks = await prisma.activityOrgUnit.findMany({
     where: {
       activityId: { in: courseIds },
       relationship: "CONTAINS",
     },
-    include: { orgUnit: { select: { id: true }, _count: { select: { members: true } } } },
-  });
+    include: { orgUnit: { select: { id: true, _count: { select: { members: true } } } } } as any,
+  }) as any[];
 
   const classCountByCourse = new Map<string, number>();
   const studentCountByCourse = new Map<string, number>();
@@ -136,8 +136,8 @@ export async function listCourses(tenantId: string, departmentId?: string) {
     );
   }
 
-  return list.map((c) => {
-    const deptLink = c.orgUnits.find((ou) => ou.relationship === "SCOPED_TO");
+  return list.map((c: any) => {
+    const deptLink = c.orgUnits.find((ou: any) => ou.relationship === "SCOPED_TO");
     return {
       id: c.id,
       name: c.name,
@@ -178,21 +178,21 @@ export async function getCourseById(tenantId: string, courseId: string) {
         include: { curriculumNode: { select: { id: true, name: true, code: true, type: true } } },
       },
     },
-  });
+  }) as any;
   if (!course) return null;
 
-  const deptLink = course.orgUnits.find((ou) => ou.relationship === "SCOPED_TO");
-  const classLinks = course.orgUnits.filter((ou) => ou.relationship === "CONTAINS");
+  const deptLink = course.orgUnits.find((ou: any) => ou.relationship === "SCOPED_TO");
+  const classLinks = course.orgUnits.filter((ou: any) => ou.relationship === "CONTAINS");
 
   return {
     ...course,
     department: deptLink ? deptLink.orgUnit : null,
-    classes: classLinks.map((l) => ({
+    classes: classLinks.map((l: any) => ({
       ...l.orgUnit,
       studentCount: l.orgUnit._count?.members ?? 0,
       classTeacher: l.orgUnit.manager,
     })),
-    curriculum: course.curriculumNodes.map((cn) => cn.curriculumNode),
+    curriculum: course.curriculumNodes.map((cn: any) => cn.curriculumNode),
   };
 }
 
@@ -257,7 +257,7 @@ export async function deleteCourse(tenantId: string, courseId: string, userId: s
     },
   });
 
-  const hasStudents = linkedClasses.some((l) => (l.orgUnit._count?.members ?? 0) > 0);
+  const hasStudents = linkedClasses.some((l: any) => (l.orgUnit._count?.members ?? 0) > 0);
   if (hasStudents) {
     return {
       success: false,
@@ -287,8 +287,8 @@ export async function canManageCourseDepartment(
   const member = await prisma.member.findFirst({
     where: { id: memberId, tenantId },
     include: { managedUnits: { where: { isActive: true }, select: { id: true } } },
-  });
+  }) as any;
   if (!member) return false;
   if (member.role === "SUPER_ADMIN" || member.role === "TENANT_ADMIN") return true;
-  return member.managedUnits.some((u) => u.id === departmentId);
+  return member.managedUnits.some((u: any) => u.id === departmentId);
 }

@@ -79,7 +79,7 @@ OUTPUT FORMAT (JSON):
 Ensure all "linkedIndicators" match the IDs provided in the context. Generate ${count} questions now.
 `;
 
-    const messages = [
+    const messages: any[] = [
         {
             role: 'system',
             content: 'You are an expert assessment designer and psychometrician. Your goal is to generate high-quality, valid, and reliable assessment questions. Always respond in valid JSON format only, no markdown or extra text.'
