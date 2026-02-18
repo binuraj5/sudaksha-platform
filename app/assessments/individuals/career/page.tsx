@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -24,12 +25,20 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ExperienceSection } from "@/components/Career/ExperienceSection";
+import { CompetenciesSection } from "@/components/Career/CompetenciesSection";
 
 export default function IndividualCareerPage() {
+    const searchParams = useSearchParams();
     const [member, setMember] = useState<any>(null);
     const [plan, setPlan] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
+    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
+
+    useEffect(() => {
+        const t = searchParams.get("tab");
+        if (t) setActiveTab(t);
+    }, [searchParams]);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -167,8 +176,8 @@ export default function IndividualCareerPage() {
                     </Button>
                 </div>
 
-                <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5 max-w-3xl mb-6 bg-gray-100 p-1 rounded-lg">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-6 max-w-5xl mb-6 bg-gray-100 p-1 rounded-lg text-xs md:text-sm">
                         <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
                             <Target className="h-4 w-4" /> Overview
                         </TabsTrigger>
@@ -178,8 +187,11 @@ export default function IndividualCareerPage() {
                         <TabsTrigger value="experience" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
                             <Briefcase className="h-4 w-4" /> Experience
                         </TabsTrigger>
+                        <TabsTrigger value="competencies" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                            <Sparkles className="h-4 w-4" /> Competencies
+                        </TabsTrigger>
                         <TabsTrigger value="plan" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                            <Sparkles className="h-4 w-4" /> Dev Plan
+                            <TrendingUp className="h-4 w-4" /> Dev Plan
                         </TabsTrigger>
                         <TabsTrigger value="org" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
                             <Network className="h-4 w-4" /> Hierarchy
@@ -358,6 +370,10 @@ export default function IndividualCareerPage() {
                     {/* EXPERIENCE – manage work history (Gap 2) */}
                     <TabsContent value="experience" className="mt-0">
                         <ExperienceSection member={member} onUpdate={fetchData} />
+                    </TabsContent>
+
+                    <TabsContent value="competencies" className="mt-0">
+                        <CompetenciesSection member={member} onUpdate={fetchData} />
                     </TabsContent>
 
                     {/* DEV PLAN – from /api/career/plan/generate (member.developmentPlan) */}

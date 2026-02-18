@@ -1,7 +1,8 @@
 import {
     Home, Building, Users, Briefcase, UsersIcon,
     FileText, FilePlus, ClipboardList, BarChart, Settings,
-    User, Globe, CheckCircle, DollarSign, GraduationCap, BookOpen, BrainCircuit
+    User, Globe, CheckCircle, DollarSign, GraduationCap, BookOpen, BrainCircuit,
+    Sparkles, TrendingUp
 } from 'lucide-react';
 import { TENANT_LABELS, getLabelsForTenant } from './tenant-labels';
 
@@ -133,10 +134,10 @@ const MY_PAGE_NAV_ITEMS: NavigationItem[] = [
         permission: '*',
         roles: ALL_PROFILE_ROLES,
         children: [
-            { id: 'my-current-role', icon: User, label: 'My Current Role', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-previous-roles', icon: User, label: 'My Previous Roles', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-aspirational-role', icon: User, label: 'My Aspirational Role', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-competencies', icon: FileText, label: 'My Competencies', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
+            { id: 'my-role', icon: User, label: 'My Role Info', path: (base) => basePathOrPortal(base, '/assessments/individuals/career?tab=overview', '/career?tab=overview'), permission: '*', roles: ['*'] },
+            { id: 'my-previous-roles', icon: Briefcase, label: 'My Previous Roles', path: (base) => basePathOrPortal(base, '/assessments/individuals/career?tab=experience', '/career?tab=experience'), permission: '*', roles: ['*'] },
+            { id: 'my-competencies', icon: Sparkles, label: 'My Competencies', path: (base) => basePathOrPortal(base, '/assessments/individuals/career?tab=competencies', '/career?tab=competencies'), permission: '*', roles: ['*'] },
+            { id: 'my-dev-plan', icon: TrendingUp, label: 'My Dev Plan', path: (base) => basePathOrPortal(base, '/assessments/individuals/career?tab=plan', '/career?tab=plan'), permission: '*', roles: ['*'] },
         ]
     },
     {
