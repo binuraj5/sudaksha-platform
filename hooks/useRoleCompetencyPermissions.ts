@@ -13,6 +13,7 @@ export function useRoleCompetencyPermissions(): RoleCompetencyPermissions {
       canSubmitForGlobal: false, canApproveGlobal: false,
       canPublishToOrg: false, creatableScope: null,
       allowedLevels: [], visibleScopes: [], isInstitution: false,
+      isSuperAdmin: false,
     };
   }
 

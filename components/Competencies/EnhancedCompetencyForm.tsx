@@ -205,7 +205,7 @@ export function EnhancedCompetencyForm() {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="rounded-xl border-slate-100">
-                                                {Object.entries(COMPETENCY_CATEGORIES).map(([key, config]: [string, { label: string; description: string; icon: string; examples: string[] }]) => (
+                                                {Object.entries(COMPETENCY_CATEGORIES).map(([key, config]: [string, { label: string; description: string; icon: string; examples: readonly string[] }]) => (
                                                     <SelectItem key={key} value={key} className="py-3 rounded-lg">
                                                         <div className="flex items-center gap-3">
                                                             <span>{config.icon}</span>

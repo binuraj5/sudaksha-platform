@@ -256,20 +256,20 @@ export function ProfileWizard({
                     learningPreferences:
                         typeof formData.learningPreferences === "object" && formData.learningPreferences != null
                             ? {
-                                  selected: formData.learningPreferences.selected ?? [],
-                                  other: formData.learningPreferences.other ?? "",
-                              }
+                                selected: formData.learningPreferences.selected ?? [],
+                                other: formData.learningPreferences.other ?? "",
+                            }
                             : { selected: [], other: String(formData.learningPreferences ?? "") },
                     selfAssessment:
                         typeof formData.selfAssessment === "object" && formData.selfAssessment != null
                             ? {
-                                  performanceRating: formData.selfAssessment.performanceRating ?? "",
-                                  strengths: formData.selfAssessment.strengths ?? [],
-                                  areasToImprove: formData.selfAssessment.areasToImprove ?? [],
-                                  motivation: formData.selfAssessment.motivation ?? "",
-                                  motivationOther: formData.selfAssessment.motivationOther ?? "",
-                                  vision: formData.selfAssessment.vision ?? "",
-                              }
+                                performanceRating: formData.selfAssessment.performanceRating ?? "",
+                                strengths: formData.selfAssessment.strengths ?? [],
+                                areasToImprove: formData.selfAssessment.areasToImprove ?? [],
+                                motivation: formData.selfAssessment.motivation ?? "",
+                                motivationOther: formData.selfAssessment.motivationOther ?? "",
+                                vision: formData.selfAssessment.vision ?? "",
+                            }
                             : { performanceRating: "", strengths: [], areasToImprove: [], motivation: "", motivationOther: "", vision: String(formData.selfAssessment ?? "") },
                 },
             };
@@ -703,7 +703,7 @@ export function ProfileWizard({
                                                         const prev = formData.learningPreferences?.selected ?? [];
                                                         const next = checked
                                                             ? [...prev, option]
-                                                            : prev.filter((x) => x !== option);
+                                                            : prev.filter((x: string) => x !== option);
                                                         setFormData({
                                                             ...formData,
                                                             learningPreferences: {
