@@ -1,7 +1,7 @@
 // This is the SINGLE SOURCE OF TRUTH for all role/competency permissions.
 // Every UI component and API route should use these functions.
 
-export type UserRole =
+export type UserRole = 
   | 'SUPER_ADMIN'
   | 'TENANT_ADMIN'
   | 'DEPARTMENT_HEAD'
@@ -48,13 +48,13 @@ export function getVisibleScopes(user: UserContext): Scope[] {
 
   // Org-level and below: see ORGANIZATION scope in their org
   if (['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEADER',
-    'INSTITUTION_ADMIN', 'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(u.role)) {
+       'INSTITUTION_ADMIN', 'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(u.role)) {
     scopes.push('ORGANIZATION');
   }
 
   // Dept-level and below: see DEPARTMENT scope in their dept
   if (['DEPARTMENT_HEAD', 'TEAM_LEADER',
-    'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(u.role)) {
+       'DEPT_HEAD_INST', 'CLASS_TEACHER'].includes(u.role)) {
     scopes.push('DEPARTMENT');
   }
 
@@ -134,7 +134,6 @@ export interface RoleCompetencyPermissions {
   allowedLevels: ExperienceLevel[];
   visibleScopes: Scope[];
   isInstitution: boolean;
-  isSuperAdmin: boolean;
 }
 
 export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyPermissions {
@@ -162,7 +161,6 @@ export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyP
     allowedLevels: getAllowedExperienceLevels(user),
     visibleScopes: getVisibleScopes(user),
     isInstitution,
-    isSuperAdmin,
   };
 }
 
@@ -256,7 +254,7 @@ export function canUserModifyRole(
   if (role.scope === 'TEAM') {
     return role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
-        'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
+       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
   }
 
   // Class scope (Institution): Class Teacher for same class (teamId = class id), or above
@@ -264,7 +262,7 @@ export function canUserModifyRole(
     const isSameClass = user.classId != null && role.teamId === user.classId;
     return (r === 'CLASS_TEACHER' && isSameClass) || role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
-        'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
+       'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
   }
 
   return false;

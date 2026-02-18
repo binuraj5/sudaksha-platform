@@ -8,6 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useTenantLabels } from "@/hooks/useTenantLabels";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Department {
     id: string;
@@ -29,6 +31,7 @@ interface Department {
 export function DepartmentCard({ dept, clientId, basePath }: { dept: Department; clientId: string; basePath?: string }) {
     const linkBase = basePath ?? `/assessments/clients/${clientId}`;
     const labels = useTenantLabels();
+    const router = useRouter();
     return (
         <Card className={`hover:shadow-md transition-all ${!dept.isActive ? 'opacity-60 bg-gray-50' : ''}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -52,7 +55,30 @@ export function DepartmentCard({ dept, clientId, basePath }: { dept: Department;
                             <Link href={`${linkBase}/departments/${dept.id}`}>View Details</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem>Edit {labels.orgUnit}</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                        <DropdownMenuItem
+                            className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                            onSelect={async (e) => {
+                                e.preventDefault();
+                                if (window.confirm(`Are you sure you want to delete this ${labels.orgUnit.toLowerCase()}? This action cannot be undone.`)) {
+                                    try {
+                                        const res = await fetch(`/api/v1/org-units/${dept.id}`, {
+                                            method: 'DELETE',
+                                        });
+                                        const data = await res.json();
+                                        if (res.ok) {
+                                            toast.success(`${labels.orgUnit} deleted successfully`);
+                                            router.refresh();
+                                        } else {
+                                            toast.error(data.error?.message || `Failed to delete ${labels.orgUnit.toLowerCase()}`);
+                                        }
+                                    } catch (err) {
+                                        toast.error("An unexpected error occurred");
+                                    }
+                                }
+                            }}
+                        >
+                            Delete {labels.orgUnit}
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </CardHeader>

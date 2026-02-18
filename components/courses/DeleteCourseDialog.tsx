@@ -49,7 +49,7 @@ export function DeleteCourseDialog({
           window.location.href = redirectAfter;
         }
       } else {
-        setError(data.error || "Failed to delete course");
+        setError(data.error?.message || data.error || "Failed to delete course");
       }
     } catch {
       setError("Failed to delete course");

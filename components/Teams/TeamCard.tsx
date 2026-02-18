@@ -7,6 +7,14 @@ import { MoreVertical, Users } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useTenantLabels } from "@/hooks/useTenantLabels";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Team {
     id: string;
@@ -21,6 +29,7 @@ interface Team {
 export function TeamCard({ team, clientId, basePath }: { team: Team; clientId: string; basePath?: string }) {
     const labels = useTenantLabels();
     const base = basePath ?? `/assessments/clients/${clientId}`;
+    const router = useRouter();
     return (
         <Card className="hover:shadow-md transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -33,9 +42,42 @@ export function TeamCard({ team, clientId, basePath }: { team: Team; clientId: s
                         <div className="text-xs text-gray-500">{team.department?.name || 'No Dept'}</div>
                     </div>
                 </div>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                    <MoreVertical className="h-4 w-4 text-gray-400" />
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4 text-gray-400" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                            <Link href={`${base}/teams/${team.id}`}>View Details</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                            onSelect={async (e) => {
+                                e.preventDefault();
+                                if (window.confirm(`Are you sure you want to delete this ${labels.subUnit.toLowerCase()}? This action cannot be undone.`)) {
+                                    try {
+                                        const res = await fetch(`/api/v1/org-units/${team.id}`, {
+                                            method: 'DELETE',
+                                        });
+                                        const data = await res.json();
+                                        if (res.ok) {
+                                            toast.success(`${labels.subUnit} deleted successfully`);
+                                            router.refresh();
+                                        } else {
+                                            toast.error(data.error?.message || `Failed to delete ${labels.subUnit.toLowerCase()}`);
+                                        }
+                                    } catch (err) {
+                                        toast.error("An unexpected error occurred");
+                                    }
+                                }
+                            }}
+                        >
+                            Delete {labels.subUnit}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </CardHeader>
             <CardContent>
                 <div className="flex justify-between items-center mt-2">

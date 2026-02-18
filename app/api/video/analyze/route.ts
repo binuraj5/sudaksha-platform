@@ -29,12 +29,12 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const file = video instanceof File ? video : new File([video], "video.webm", { type: (video as any).type || "video/webm" });
+        const file = video instanceof File ? video : new File([video], "video.webm", { type: video.type });
         const result = await analyzeVideoPython({
             videoFile: file,
             competencyName,
             targetLevel,
-        }) as any;
+        });
         return NextResponse.json(result);
     } catch (error) {
         console.error("Video analyze error:", error);

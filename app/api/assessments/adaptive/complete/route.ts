@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 });
         }
 
-        const config = adaptiveSession.config as unknown as AdaptiveConfig;
+        const config = adaptiveSession.config as AdaptiveConfig;
         const engine = new AdaptiveEngine({
             sessionId: adaptiveSession.id,
             currentAbility: Number(adaptiveSession.currentAbility),

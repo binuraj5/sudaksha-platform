@@ -132,6 +132,7 @@ export async function getClassById(tenantId: string, classId: string) {
   const courseLink = cls.scopedActivities.find((a) => a.relationship === "CONTAINS");
   return {
     ...cls,
+    description: cls.description ?? undefined,
     department: cls.parent,
     course: courseLink ? courseLink.activity : null,
     courseId: courseLink?.activityId ?? null,

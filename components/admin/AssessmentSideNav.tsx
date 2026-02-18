@@ -139,7 +139,7 @@ export function AssessmentSideNav() {
     let mainLinks = employeeLinks;
     if (isAdminPath || role === "SUPER_ADMIN" || role === "ADMIN") {
         mainLinks = superAdminLinks;
-    } else if ((isClientPath || adminRoles.includes(effectiveRole)) && clientAdminLinks.length > 0 && adminRoles.includes(effectiveRole)) {
+    } else if ((isClientPath || adminRoles.includes(effectiveRole || "")) && clientAdminLinks.length > 0 && adminRoles.includes(effectiveRole || "")) {
         mainLinks = clientAdminLinks;
     } else if ((effectiveRole === "STUDENT" || effectiveRole === "CLASS_TEACHER") && base) {
         mainLinks = studentOrTeacherOrgLinks;
@@ -152,24 +152,24 @@ export function AssessmentSideNav() {
     return (
         <nav className="space-y-4">
             <div className="space-y-1">
-            {mainLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                    <Link
-                        key={link.href}
-                        href={link.href}
-                        className={cn(
-                            "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
-                            link.active
-                                ? "bg-red-50 text-red-700"
-                                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                        )}
-                    >
-                        <Icon className={cn("mr-3 h-5 w-5", link.active ? "text-red-700" : "text-gray-400")} />
-                        {link.label}
-                    </Link>
-                );
-            })}
+                {mainLinks.map((link) => {
+                    const Icon = link.icon;
+                    return (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className={cn(
+                                "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
+                                link.active
+                                    ? "bg-red-50 text-red-700"
+                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                            )}
+                        >
+                            <Icon className={cn("mr-3 h-5 w-5", link.active ? "text-red-700" : "text-gray-400")} />
+                            {link.label}
+                        </Link>
+                    );
+                })}
             </div>
             {showMyProfile && (
                 <div className="space-y-1 border-t pt-4">

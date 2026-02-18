@@ -19,7 +19,7 @@ import Link from "next/link";
 import { StartAssessmentButton } from "@/components/individuals/StartAssessmentButton";
 
 export default async function MyAssessmentsPage() {
-    const session = await getApiSession();
+    const session = await getApiSession() as any;
     if (!session || !session.user?.email) redirect("/assessments/login");
 
     const member = await prisma.member.findUnique({
@@ -47,8 +47,8 @@ export default async function MyAssessmentsPage() {
         orderBy: { createdAt: "desc" }
     });
 
-    const mandatory = assessments.filter(a => a.assignmentType === "MANDATORY");
-    const selfSelected = assessments.filter(a => a.assignmentType === "SELF_SELECTED");
+    const mandatory = assessments.filter(a => (a.assignmentType as string) === "ASSIGNED");
+    const selfSelected = assessments.filter(a => (a.assignmentType as string) === "SELF_SELECTED");
 
     const AssessmentCard = ({ assessment, type }: { assessment: any, type: "MANDATORY" | "SELF_SELECTED" }) => (
         <Card className={`relative group overflow-hidden border-none shadow-lg transition-all hover:shadow-xl ${type === "MANDATORY" ? "bg-gradient-to-br from-white to-red-50/30" : "bg-white"}`}>

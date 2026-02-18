@@ -112,7 +112,7 @@ export function CreateCourseDialog({
         });
         onSuccess?.();
       } else {
-        toast.error(data.error || "Failed to create course");
+        toast.error(data.error?.message || data.error || "Failed to create course");
       }
     } catch {
       toast.error("Failed to create course");
@@ -129,104 +129,104 @@ export function CreateCourseDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1 flex">
           <div className="overflow-y-auto px-6 space-y-4 flex-1 min-h-0 max-h-[60vh]">
-          <div>
-            <Label>Name</Label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="e.g. B.Tech Computer Science"
-              required
-            />
-          </div>
-          <div>
-            <Label>Code</Label>
-            <Input
-              value={form.code}
-              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-              placeholder="e.g. BTECH-CSE"
-              required
-            />
-          </div>
-          <div>
-            <Label>Department</Label>
-            <Select
-              value={form.departmentId}
-              onValueChange={(v) => setForm((f) => ({ ...f, departmentId: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select department" />
-              </SelectTrigger>
-              <SelectContent>
-                {departments.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.name} ({d.code})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Year begin</Label>
+              <Label>Name</Label>
               <Input
-                type="number"
-                value={form.yearBegin}
-                onChange={(e) => setForm((f) => ({ ...f, yearBegin: parseInt(e.target.value, 10) || 0 }))}
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="e.g. B.Tech Computer Science"
+                required
               />
             </div>
             <div>
-              <Label>Year end</Label>
+              <Label>Code</Label>
               <Input
-                type="number"
-                value={form.yearEnd}
-                onChange={(e) => setForm((f) => ({ ...f, yearEnd: parseInt(e.target.value, 10) || 0 }))}
+                value={form.code}
+                onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+                placeholder="e.g. BTECH-CSE"
+                required
               />
             </div>
-          </div>
-          <div>
-            <Label>Division</Label>
-            <Select
-              value={form.division}
-              onValueChange={(v) => setForm((f) => ({ ...f, division: v as "SEMESTER" | "YEAR" | "BOTH" }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SEMESTER">Semester</SelectItem>
-                <SelectItem value="YEAR">Year</SelectItem>
-                <SelectItem value="BOTH">Both</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {(form.division === "SEMESTER" || form.division === "BOTH") && (
             <div>
-              <Label>Semester count</Label>
-              <Input
-                type="number"
-                value={form.semesterCount}
-                onChange={(e) => setForm((f) => ({ ...f, semesterCount: parseInt(e.target.value, 10) || 0 }))}
-              />
+              <Label>Department</Label>
+              <Select
+                value={form.departmentId}
+                onValueChange={(v) => setForm((f) => ({ ...f, departmentId: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name} ({d.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
-          {(form.division === "YEAR" || form.division === "BOTH") && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Year begin</Label>
+                <Input
+                  type="number"
+                  value={form.yearBegin}
+                  onChange={(e) => setForm((f) => ({ ...f, yearBegin: parseInt(e.target.value, 10) || 0 }))}
+                />
+              </div>
+              <div>
+                <Label>Year end</Label>
+                <Input
+                  type="number"
+                  value={form.yearEnd}
+                  onChange={(e) => setForm((f) => ({ ...f, yearEnd: parseInt(e.target.value, 10) || 0 }))}
+                />
+              </div>
+            </div>
             <div>
-              <Label>Year count</Label>
+              <Label>Division</Label>
+              <Select
+                value={form.division}
+                onValueChange={(v) => setForm((f) => ({ ...f, division: v as "SEMESTER" | "YEAR" | "BOTH" }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SEMESTER">Semester</SelectItem>
+                  <SelectItem value="YEAR">Year</SelectItem>
+                  <SelectItem value="BOTH">Both</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(form.division === "SEMESTER" || form.division === "BOTH") && (
+              <div>
+                <Label>Semester count</Label>
+                <Input
+                  type="number"
+                  value={form.semesterCount}
+                  onChange={(e) => setForm((f) => ({ ...f, semesterCount: parseInt(e.target.value, 10) || 0 }))}
+                />
+              </div>
+            )}
+            {(form.division === "YEAR" || form.division === "BOTH") && (
+              <div>
+                <Label>Year count</Label>
+                <Input
+                  type="number"
+                  value={form.yearCount}
+                  onChange={(e) => setForm((f) => ({ ...f, yearCount: parseInt(e.target.value, 10) || 0 }))}
+                />
+              </div>
+            )}
+            <div>
+              <Label>Description (optional)</Label>
               <Input
-                type="number"
-                value={form.yearCount}
-                onChange={(e) => setForm((f) => ({ ...f, yearCount: parseInt(e.target.value, 10) || 0 }))}
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Brief description"
               />
             </div>
-          )}
-          <div>
-            <Label>Description (optional)</Label>
-            <Input
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Brief description"
-            />
-          </div>
           </div>
           <DialogFooter className="px-6 py-4 border-t shrink-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

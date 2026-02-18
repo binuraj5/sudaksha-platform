@@ -196,13 +196,7 @@ export default async function OrgResultDetailPage({
                         ) : (
                             <div className="grid gap-4">
                                 {assessment.componentResults.map(
-                                    (res: {
-                                        id: string;
-                                        status: string;
-                                        component: { competency?: { name?: string }; order?: number };
-                                        score?: number | null;
-                                        percentage?: number | null;
-                                    }) => (
+                                    (res: any) => (
                                         <Card key={res.id} className="hover:border-red-100 transition-colors shadow-sm">
                                             <CardContent className="p-4 flex items-center justify-between">
                                                 <div className="flex items-center gap-4">

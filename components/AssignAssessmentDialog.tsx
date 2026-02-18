@@ -117,7 +117,7 @@ export function AssignAssessmentDialog({
                 router.refresh(); // Refresh parent view
             } else {
                 const data = await res.json();
-                toast.error(data.error || "Failed to assign assessment");
+                toast.error(data.error?.message || data.error || "Failed to assign assessment");
             }
         } catch (error) {
             toast.error("An error occurred");

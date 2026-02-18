@@ -1,4 +1,4 @@
-# Gaps Audit: What Exists vs What’s Missing
+   # Gaps Audit: What Exists vs What’s Missing
 
 **Date:** Per user request to continue with gaps without impacting current features.
 
@@ -55,7 +55,7 @@ This document records what already exists (UI and functionality) and what is mis
 | **Backend for role definition request** | ⚠️ Partial | ApprovalRequest (type ROLE), Role.status DRAFT exist; no API that creates Role (DRAFT) + ApprovalRequest from client |
 | **Profile role-request API** | ✅ Yes | `POST /api/profile/role-request` creates RoleAssignmentRequest (member requesting role for self – different flow) |
 
-**Summary:** UI for “request new role” exists; submit is not wired to backend. “My Requests” page and nav entries are missing. Safe additions: (1) API to create role request (Role DRAFT + ApprovalRequest), (2) Wire RoleRequestForm to that API, (3) Add “My Requests” page and nav links.
+**Summary:** UI for “request new role” exists; APIs and form wiring are now complete. Added `POST /api/clients/[clientId]/roles/request` which creates **Role (status DRAFT, unique code, ORGANIZATION scope)** and **ApprovalRequest (type ROLE, entityId = role.id, requesterId)** with `originalData` for admin editing; `GET /api/clients/[clientId]/roles/my-requests` returns user’s requests. My Requests page and nav items are added. RoleRequestForm now POSTs to the real API.
 
 ---
 
@@ -91,14 +91,17 @@ This document records what already exists (UI and functionality) and what is mis
 
 ---
 
-## Safe Implementation Order (No Breaking Changes)
+## Safe Implementation Order (No Breaking Changes) – UPDATED
 
+✅ **Done:**
 1. **Gap 3 – Role request (additive only)**  
-   - Add `POST /api/clients/[clientId]/roles/request` (create Role with status DRAFT + ApprovalRequest type ROLE).  
-   - Wire RoleRequestForm to this API (replace simulate with fetch).  
-   - Add `GET /api/clients/[clientId]/roles/my-requests` and page `roles/my-requests`.  
-   - Add nav: “Request Role” (or under Roles) and “My Requests”.
+   - `POST /api/clients/[clientId]/roles/request` – creates Role (status DRAFT, unique code) and ApprovalRequest (type ROLE) with requested details in `originalData`.  
+   - `GET /api/clients/[clientId]/roles/my-requests` – returns user’s submitted requests.  
+   - `app/assessments/clients/[clientId]/roles/my-requests/page.tsx` – new page listing requests with status, created/updated dates, rejection reason.  
+   - Nav: added “Request Role” and “My Requests” after “Roles” (no existing nav changed).  
+   - RoleRequestForm: onSubmit now POSTs to real API instead of simulate.
 
+⏭️ **Optional / Next:**
 2. **Gap 4 – Labels (optional)**  
    - Add useTenantLabels hook / LabelProvider only where new components need it; leave existing server-side label usage as-is.
 

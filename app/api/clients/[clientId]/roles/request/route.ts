@@ -69,9 +69,8 @@ export async function POST(
                     description: (description && typeof description === "string" ? description.trim() : "") || `Requested: ${trimmedTitle}. ${justification && typeof justification === "string" ? justification.trim() : ""}`,
                     overallLevel,
                     department: departmentName,
-                    industries: ["GENERIC" as any],
-                    scope: department ? "DEPARTMENT" : "ORGANIZATION",
-                    departmentId: department || null,
+                    industries: { set: ["GENERIC" as const] },
+                    scope: "ORGANIZATION",
                     tenantId: clientId,
                     status: "DRAFT",
                     createdByUserId: user.id,
@@ -85,17 +84,13 @@ export async function POST(
                     entityId: newRole.id,
                     status: "PENDING",
                     requesterId: user.id,
-                    modificationNotes: justification?.trim() || "New role definition request",
-                    modifiedData: {
-                        name: trimmedTitle,
+                    originalData: {
+                        requestedName: trimmedTitle,
                         description: description?.trim() || "",
-                        overallLevel,
-                        department: departmentName,
+                        level,
                         departmentId: department || null,
-                        scope: department ? "DEPARTMENT" : "ORGANIZATION",
-                        industries: { set: ["GENERIC"] },
+                        justification: justification?.trim() || "",
                     },
-                    originalData: {}, // Empty for new role
                 },
             });
 

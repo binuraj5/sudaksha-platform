@@ -38,11 +38,11 @@ export async function GET(
                     where: { id: r.entityId },
                     select: { name: true, description: true },
                 });
-                const modified = (r.modifiedData as { name?: string }) || {};
+                const original = (r.originalData as { requestedName?: string }) || {};
                 return {
                     id: r.id,
                     status: r.status,
-                    requestedName: modified.name || role?.name,
+                    requestedName: original.requestedName || role?.name,
                     roleName: role?.name,
                     createdAt: r.createdAt,
                     reviewedAt: r.reviewedAt,

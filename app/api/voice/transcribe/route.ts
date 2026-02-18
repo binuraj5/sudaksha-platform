@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Missing audio file" }, { status: 400 });
         }
 
-        const file = audio instanceof File ? audio : new File([audio], "audio.webm", { type: (audio as any).type || "audio/webm" });
+        const file = audio instanceof File ? audio : new File([audio], "audio.webm", { type: audio.type });
         const result = await transcribeAudioPython(file);
         return NextResponse.json(result);
     } catch (error) {

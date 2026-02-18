@@ -13,7 +13,7 @@ export default async function NewEmployeePage({
 }: {
     params: Promise<{ clientId: string }>;
 }) {
-    const session = await getServerSession(authOptions);
+    const session = await getApiSession() as any;
     const { clientId } = await params;
     if (!session?.user) redirect("/assessments/login");
 

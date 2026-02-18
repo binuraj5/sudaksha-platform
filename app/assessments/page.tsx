@@ -7,36 +7,7 @@ import { Building2, Users, GraduationCap, ArrowRight, CheckCircle2 } from "lucid
 
 export default async function AssessmentsRootPage() {
     const session = await getServerSession(authOptions) as Session | null;
-
-    if (session && session.user) {
-        const u = session.user as any;
-        const role = u.role ?? u.userType;
-        const clientId = u.clientId;
-        const tenantSlug = u.tenantSlug;
-
-        if (role === 'SUPER_ADMIN' || u.userType === 'SUPER_ADMIN') {
-            redirect('/assessments/admin/dashboard');
-        }
-        // B2C: INDIVIDUAL/STUDENT must go to individuals dashboard first (never clients/tenant dashboard)
-        if (['INDIVIDUAL', 'STUDENT'].includes(String(role))) {
-            redirect('/assessments/individuals/dashboard');
-        }
-        // Corporate/Institution Admin & Leads → Client Dashboard (prefer clientId)
-        if (['TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'DEPT_HEAD', 'EMPLOYEE'].includes(String(role))) {
-            if (clientId) {
-                redirect(`/assessments/clients/${clientId}/dashboard`);
-            }
-            if (tenantSlug) {
-                redirect(`/assessments/org/${tenantSlug}/dashboard`);
-            }
-            if (!['EMPLOYEE'].includes(String(role))) {
-                redirect('/assessments/login');
-            }
-        }
-        // Fallback: if has clientId, go to client dashboard
-        if (clientId) redirect(`/assessments/clients/${clientId}/dashboard`);
-        redirect('/assessments/my/dashboard');
-    }
+    const user = session?.user as any;
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -48,12 +19,21 @@ export default async function AssessmentsRootPage() {
                         <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-indigo-800">SudAssess</span>
                     </div>
                     <div>
-                        <Link
-                            href="/assessments/login"
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                        >
-                            Sign In
-                        </Link>
+                        {session ? (
+                            <Link
+                                href="/assessments/dashboard"
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                            >
+                                Go to Dashboard
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/assessments/login"
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                            >
+                                Sign In
+                            </Link>
+                        )}
                     </div>
                 </div>
             </header>

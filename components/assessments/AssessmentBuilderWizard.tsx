@@ -110,9 +110,9 @@ export function AssessmentBuilderWizard({
     const [competencySelection, setCompetencySelection] = useState<CompetencySelection | null>(
         preSelectedCompetencyIds?.length
             ? {
-                selectedCompetencyIds: preSelectedCompetencyIds,
-                weights: {},
-            }
+                  selectedCompetencyIds: preSelectedCompetencyIds,
+                  weights: {},
+              }
             : null
     );
     const [selectStepSelectedIds, setSelectStepSelectedIds] = useState<Set<string>>(new Set());
@@ -155,7 +155,7 @@ export function AssessmentBuilderWizard({
         const newSelections = new Map<string, ComponentSelection>();
         effectiveCompetencies.forEach((comp) => {
             const suggestions = ComponentSuggester.suggestComponents(
-                comp as any,
+                comp,
                 targetLevel
             );
             newSelections.set(comp.id, {
@@ -265,10 +265,10 @@ export function AssessmentBuilderWizard({
         step === "OVERVIEW"
             ? 10
             : step === "SELECT_COMPETENCIES"
-                ? 30
-                : step === "COMPONENTS"
-                    ? 60
-                    : 90;
+              ? 30
+              : step === "COMPONENTS"
+                ? 60
+                : 90;
 
     const handleStartBuilding = async () => {
         if (!hasAnySelection()) return;
@@ -294,13 +294,13 @@ export function AssessmentBuilderWizard({
                 competencyWeightsRef.current && Object.keys(competencyWeightsRef.current).length > 0
                     ? competencyWeightsRef.current
                     : competencySelection?.selectedCompetencyIds?.length
-                        ? Object.fromEntries(
+                      ? Object.fromEntries(
                             competencySelection.selectedCompetencyIds.map((id) => [
                                 id,
                                 100 / competencySelection.selectedCompetencyIds.length,
                             ])
                         )
-                        : undefined;
+                      : undefined;
             if (weights && Object.keys(weights).length > 0) {
                 body.competencyWeights = weights;
             }
@@ -516,15 +516,16 @@ export function AssessmentBuilderWizard({
                                                                     isSelected
                                                                         ? "default"
                                                                         : s.priority === "HIGH"
-                                                                            ? "secondary"
-                                                                            : s.priority === "MEDIUM"
-                                                                                ? "outline"
-                                                                                : "outline"
+                                                                          ? "secondary"
+                                                                          : s.priority === "MEDIUM"
+                                                                            ? "outline"
+                                                                            : "outline"
                                                                 }
-                                                                className={`cursor-pointer select-none transition-all ${isSelected
+                                                                className={`cursor-pointer select-none transition-all ${
+                                                                    isSelected
                                                                         ? "ring-2 ring-primary ring-offset-2"
                                                                         : "hover:opacity-90 hover:scale-105"
-                                                                    }`}
+                                                                }`}
                                                                 role="button"
                                                                 tabIndex={0}
                                                                 onClick={() => toggleComponent(compId, s.type)}

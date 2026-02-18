@@ -38,7 +38,10 @@ export default async function OrgDepartmentDetailPage({
         name: department.name,
         code: department.code,
         description: department.description ?? undefined,
-        manager: department.manager ?? undefined,
+        manager: department.manager ? {
+          ...department.manager,
+          avatar: department.manager.avatar ?? undefined
+        } : undefined,
         classCount: department._count.children,
         memberCount: department._count.members,
       }}

@@ -15,25 +15,25 @@ export default function LoginPage() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [csrfToken, setCsrfToken] = useState<string | null>(null);
     const searchParams = useSearchParams();
-    const callbackUrlRaw = searchParams.get("callbackUrl") || "/assessments";
-    // Never use legacy clients URL as callback (causes redirect loop). Use /assessments so middleware can send to org dashboard.
+    const callbackUrlRaw = searchParams.get("callbackUrl") || "/assessments/dashboard";
+    // Never use legacy clients URL as callback (causes redirect loop). Use /assessments/dashboard so dispatcher can send to correct dashboard.
     const normalizedRaw =
         typeof callbackUrlRaw === "string" && callbackUrlRaw.startsWith("/assessments/clients/")
-            ? "/assessments"
+            ? "/assessments/dashboard"
             : callbackUrlRaw;
     // Always use path-only for form POST so redirect callback never receives a full URL (avoids doubled origin).
     const callbackUrl =
         typeof normalizedRaw === "string" && (normalizedRaw.startsWith("http://") || normalizedRaw.startsWith("https://"))
             ? (() => {
-                  try {
-                      return new URL(normalizedRaw).pathname;
-                  } catch {
-                      return normalizedRaw.startsWith("/") ? normalizedRaw : `/${normalizedRaw}`;
-                  }
-              })()
+                try {
+                    return new URL(normalizedRaw).pathname;
+                } catch {
+                    return normalizedRaw.startsWith("/") ? normalizedRaw : `/${normalizedRaw}`;
+                }
+            })()
             : normalizedRaw.startsWith("/")
-              ? normalizedRaw
-              : `/${normalizedRaw}`;
+                ? normalizedRaw
+                : `/${normalizedRaw}`;
     const debugMode = searchParams.get("debug") === "1";
 
     useEffect(() => {

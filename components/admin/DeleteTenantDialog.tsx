@@ -45,7 +45,7 @@ export function DeleteTenantDialog({
                 onOpenChange(false);
                 onSuccess?.();
             } else {
-                setError(data.error || "Failed to delete");
+                setError(data.error?.message || data.error || "Failed to delete");
             }
         } catch {
             setError("Something went wrong. Please try again.");
