@@ -134,11 +134,11 @@
 
 ## 5. Checklist
 
-- [ ] Phase 1: Profile API includes role competencies (and optionally developmentPlan).
-- [ ] Phase 2: Individuals career page is a dedicated page with Dashboard/Profile-style UI.
-- [ ] Phase 3: Overview populated from member + roles (no empty/mock data).
-- [ ] Phase 4: Dev Plan tab uses plan from API/DB with same UI style.
-- [ ] Phase 5: Hierarchy placeholder and Profile tab replaced with summary + link.
-- [ ] Phase 6 (optional): developmentPlan in profile GET.
+- [x] Phase 1: Profile API includes role competencies (and optionally developmentPlan).
+- [x] Phase 2: Individuals career page is a dedicated page with Dashboard/Profile-style UI.
+- [x] Phase 3: Overview populated from member + roles (no empty/mock data).
+- [x] Phase 4: Dev Plan tab uses plan from API/DB with same UI style.
+- [x] Phase 5: Hierarchy placeholder and Profile tab replaced with summary + link.
+- [x] Phase 6 (optional): developmentPlan in profile GET (career page uses it to avoid second request).
 
 This plan uses only existing tables and existing “My Details” data to populate the Career page and aligns its UI with the rest of the individuals section.

@@ -114,9 +114,9 @@ Implementation order follows doc Part 10 (audit → no DB migration → permissi
 
 ### 6. Client competencies page
 - **Fetch:** Now uses `/api/admin/competencies` instead of `/api/clients/[clientId]/competencies` so list is RLS-scoped. Response shape: `data.competencies`.
-- **CreateCompetencyDialog:** Still used with `clientId`; if it POSTs to a client-specific endpoint, that path is unchanged (optional follow-up: create via admin API with RLS).
+- **CreateCompetencyDialog:** Same component used on client page; POSTs to `/api/admin/competencies`, so create is RLS-scoped (no client-specific create endpoint).
 
 ### 7. Not done (per doc optional / existing)
 - **DB migration:** Not run; schema already had Role/Competency scope fields and GlobalApprovalRequest.
 - **GlobalApprovalRequest.submittedBy:** References User.id; member-only logins use member.id as session user id, so submit for global may fail for member-only users unless they have a linked User (acceptable for current design).
-- **CompetenciesPageContent:** Done. Shared component `components/Competencies/CompetenciesPageContent.tsx` contains the full admin competencies UI (Competency Library + Role Frameworks tabs). Both admin and client competencies pages now render `<CompetenciesPageContent />`; data scoped by same APIs (RLS). Doc’s “exact same UI” for competencies can be done later by extracting a shared CompetenciesPageContent and using it on both admin and client routes.
+- **CompetenciesPageContent:** Done. Shared component `components/Competencies/CompetenciesPageContent.tsx` contains the full admin competencies UI (Competency Library + Role Frameworks tabs). Both admin and client competencies pages now render `<CompetenciesPageContent />`; data is scoped by the same APIs (RLS).

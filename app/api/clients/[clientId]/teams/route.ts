@@ -23,13 +23,20 @@ export async function GET(
         };
 
         const isDeptHead = session.user.role === 'DEPARTMENT_HEAD' || session.user.role === 'DEPT_HEAD';
+        const isTeamLead = session.user.role === 'TEAM_LEAD';
+        const isAdmin = session.user.role === 'SUPER_ADMIN' || session.user.role === 'TENANT_ADMIN' || session.user.role === 'CLIENT_ADMIN';
+
         if (isDeptHead) {
             const managedUnit = (session.user as any).managedOrgUnitId;
             if (!managedUnit) return NextResponse.json({ error: "Department Head without Unit" }, { status: 403 });
             whereClause.parentId = managedUnit;
+        } else if (isTeamLead) {
+            const managedUnit = (session.user as any).managedOrgUnitId;
+            if (!managedUnit) return NextResponse.json({ error: "Team Lead without Unit" }, { status: 403 });
+            whereClause.id = managedUnit;
         }
 
-        if (deptId && !isDeptHead) {
+        if (deptId && !isDeptHead && isAdmin) {
             whereClause.parentId = deptId;
         }
 

@@ -161,9 +161,9 @@ export default async function IndividualDashboard() {
                     {/* Quick Actions */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <Button size="lg" className="h-24 flex flex-col items-center justify-center gap-2 bg-white text-indigo-600 hover:bg-slate-50 border shadow-sm transition-all hover:scale-105" asChild>
-                            <Link href="/assessments/individuals/browse">
+                            <Link href="/assessments/individuals/my-assessments">
                                 <PlayCircle className="w-8 h-8" />
-                                <span>Take Assessment</span>
+                                <span>My Assessments</span>
                             </Link>
                         </Button>
                         <Button size="lg" className="h-24 flex flex-col items-center justify-center gap-2 bg-white text-gray-700 hover:bg-slate-50 border shadow-sm transition-all hover:scale-105" asChild>

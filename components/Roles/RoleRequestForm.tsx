@@ -52,11 +52,28 @@ export function RoleRequestForm({ clientId }: { clientId: string }) {
     });
 
     async function onSubmit(data: z.infer<typeof roleRequestSchema>) {
-        // Simulate API call
-        console.log("Role Request Submitted:", data);
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        toast.success("Role request submitted for approval");
-        form.reset();
+        try {
+            const res = await fetch(`/api/clients/${clientId}/roles/request`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: data.title,
+                    department: data.department || undefined,
+                    level: data.level,
+                    description: data.description || undefined,
+                    justification: data.justification || undefined,
+                }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                toast.error(json.error || "Failed to submit request");
+                return;
+            }
+            toast.success("Role request submitted for approval");
+            form.reset();
+        } catch {
+            toast.error("Failed to submit request");
+        }
     }
 
     return (

@@ -1,6 +1,6 @@
 import {
     Home, Building, Users, Briefcase, UsersIcon,
-    FileText, ClipboardList, BarChart, Settings,
+    FileText, FilePlus, ClipboardList, BarChart, Settings,
     User, Globe, CheckCircle, DollarSign, GraduationCap, BookOpen, BrainCircuit
 } from 'lucide-react';
 import { TENANT_LABELS, getLabelsForTenant } from './tenant-labels';
@@ -47,6 +47,8 @@ const BASE_NAV_ITEMS: NavigationItem[] = [
     { id: 'activities', icon: Briefcase, label: (t) => TENANT_LABELS[t]?.activityPlural || 'Projects', path: (base) => `${base}/projects`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'], tenantTypes: ['CORPORATE'] },
     { id: 'teams', icon: UsersIcon, label: (t) => getLabelsForTenant(t).subUnitPlural, path: (base) => `${base}/teams`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD'], tenantTypes: ['CORPORATE'] },
     { id: 'roles', icon: FileText, label: 'Roles', path: (base) => `${base}/roles`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
+    { id: 'roles-request', icon: FilePlus, label: 'Request Role', path: (base) => `${base}/roles/request`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER', 'EMPLOYEE', 'MANAGER', 'ASSESSOR', 'STUDENT'] },
+    { id: 'roles-my-requests', icon: ClipboardList, label: 'My Requests', path: (base) => `${base}/roles/my-requests`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER', 'EMPLOYEE', 'MANAGER', 'ASSESSOR', 'STUDENT'] },
     { id: 'competencies', icon: BrainCircuit, label: 'Competencies', path: (base) => `${base}/competencies`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD'] },
     { id: 'assessments', icon: FileText, label: 'Assessments', path: (base) => `${base}/assessments`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
     { id: 'reports', icon: BarChart, label: 'Reports', path: (base) => `${base}/reports`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
@@ -141,18 +143,20 @@ const MY_PAGE_NAV_ITEMS: NavigationItem[] = [
         id: 'my-assessments',
         icon: FileText,
         label: 'My Assessments',
-        path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'),
+        path: (base) => basePathOrPortal(base, '/assessments/individuals/my-assessments', '/my-assessments'),
         permission: '*',
         roles: ALL_PROFILE_ROLES,
         children: [
-            { id: 'take-assessment', icon: FileText, label: 'Take Assessment', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessments-role-wise', icon: FileText, label: 'My Assessments - Role-Wise', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessments-competency-wise', icon: FileText, label: 'My Assessments - Competency-Wise', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
+            { id: 'take-assessment', icon: FileText, label: 'Take Assessment', path: (base) => basePathOrPortal(base, '/assessments/individuals/my-assessments', '/my-assessments'), permission: '*', roles: ['*'] },
+            { id: 'assessments-role-wise', icon: FileText, label: 'My Assessments - Role-Wise', path: (base) => basePathOrPortal(base, '/assessments/individuals/my-assessments', '/my-assessments'), permission: '*', roles: ['*'] },
+            { id: 'assessments-competency-wise', icon: FileText, label: 'My Assessments - Competency-Wise', path: (base) => basePathOrPortal(base, '/assessments/individuals/my-assessments', '/my-assessments'), permission: '*', roles: ['*'] },
             { id: 'assessment-scores', icon: BarChart, label: 'Assessment Scores', path: (base) => basePathOrPortal(base, '/assessments/individuals/results', '/results'), permission: '*', roles: ['*'] },
         ]
     },
     { id: 'take-survey', icon: ClipboardList, label: 'Take Survey', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/surveys'), permission: '*', roles: ALL_PROFILE_ROLES },
     { id: 'my-curriculum', icon: BookOpen, label: 'My Curriculum', path: (base) => basePathOrPortal(base, '/assessments/curriculum', '/curriculum'), permission: '*', roles: ALL_PROFILE_ROLES, tenantTypes: ['INSTITUTION'] },
+    { id: 'roles-request', icon: FilePlus, label: 'Request Role', path: (base) => basePathOrPortal(base, '/assessments/roles/request', '/roles/request'), permission: '*', roles: ALL_PROFILE_ROLES },
+    { id: 'roles-my-requests', icon: ClipboardList, label: 'My Requests', path: (base) => basePathOrPortal(base, '/assessments/roles/my-requests', '/roles/my-requests'), permission: '*', roles: ALL_PROFILE_ROLES },
     { id: 'individual-dashboard', icon: Home, label: 'Dashboard', path: () => '/assessments/individuals/dashboard', permission: '*', roles: ['INDIVIDUAL', 'STUDENT'] },
 ];
 

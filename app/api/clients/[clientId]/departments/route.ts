@@ -28,6 +28,16 @@ export async function GET(
             type: 'DEPARTMENT'
         };
 
+        const isDeptHead = session.user.role === 'DEPARTMENT_HEAD' || session.user.role === 'DEPT_HEAD';
+        if (isDeptHead) {
+            const managedUnitId = (session.user as any).managedOrgUnitId;
+            if (managedUnitId) {
+                whereClause.id = managedUnitId;
+            } else {
+                return NextResponse.json({ error: "No managed department assigned" }, { status: 403 });
+            }
+        }
+
         if (status === 'active') whereClause.isActive = true;
         if (status === 'inactive') whereClause.isActive = false;
 

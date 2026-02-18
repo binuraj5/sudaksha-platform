@@ -1,0 +1,29 @@
+
+> sudaksha-nws@1.0.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./app/api/clients/[clientId]/roles/request/route.ts:4:1
+Module not found: Can't resolve '@paralleldrive/cuid2'
+[0m [90m 2 |[39m [36mimport[39m { prisma } [36mfrom[39m [32m"@/lib/prisma"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { getApiSession } [36mfrom[39m [32m"@/lib/get-session"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { createId } [36mfrom[39m [32m"@paralleldrive/cuid2"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mconst[39m [33mLEVEL_MAP[39m[33m:[39m [33mRecord[39m[33m<[39m[33mstring[39m[33m,[39m [32m"JUNIOR"[39m [33m|[39m [32m"MIDDLE"[39m [33m|[39m [32m"SENIOR"[39m [33m|[39m [32m"EXPERT"[39m[33m>[39m [33m=[39m {
+ [90m 7 |[39m     [33mJunior[39m[33m:[39m [32m"JUNIOR"[39m[33m,[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./app/api/clients/[clientId]/roles/request/route.ts:4:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
