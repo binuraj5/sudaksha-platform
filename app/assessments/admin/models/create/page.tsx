@@ -27,6 +27,7 @@ import { IndicatorPreview } from "@/components/assessments/IndicatorPreview";
 import { ModelCompetencySelector } from "@/components/assessments/ModelCompetencySelector";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { STUDENT_LEVEL_TOOLTIP } from "@/lib/assessment-student-restrictions";
+import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissions";
 
 type Step = 1 | 2 | 3;
 
@@ -54,6 +55,7 @@ const WIZARD_WEIGHTS_KEY = "assessment-wizard-competency-weights";
 export default function CreateAssessmentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const permissions = useRoleCompetencyPermissions();
     const [step, setStep] = useState<Step>(1);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -254,13 +256,12 @@ export default function CreateAssessmentPage() {
                 {STEPS.map((s, i) => (
                     <div key={s.num} className="flex items-center">
                         <div
-                            className={`flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium ${
-                                step === s.num
+                            className={`flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium ${step === s.num
                                     ? "bg-primary text-primary-foreground"
                                     : step > s.num
-                                      ? "bg-primary/10 text-primary"
-                                      : "bg-muted text-muted-foreground"
-                            }`}
+                                        ? "bg-primary/10 text-primary"
+                                        : "bg-muted text-muted-foreground"
+                                }`}
                         >
                             {step > s.num ? <Check className="w-4 h-4" /> : s.num}
                             <span className="hidden sm:inline">{s.label}</span>
@@ -283,6 +284,17 @@ export default function CreateAssessmentPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4 sm:space-y-6">
+                        {!permissions.canApproveGlobal && !!permissions.creatableScope && (
+                            <div className="text-sm font-medium text-blue-800 bg-blue-50 border border-blue-200 p-3 rounded-md">
+                                ℹ️ This assessment will be created at <strong>{permissions.creatableScope.toLowerCase()}</strong> level.
+                                {permissions.canSubmitForGlobal && " You can submit it for global review later."}
+                            </div>
+                        )}
+                        {permissions.isInstitution && (
+                            <div className="text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 p-3 rounded-md">
+                                🔒 Note: Institutions can only create assessments at the Junior/Fresher level.
+                            </div>
+                        )}
                         <div>
                             <Label>Job role</Label>
                             <Select value={selectedRoleId} onValueChange={handleRoleSelect}>
@@ -329,14 +341,14 @@ export default function CreateAssessmentPage() {
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1.5">
                                 {(["JUNIOR", "MIDDLE", "SENIOR", "EXPERT"] as const).map((level) => {
                                     const disabled =
-                                        targetAudience === "STUDENTS" && (level === "SENIOR" || level === "EXPERT");
+                                        (targetAudience === "STUDENTS" && (level === "SENIOR" || level === "EXPERT")) ||
+                                        (permissions.isInstitution && level !== "JUNIOR");
                                     const el = (
                                         <div
                                             key={level}
                                             onClick={() => !disabled && setTargetLevel(level)}
-                                            className={`p-3 rounded-lg border text-center cursor-pointer transition-all ${
-                                                disabled ? "opacity-50 cursor-not-allowed bg-muted/50" : ""
-                                            } ${targetLevel === level && !disabled ? "bg-primary border-primary text-primary-foreground" : "hover:border-primary/50"}`}
+                                            className={`p-3 rounded-lg border text-center cursor-pointer transition-all ${disabled ? "opacity-50 cursor-not-allowed bg-muted/50" : ""
+                                                } ${targetLevel === level && !disabled ? "bg-primary border-primary text-primary-foreground" : "hover:border-primary/50"}`}
                                         >
                                             <p className="text-xs font-medium">
                                                 {level === "MIDDLE" ? "Mid" : level}

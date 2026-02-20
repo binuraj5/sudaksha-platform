@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
+import { buildAssessmentVisibilityFilter, getRoleCompetencyPermissions } from "@/lib/permissions/role-competency-permissions";
 
 export async function GET(request: Request) {
     try {
@@ -17,24 +18,19 @@ export async function GET(request: Request) {
         const limit = parseInt(searchParams.get("limit") || "10");
         const skip = (page - 1) * limit;
 
-        const where: any = {
-            isActive: true, // For soft-delete support
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
         };
 
-        // Non-SuperAdmin: only show models in their organization hierarchy (tenant/client)
-        const user = session.user as { role?: string; userType?: string; tenantId?: string; clientId?: string };
-        const isSuperAdmin = user.role === "SUPER_ADMIN" || user.userType === "SUPER_ADMIN";
-        if (!isSuperAdmin) {
-            const userTenantId = user.tenantId || user.clientId;
-            const orClauses: { tenantId?: string; clientId?: string }[] = [];
-            if (userTenantId) orClauses.push({ tenantId: userTenantId });
-            if (user.clientId) orClauses.push({ clientId: user.clientId });
-            if (orClauses.length > 0) {
-                where.OR = orClauses;
-            } else {
-                where.tenantId = "impossible"; // No models if user has no tenant/client
-            }
-        }
+        const visibilityFilter = buildAssessmentVisibilityFilter(userContext);
+        const where: any = { ...visibilityFilter };
 
         if (status) where.status = status;
         if (sourceType) where.sourceType = sourceType;
@@ -54,8 +50,16 @@ export async function GET(request: Request) {
             prisma.assessmentModel.count({ where })
         ]);
 
+        const permissions = getRoleCompetencyPermissions(userContext);
+        const annotatedModels = models.map((m) => ({
+            ...m,
+            _canEdit: m.status === 'DRAFT' && permissions.canCreate,
+            _canDelete: m.status === 'DRAFT' && permissions.canCreate,
+        }));
+
         return NextResponse.json({
-            models,
+            models: annotatedModels,
+            permissions,
             pagination: {
                 total,
                 page,
@@ -76,11 +80,32 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+        const permissions = getRoleCompetencyPermissions(userContext);
+
+        if (!permissions.canCreate) {
+            return NextResponse.json({ error: "You do not have permission to create assessment models" }, { status: 403 });
+        }
+
         const body = await request.json();
-        const { name, description, sourceType, roleId, targetLevel, tenantId } = body;
+        let { name, description, sourceType, roleId, targetLevel, tenantId } = body;
 
         if (!name || !sourceType) {
             return NextResponse.json({ error: "Name and Source Type are required" }, { status: 400 });
+        }
+
+        // Enforce Institution level restrictions
+        if (permissions.isInstitution) {
+            targetLevel = "JUNIOR";
         }
 
         // Generate unique code ASM001, ASM002...

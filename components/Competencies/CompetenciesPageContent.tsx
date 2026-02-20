@@ -176,12 +176,6 @@ export function CompetenciesPageContent() {
                                 onSuccess={fetchData}
                             />
                             <CreateCompetencyDialog
-                                scopeInfo={
-                                    !permissions.canApproveGlobal && permissions.creatableScope
-                                        ? `This will be created at ${SCOPE_CONFIG[permissions.creatableScope]?.label ?? permissions.creatableScope} level.`
-                                        : undefined
-                                }
-                                levelInfo={permissions.isInstitution ? "Junior/Fresher only." : undefined}
                                 onSuccess={fetchData}
                             />
                         </>

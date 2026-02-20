@@ -223,6 +223,37 @@ export function buildCompetencyVisibilityFilter(user: UserContext) {
 }
 
 // ─────────────────────────────────────────
+// PRISMA FILTER: Assessment Models
+// ─────────────────────────────────────────
+export function buildAssessmentVisibilityFilter(user: UserContext) {
+  const u = withNormalizedRole(user);
+
+  if (u.role === 'SUPER_ADMIN') {
+    return { isActive: true };
+  }
+
+  const userTenantId = user.tenantId || (user as any).clientId;
+  const tenantFilter = userTenantId ? [
+    { tenantId: userTenantId },
+    { clientId: userTenantId }
+  ] : [{ tenantId: 'impossible' }];
+
+  if (u.role === 'MEMBER') {
+    return {
+      isActive: true,
+      status: 'PUBLISHED',
+      OR: tenantFilter
+    };
+  }
+
+  // Corp Admin, Dept Head, Team Lead see all their tenant's models
+  return {
+    isActive: true,
+    OR: tenantFilter
+  };
+}
+
+// ─────────────────────────────────────────
 // OWNERSHIP CHECK: Can this user edit/delete this item?
 // ─────────────────────────────────────────
 

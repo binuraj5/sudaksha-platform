@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { COMPETENCY_CATEGORY_OPTIONS } from "@/lib/competency-categories";
+import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissions";
 
 const formSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -44,13 +45,12 @@ const formSchema = z.object({
 
 export function CreateCompetencyDialog({
     trigger,
-    scopeInfo,
-    levelInfo,
     onSuccess,
-}: { trigger?: React.ReactNode; scopeInfo?: string; levelInfo?: string; onSuccess?: () => void }) {
+}: { trigger?: React.ReactNode; onSuccess?: () => void }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const permissions = useRoleCompetencyPermissions();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -99,9 +99,15 @@ export function CreateCompetencyDialog({
                     <DialogTitle>Create Competency</DialogTitle>
                     <DialogDescription>
                         Define a new skill or behavioral area for assessments.
-                        {(scopeInfo || levelInfo) && (
-                            <span className="mt-2 block text-amber-700 text-sm font-medium">
-                                {[scopeInfo, levelInfo].filter(Boolean).join(" ")}
+                        {!permissions.canApproveGlobal && permissions.creatableScope && (
+                            <span className="mt-2 block text-blue-800 bg-blue-50 border border-blue-200 p-2 rounded text-sm font-medium">
+                                ℹ️ This competency will be created at <strong>{permissions.creatableScope.toLowerCase()}</strong> level.
+                                {permissions.canSubmitForGlobal && " You can submit it for global review after saving."}
+                            </span>
+                        )}
+                        {permissions.isInstitution && (
+                            <span className="mt-2 block text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded text-sm font-medium">
+                                🔒 Note: Institutions can only create competencies at the Junior/Fresher level.
                             </span>
                         )}
                     </DialogDescription>

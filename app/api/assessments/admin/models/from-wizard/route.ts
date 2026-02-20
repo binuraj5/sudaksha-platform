@@ -3,6 +3,7 @@ import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { selectRelevantIndicators } from "@/lib/assessment/indicator-selection";
 import { ProficiencyLevel } from "@prisma/client";
+import { getRoleCompetencyPermissions } from "@/lib/permissions/role-competency-permissions";
 
 /**
  * EXTENDS from-role: Creates model with multiple components per competency
@@ -14,13 +15,24 @@ export async function POST(request: Request) {
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        const userId = (session.user as { id?: string }).id;
-        if (!userId) {
-            return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+        const permissions = getRoleCompetencyPermissions(userContext);
+
+        if (!permissions.canCreate) {
+            return NextResponse.json({ error: "You do not have permission to create assessment models" }, { status: 403 });
         }
 
         const body = await request.json();
-        const { roleId, targetLevel, name, components, competencyWeights } = body;
+        let { roleId, targetLevel, name, components, competencyWeights } = body;
 
         if (!roleId || !targetLevel || !name || !Array.isArray(components) || components.length === 0) {
             return NextResponse.json(
@@ -29,7 +41,11 @@ export async function POST(request: Request) {
             );
         }
 
-        const tenantId = (session.user as { tenantId?: string }).tenantId ?? null;
+        if (permissions.isInstitution) {
+            targetLevel = "JUNIOR";
+        }
+
+        const tenantId = userContext.tenantId ?? null;
 
         const role = await prisma.role.findUnique({
             where: { id: roleId },
@@ -84,7 +100,7 @@ export async function POST(request: Request) {
                     roleId,
                     targetLevel: targetLevel as ProficiencyLevel,
                     tenantId,
-                    createdBy: userId,
+                    createdBy: userContext.id,
                     code: nextCode,
                     status: "DRAFT",
                 },
