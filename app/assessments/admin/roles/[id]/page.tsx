@@ -10,6 +10,11 @@ import { MapCompetencyDialog } from "@/components/admin/MapCompetencyDialog";
 import { GenerateAssessmentDialog } from "@/components/admin/GenerateAssessmentDialog";
 import { RoleCompetencyRow } from "@/components/admin/RoleCompetencyRow";
 
+const ROLES_ALLOWED = [
+    "SUPER_ADMIN", "ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN",
+    "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"
+];
+
 export default async function RoleFrameworkPage({
     params,
     searchParams,
@@ -21,9 +26,12 @@ export default async function RoleFrameworkPage({
     const { id } = await params;
     const { action } = await searchParams;
 
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+    const userRole = (session?.user as { role?: string })?.role;
+    if (!session || !userRole || !ROLES_ALLOWED.includes(userRole)) {
         redirect("/assessments/login");
     }
+
+    const isSuperAdmin = userRole === "SUPER_ADMIN" || userRole === "ADMIN";
 
     const [role, allCompetencies] = await Promise.all([
         prisma.role.findUnique({
@@ -66,21 +74,23 @@ export default async function RoleFrameworkPage({
                                 {role.description}
                             </p>
 
-                            <div className="pt-4 border-t space-y-2">
-                                <GenerateAssessmentDialog
-                                    roleId={id}
-                                    roleName={role.name}
-                                    defaultOpen={action === 'generate'}
-                                />
-                                <Link href={`/assessments/admin/models/create?roleId=${id}&level=SENIOR&wizard=1&roleName=${encodeURIComponent(role.name)}`}>
-                                    <Button variant="outline" size="sm" className="w-full mt-2">
-                                        Component Wizard
-                                    </Button>
-                                </Link>
-                                <p className="text-[10px] text-gray-400 mt-2 text-center uppercase tracking-widest">
-                                    Smart-Build Mode
-                                </p>
-                            </div>
+                            {isSuperAdmin && (
+                                <div className="pt-4 border-t space-y-2">
+                                    <GenerateAssessmentDialog
+                                        roleId={id}
+                                        roleName={role.name}
+                                        defaultOpen={action === 'generate'}
+                                    />
+                                    <Link href={`/assessments/admin/models/create?roleId=${id}&level=SENIOR&wizard=1&roleName=${encodeURIComponent(role.name)}`}>
+                                        <Button variant="outline" size="sm" className="w-full mt-2">
+                                            Component Wizard
+                                        </Button>
+                                    </Link>
+                                    <p className="text-[10px] text-gray-400 mt-2 text-center uppercase tracking-widest">
+                                        Smart-Build Mode
+                                    </p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

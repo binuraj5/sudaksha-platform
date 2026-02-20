@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { canEditModelComponents } from "@/lib/assessments/model-edit-permission";
+import type { QuestionType } from "@prisma/client";
 
 /**
  * POST /api/assessments/admin/models/[modelId]/components/[componentId]/use-library
@@ -75,7 +76,7 @@ export async function POST(
                 data: questions.map((q, idx) => ({
                     componentId,
                     questionText: q.questionText ?? "",
-                    questionType: q.questionType ?? "MULTIPLE_CHOICE",
+                    questionType: (q.questionType ?? "MULTIPLE_CHOICE") as QuestionType,
                     options: q.options ?? [],
                     correctAnswer: q.correctAnswer ? String(q.correctAnswer) : null,
                     points: q.points ?? 1,

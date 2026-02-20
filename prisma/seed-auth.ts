@@ -8,7 +8,7 @@ async function main() {
     console.log('🌱 Seeding authentication data...');
 
     const hashedPassword = await bcrypt.hash('password123', 10);
-    const superAdminPasswordHash = await bcrypt.hash('Admin@123', 10);
+    const superAdminPasswordHash = hashedPassword;
 
     // 1. Create System Tenant
     console.log('Creating System Tenant...');

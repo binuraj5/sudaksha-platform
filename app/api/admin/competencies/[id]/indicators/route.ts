@@ -2,19 +2,29 @@ import { getApiSession } from "@/lib/get-session";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const ALLOWED_ROLES = [
+    "SUPER_ADMIN", "ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN",
+    "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"
+];
+
+function hasAccess(session: any): boolean {
+    const u = session?.user as { role?: string; userType?: string } | undefined;
+    if (!u) return false;
+    if (u.userType === "SUPER_ADMIN") return true;
+    return !!u.role && ALLOWED_ROLES.includes(u.role);
+}
+
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getApiSession();
-        const { id } = await params;
-
-        const u = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-        if (!session || !isAdmin) {
+        if (!session || !hasAccess(session)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        const { id } = await params;
 
         const indicators = await prisma.competencyIndicator.findMany({
             where: { competencyId: id },
@@ -34,17 +44,13 @@ export async function POST(
 ) {
     try {
         const session = await getApiSession();
-        const { id } = await params;
-
-        const u = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-        if (!session || !isAdmin) {
+        if (!session || !hasAccess(session)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { id } = await params;
         const body = await request.json();
 
-        // Handle Bulk Create
         if (Array.isArray(body)) {
             const results = await prisma.$transaction(
                 body.map((ind: any) =>
@@ -61,7 +67,6 @@ export async function POST(
             return NextResponse.json({ success: true, count: results.length, indicators: results });
         }
 
-        // Handle Single Create
         const { text, description, level, type } = body;
         const finalContent = text || description;
 

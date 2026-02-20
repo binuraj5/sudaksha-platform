@@ -1,24 +1,51 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { canUserModifyRole, normalizeUserRole } from "@/lib/permissions/role-competency-permissions";
 
-/**
- * PATCH /api/admin/roles/[id]/competencies/[mappingId]
- * Update weight or requiredLevel for a role competency mapping
- */
+const ALLOWED_ROLES = [
+    "SUPER_ADMIN", "ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN",
+    "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"
+];
+
+function hasAccess(session: any): boolean {
+    const u = session?.user as { role?: string; userType?: string } | undefined;
+    if (!u) return false;
+    if (u.userType === "SUPER_ADMIN") return true;
+    return !!u.role && ALLOWED_ROLES.includes(u.role);
+}
+
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string; mappingId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        const u = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-        if (!session || !isAdmin) {
+        if (!session || !hasAccess(session)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const { id: roleId, mappingId } = await params;
+
+        const role = await prisma.role.findUnique({ where: { id: roleId } });
+        if (!role) {
+            return NextResponse.json({ error: "Role not found" }, { status: 404 });
+        }
+
+        const u = session.user as Record<string, any>;
+        const userRole = normalizeUserRole(u.role || "MEMBER");
+        const isSuperAdmin = userRole === "SUPER_ADMIN" || userRole === "ADMIN";
+
+        if (!isSuperAdmin) {
+            const canModify = canUserModifyRole(
+                { id: u.id, role: userRole, tenantId: u.tenantId || "", tenantType: "CORPORATE", departmentId: u.departmentId, teamId: u.teamId, classId: u.classId },
+                { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }
+            );
+            if (!canModify) {
+                return NextResponse.json({ error: "You do not have permission to modify this role" }, { status: 403 });
+            }
+        }
+
         const body = await request.json();
         const { weight, requiredLevel } = body;
 
@@ -46,23 +73,36 @@ export async function PATCH(
     }
 }
 
-/**
- * DELETE /api/admin/roles/[id]/competencies/[mappingId]
- * Remove a competency from a role
- */
 export async function DELETE(
     _request: Request,
     { params }: { params: Promise<{ id: string; mappingId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        const u = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-        if (!session || !isAdmin) {
+        if (!session || !hasAccess(session)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const { id: roleId, mappingId } = await params;
+
+        const role = await prisma.role.findUnique({ where: { id: roleId } });
+        if (!role) {
+            return NextResponse.json({ error: "Role not found" }, { status: 404 });
+        }
+
+        const u = session.user as Record<string, any>;
+        const userRole = normalizeUserRole(u.role || "MEMBER");
+        const isSuperAdmin = userRole === "SUPER_ADMIN" || userRole === "ADMIN";
+
+        if (!isSuperAdmin) {
+            const canModify = canUserModifyRole(
+                { id: u.id, role: userRole, tenantId: u.tenantId || "", tenantType: "CORPORATE", departmentId: u.departmentId, teamId: u.teamId, classId: u.classId },
+                { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }
+            );
+            if (!canModify) {
+                return NextResponse.json({ error: "You do not have permission to modify this role" }, { status: 403 });
+            }
+        }
 
         const mapping = await prisma.roleCompetency.findFirst({
             where: { id: mappingId, roleId },

@@ -66,6 +66,10 @@ export default withAuth(
             }
         }
 
+        // 2b. Logged-in user on /assessments (e.g. after login with callbackUrl=/assessments) → org dashboard when tenant
+        if (path === '/assessments' && token && tenantSlug) {
+            return NextResponse.redirect(new URL(`/assessments/org/${tenantSlug}/dashboard`, req.url));
+        }
 
         // 3. Personal Workspace Protection (/assessments/my)
         if (path.startsWith('/assessments/my')) {
@@ -74,9 +78,34 @@ export default withAuth(
             }
         }
 
-        // 4. Redirect logged-in users away from auth pages (AUTHENTICATION_ARCHITECTURE: central dispatcher)
-        if (token && path === '/assessments/login') {
-            return NextResponse.redirect(new URL('/assessments/dashboard', req.url));
+        // 4. Redirect logged-in users away from auth pages (AUTHENTICATION_ARCHITECTURE: role-based)
+        if (token && (path === '/assessments/login' || path.startsWith('/assessments/register'))) {
+            const callbackUrl = req.nextUrl.searchParams.get('callbackUrl');
+            const clientId = (token as any)?.clientId as string | undefined;
+
+            if (userType === 'SUPER_ADMIN' || role === 'SUPER_ADMIN') {
+                return NextResponse.redirect(new URL('/assessments/admin/dashboard', req.url));
+            }
+            const orgRoles = ['TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'EMPLOYEE', 'DEPT_HEAD', 'MANAGER', 'ASSESSOR', 'STUDENT', 'CLASS_TEACHER'];
+            // TENANT/ORG users: redirect to org dashboard (canonical) when tenantSlug exists
+            if ((userType === 'TENANT' || orgRoles.includes(String(role))) && clientId) {
+                if (tenantSlug) {
+                    const orgDashboard = `/assessments/org/${tenantSlug}/dashboard`;
+                    if (callbackUrl?.startsWith('/assessments/org/') && callbackUrl.includes(tenantSlug)) {
+                        return NextResponse.redirect(new URL(callbackUrl, req.url));
+                    }
+                    return NextResponse.redirect(new URL(orgDashboard, req.url));
+                }
+                if (callbackUrl?.startsWith('/assessments/clients/') && callbackUrl.includes(clientId)) {
+                    return NextResponse.redirect(new URL(callbackUrl, req.url));
+                }
+                return NextResponse.redirect(new URL(`/assessments/clients/${clientId}/dashboard`, req.url));
+            }
+            // B2C: INDIVIDUAL or STUDENT without clientId → individuals dashboard
+            if (role === 'INDIVIDUAL' || (role === 'STUDENT' && !clientId)) {
+                return NextResponse.redirect(new URL('/assessments/individuals/dashboard', req.url));
+            }
+            return NextResponse.redirect(new URL('/assessments/my/dashboard', req.url));
         }
 
         return NextResponse.next();

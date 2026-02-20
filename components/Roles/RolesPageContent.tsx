@@ -22,7 +22,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { EditRoleDialog } from "@/components/admin/EditRoleDialog";
@@ -32,7 +32,11 @@ import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissio
  * Shared roles list UI for both /assessments/admin/roles and /assessments/clients/[clientId]/roles.
  * Data is scoped by the same API (/api/admin/roles) using RLS based on session.
  */
-export function RolesPageContent() {
+interface RolesPageContentProps {
+    extraActions?: ReactNode;
+}
+
+export function RolesPageContent({ extraActions }: RolesPageContentProps = {}) {
     const router = useRouter();
     const [roles, setRoles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -114,14 +118,15 @@ export function RolesPageContent() {
         }
     };
 
+    const isSuperAdmin = permissions.canApproveGlobal;
     const visibleTabs = [
         { value: "all", label: "All Roles" },
         { value: "GLOBAL", label: "Global", show: true },
-        { value: "ORGANIZATION", label: "My Organization", show: permissions.visibleScopes.includes("ORGANIZATION") },
-        { value: "DEPARTMENT", label: "My Department", show: permissions.visibleScopes.includes("DEPARTMENT") },
-        { value: "TEAM", label: "My Team", show: permissions.visibleScopes.includes("TEAM") },
-        { value: "CLASS", label: "My Class", show: permissions.visibleScopes.includes("CLASS") },
-        { value: "pending_review", label: "⏳ Pending Review", show: permissions.canApproveGlobal },
+        { value: "ORGANIZATION", label: isSuperAdmin ? "By Organization" : "My Organization", show: permissions.visibleScopes.includes("ORGANIZATION") },
+        { value: "DEPARTMENT", label: "My Department", show: permissions.visibleScopes.includes("DEPARTMENT") && !isSuperAdmin },
+        { value: "TEAM", label: "My Team", show: permissions.visibleScopes.includes("TEAM") && !isSuperAdmin },
+        { value: "CLASS", label: "My Class", show: permissions.visibleScopes.includes("CLASS") && !isSuperAdmin },
+        { value: "pending_review", label: "⏳ Pending Review", show: isSuperAdmin },
     ].filter((t) => t.show !== false);
 
     if (loading) {
@@ -142,14 +147,17 @@ export function RolesPageContent() {
                         <p className="text-sm text-amber-600 mt-1">⚠️ Showing Junior/Fresher roles only (institution mode)</p>
                     )}
                 </div>
-                {permissions.canCreate && (
-                    <Link href="/assessments/admin/roles/create">
-                        <Button className="bg-blue-600 hover:bg-blue-700">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create {permissions.creatableScope === "GLOBAL" ? "Global " : ""}Role
-                        </Button>
-                    </Link>
-                )}
+                <div className="flex items-center gap-2">
+                    {extraActions}
+                    {permissions.canCreate && (
+                        <Link href="/assessments/admin/roles/create">
+                            <Button className="bg-blue-600 hover:bg-blue-700">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Create {permissions.creatableScope === "GLOBAL" ? "Global " : ""}Role
+                            </Button>
+                        </Link>
+                    )}
+                </div>
             </div>
 
             <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-slate-200">
@@ -190,87 +198,18 @@ export function RolesPageContent() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    roles
-                                        .filter((r) =>
-                                            activeTab === "all"
-                                                ? true
-                                                : activeTab === "pending_review"
-                                                  ? r.globalSubmissionStatus === "PENDING"
-                                                  : r.scope === activeTab
-                                        )
-                                        .map((role) => (
-                                            <TableRow key={role.id}>
-                                                <TableCell className="font-medium">
-                                                    <div className="flex flex-col gap-1">
-                                                        <span>{role.name}</span>
-                                                        <span className="text-xs text-slate-400">{role.code}</span>
-                                                        <ScopeBadge scope={role.scope} />
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="secondary" className="bg-slate-100 text-slate-700">
-                                                        {role.overallLevel}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>{role._count?.competencies || 0}</TableCell>
-                                                <TableCell>{role._count?.assessmentModels || 0}</TableCell>
-                                                <TableCell>{role.department || "-"}</TableCell>
-                                                <TableCell>
-                                                    {role.isActive ? (
-                                                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Active</Badge>
-                                                    ) : (
-                                                        <Badge variant="outline" className="text-slate-500">Draft</Badge>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="sm">
-                                                                <MoreHorizontal className="w-4 h-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="w-48">
-                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                            <DropdownMenuSeparator />
-                                                            <DropdownMenuItem onClick={() => router.push(`/assessments/admin/roles/${role.id}`)}>
-                                                                <Target className="w-4 h-4 mr-2" /> View Details
-                                                            </DropdownMenuItem>
-                                                            {role._canEdit && (
-                                                                <EditRoleDialog
-                                                                    role={role}
-                                                                    onSuccess={fetchRoles}
-                                                                    trigger={
-                                                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                                            <Edit className="w-4 h-4 mr-2" /> Edit Details
-                                                                        </DropdownMenuItem>
-                                                                    }
-                                                                />
-                                                            )}
-                                                            {role._canSubmitGlobal && permissions.canSubmitForGlobal && (
-                                                                <DropdownMenuItem onClick={() => handleSubmitGlobal(role)} className="text-blue-600">
-                                                                    <Globe className="w-4 h-4 mr-2" /> 🌐 Go Global
-                                                                </DropdownMenuItem>
-                                                            )}
-                                                            {permissions.canApproveGlobal && role.globalSubmissionStatus === "PENDING" && (
-                                                                <>
-                                                                    <DropdownMenuItem onClick={() => handleApprove(role)} className="text-green-600">
-                                                                        <UserCheck className="w-4 h-4 mr-2" /> ✓ Approve
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem onClick={() => handleReject(role)} className="text-red-600">
-                                                                        <Trash2 className="w-4 h-4 mr-2" /> ✗ Reject
-                                                                    </DropdownMenuItem>
-                                                                </>
-                                                            )}
-                                                            {role._canDelete && (
-                                                                <DropdownMenuItem onClick={() => handleDelete(role.id, role.name)} className="text-red-600 focus:text-red-600">
-                                                                    <Trash2 className="w-4 h-4 mr-2" /> Delete Role
-                                                                </DropdownMenuItem>
-                                                            )}
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
+                                    <FilteredRoleRows
+                                        roles={roles}
+                                        activeTab={activeTab}
+                                        isSuperAdmin={isSuperAdmin}
+                                        permissions={permissions}
+                                        router={router}
+                                        onSubmitGlobal={handleSubmitGlobal}
+                                        onApprove={handleApprove}
+                                        onReject={handleReject}
+                                        onDelete={handleDelete}
+                                        onEditSuccess={fetchRoles}
+                                    />
                                 )}
                             </TableBody>
                         </Table>
@@ -278,6 +217,186 @@ export function RolesPageContent() {
                 </TabsContent>
             </Tabs>
         </div>
+    );
+}
+
+function FilteredRoleRows({
+    roles,
+    activeTab,
+    isSuperAdmin,
+    permissions,
+    router,
+    onSubmitGlobal,
+    onApprove,
+    onReject,
+    onDelete,
+    onEditSuccess,
+}: {
+    roles: any[];
+    activeTab: string;
+    isSuperAdmin: boolean;
+    permissions: any;
+    router: any;
+    onSubmitGlobal: (r: any) => void;
+    onApprove: (r: any) => void;
+    onReject: (r: any) => void;
+    onDelete: (id: string, name: string) => void;
+    onEditSuccess: () => void;
+}) {
+    const filtered = roles.filter((r) => {
+        if (activeTab === "all") return true;
+        if (activeTab === "pending_review") return r.globalSubmissionStatus === "PENDING";
+        if (activeTab === "ORGANIZATION" && isSuperAdmin) return r.scope !== "GLOBAL";
+        return r.scope === activeTab;
+    });
+
+    if (filtered.length === 0) {
+        return (
+            <TableRow>
+                <TableCell colSpan={7} className="text-center py-12 text-slate-500">
+                    No roles found in this category.
+                </TableCell>
+            </TableRow>
+        );
+    }
+
+    const showOrgGrouping = activeTab === "ORGANIZATION" && isSuperAdmin;
+    const sortedRoles = showOrgGrouping
+        ? [...filtered].sort((a, b) => (a.tenant?.name || "").localeCompare(b.tenant?.name || ""))
+        : filtered;
+
+    const rows: ReactNode[] = [];
+    let lastTenantName = "";
+
+    for (const role of sortedRoles) {
+        if (showOrgGrouping) {
+            const tenantName = role.tenant?.name || "Unassigned";
+            if (tenantName !== lastTenantName) {
+                lastTenantName = tenantName;
+                rows.push(
+                    <TableRow key={`org-header-${tenantName}`} className="bg-slate-50 hover:bg-slate-50">
+                        <TableCell colSpan={7} className="py-2">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                                <Building className="w-4 h-4" />
+                                {tenantName}
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                );
+            }
+        }
+        rows.push(
+            <RoleTableRow
+                key={role.id}
+                role={role}
+                permissions={permissions}
+                isSuperAdmin={isSuperAdmin}
+                onViewDetails={(r) => router.push(`/assessments/admin/roles/${r.id}`)}
+                onSubmitGlobal={onSubmitGlobal}
+                onApprove={onApprove}
+                onReject={onReject}
+                onDelete={onDelete}
+                onEditSuccess={onEditSuccess}
+            />
+        );
+    }
+
+    return <>{rows}</>;
+}
+
+function RoleTableRow({
+    role,
+    permissions,
+    isSuperAdmin,
+    onViewDetails,
+    onSubmitGlobal,
+    onApprove,
+    onReject,
+    onDelete,
+    onEditSuccess,
+}: {
+    role: any;
+    permissions: any;
+    isSuperAdmin: boolean;
+    onViewDetails: (r: any) => void;
+    onSubmitGlobal: (r: any) => void;
+    onApprove: (r: any) => void;
+    onReject: (r: any) => void;
+    onDelete: (id: string, name: string) => void;
+    onEditSuccess: () => void;
+}) {
+    return (
+        <TableRow>
+            <TableCell className="font-medium">
+                <div className="flex flex-col gap-1">
+                    <span>{role.name}</span>
+                    <span className="text-xs text-slate-400">{role.code}</span>
+                    <ScopeBadge scope={role.scope} />
+                </div>
+            </TableCell>
+            <TableCell>
+                <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                    {role.overallLevel}
+                </Badge>
+            </TableCell>
+            <TableCell>{role._count?.competencies || 0}</TableCell>
+            <TableCell>{role._count?.assessmentModels || 0}</TableCell>
+            <TableCell>{role.department || "-"}</TableCell>
+            <TableCell>
+                {role.isActive ? (
+                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Active</Badge>
+                ) : (
+                    <Badge variant="outline" className="text-slate-500">Draft</Badge>
+                )}
+            </TableCell>
+            <TableCell className="text-right">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onViewDetails(role)}>
+                            <Target className="w-4 h-4 mr-2" /> View Details
+                        </DropdownMenuItem>
+                        {role._canEdit && (
+                            <EditRoleDialog
+                                role={role}
+                                onSuccess={onEditSuccess}
+                                trigger={
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <Edit className="w-4 h-4 mr-2" /> Edit Details
+                                    </DropdownMenuItem>
+                                }
+                            />
+                        )}
+                        {role._canSubmitGlobal && permissions.canSubmitForGlobal && (
+                            <DropdownMenuItem onClick={() => onSubmitGlobal(role)} className="text-blue-600">
+                                <Globe className="w-4 h-4 mr-2" /> Go Global
+                            </DropdownMenuItem>
+                        )}
+                        {isSuperAdmin && role.globalSubmissionStatus === "PENDING" && (
+                            <>
+                                <DropdownMenuItem onClick={() => onApprove(role)} className="text-green-600">
+                                    <UserCheck className="w-4 h-4 mr-2" /> Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onReject(role)} className="text-red-600">
+                                    <Trash2 className="w-4 h-4 mr-2" /> Reject
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                        {role._canDelete && (
+                            <DropdownMenuItem onClick={() => onDelete(role.id, role.name)} className="text-red-600 focus:text-red-600">
+                                <Trash2 className="w-4 h-4 mr-2" /> Delete Role
+                            </DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </TableCell>
+        </TableRow>
     );
 }
 

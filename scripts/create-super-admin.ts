@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const email = process.env.SUPER_ADMIN_EMAIL || 'superadmin@sudaksha.com';
-  const password = process.env.SUPER_ADMIN_PASSWORD || 'Admin@123';
+  const password = process.env.SUPER_ADMIN_PASSWORD || 'password123';
   const name = process.env.SUPER_ADMIN_NAME || 'Super Admin';
 
   const passwordHash = await bcrypt.hash(password, 10);

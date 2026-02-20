@@ -2,15 +2,12 @@ import { getApiSession } from "@/lib/get-session";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canEditModelComponents } from "@/lib/assessments/model-edit-permission";
-import { generateQuestions } from "@/lib/ai/question-generator";
-import { AIQuestionGenerator } from "@/lib/assessment/ai-generator";
-import { selectRelevantIndicators } from "@/lib/assessment/indicator-selection";
-import { ProficiencyLevel } from "@prisma/client";
+import type { ProficiencyLevel } from "@prisma/client";
 
 /**
  * POST /api/assessments/admin/models/[modelId]/components/[componentId]/questions/ai-generate
  * Model-scoped AI question generation - verifies component belongs to model.
- * Routes by componentType: MCQ/SITUATIONAL/ESSAY use AIQuestionGenerator; others use legacy generateQuestions.
+ * Uses dynamic imports for AI modules to prevent Turbopack compilation failures.
  */
 export async function POST(
     request: Request,
@@ -41,23 +38,11 @@ export async function POST(
         const body = await request.json();
         const { count, questionTypes, difficulty, additionalContext } = body;
 
-        // 1. Fetch component - verify it belongs to this model
         const component = await prisma.assessmentModelComponent.findFirst({
-            where: {
-                id: componentId,
-                modelId
-            },
+            where: { id: componentId, modelId },
             include: {
-                model: {
-                    include: {
-                        role: true
-                    }
-                },
-                competency: {
-                    include: {
-                        indicators: true
-                    }
-                }
+                model: { include: { role: true } },
+                competency: { include: { indicators: true } }
             }
         });
 
@@ -70,8 +55,9 @@ export async function POST(
             return NextResponse.json({ error: "Component has no linked competency" }, { status: 400 });
         }
 
-        // 2. Use smart indicator selection: exact level + lower levels (DOC3 algorithm)
         const targetLevel = (component.targetLevel ?? component.model?.targetLevel ?? "JUNIOR") as ProficiencyLevel;
+
+        const { selectRelevantIndicators } = await import("@/lib/assessment/indicator-selection");
         const relevantIndicators = await selectRelevantIndicators(competency.id, targetLevel);
         const indicatorsToUse = relevantIndicators.length > 0
             ? relevantIndicators
@@ -80,8 +66,8 @@ export async function POST(
         const questionCount = count || 5;
         const compType = (component.componentType || "QUESTIONNAIRE").toUpperCase();
 
-        // 3. Route by componentType to appropriate generator
         if (compType === "MCQ" || compType === "SITUATIONAL" || compType === "ESSAY" || compType === "SHORT_ANSWER") {
+            const { AIQuestionGenerator } = await import("@/lib/assessment/ai-generator");
             const generationRequest = {
                 competencyName: competency.name,
                 competencyDescription: competency.description ?? undefined,
@@ -112,7 +98,7 @@ export async function POST(
             return NextResponse.json({ questions });
         }
 
-        // 4. Legacy: QUESTIONNAIRE, TRUE_FALSE, etc. use existing generateQuestions
+        const { generateQuestions } = await import("@/lib/ai/question-generator");
         const config = {
             roleName: component.model?.role?.name || "Professional",
             competencyName: competency.name,

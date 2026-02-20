@@ -12,7 +12,15 @@ async function main() {
     const hashedPassword = await bcrypt.hash('password123', salt);
 
     try {
-        // 1. Update User table (NextAuth)
+        // 1. Update AdminUser table (Super Admin panel auth)
+        const adminResult = await prisma.adminUser.updateMany({
+            data: {
+                passwordHash: hashedPassword
+            }
+        });
+        console.log(`✅ Updated ${adminResult.count} admin users with password: password123`);
+
+        // 2. Update User table (NextAuth)
         const userResult = await prisma.user.updateMany({
             data: {
                 password: hashedPassword
@@ -20,7 +28,7 @@ async function main() {
         });
         console.log(`✅ Updated ${userResult.count} users with password: password123`);
 
-        // 2. Update Member table (Profiles)
+        // 3. Update Member table (Profiles)
         const updateResult = await prisma.member.updateMany({
             data: {
                 password: hashedPassword
