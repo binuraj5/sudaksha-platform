@@ -25,5 +25,5 @@ export default async function OrgRolesPage({
 
     const isInstitution = tenant.type === "INSTITUTION";
 
-    return <OrgRolesClient clientId={tenant.id} isInstitution={isInstitution} />;
+    return <OrgRolesClient clientId={tenant.id} isInstitution={isInstitution} slug={slug} />;
 }

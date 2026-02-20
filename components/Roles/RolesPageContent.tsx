@@ -34,9 +34,10 @@ import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissio
  */
 interface RolesPageContentProps {
     extraActions?: ReactNode;
+    baseUrl?: string;
 }
 
-export function RolesPageContent({ extraActions }: RolesPageContentProps = {}) {
+export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/roles" }: RolesPageContentProps = {}) {
     const router = useRouter();
     const [roles, setRoles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -150,7 +151,7 @@ export function RolesPageContent({ extraActions }: RolesPageContentProps = {}) {
                 <div className="flex items-center gap-2">
                     {extraActions}
                     {permissions.canCreate && (
-                        <Link href="/assessments/admin/roles/create">
+                        <Link href={`${baseUrl}/create`}>
                             <Button className="bg-blue-600 hover:bg-blue-700">
                                 <Plus className="w-4 h-4 mr-2" />
                                 Create {permissions.creatableScope === "GLOBAL" ? "Global " : ""}Role
@@ -209,6 +210,7 @@ export function RolesPageContent({ extraActions }: RolesPageContentProps = {}) {
                                         onReject={handleReject}
                                         onDelete={handleDelete}
                                         onEditSuccess={fetchRoles}
+                                        baseUrl={baseUrl}
                                     />
                                 )}
                             </TableBody>
@@ -231,6 +233,7 @@ function FilteredRoleRows({
     onReject,
     onDelete,
     onEditSuccess,
+    baseUrl,
 }: {
     roles: any[];
     activeTab: string;
@@ -242,6 +245,7 @@ function FilteredRoleRows({
     onReject: (r: any) => void;
     onDelete: (id: string, name: string) => void;
     onEditSuccess: () => void;
+    baseUrl: string;
 }) {
     const filtered = roles.filter((r) => {
         if (activeTab === "all") return true;
@@ -291,7 +295,7 @@ function FilteredRoleRows({
                 role={role}
                 permissions={permissions}
                 isSuperAdmin={isSuperAdmin}
-                onViewDetails={(r) => router.push(`/assessments/admin/roles/${r.id}`)}
+                onViewDetails={(r) => router.push(`${baseUrl}/${r.id}`)}
                 onSubmitGlobal={onSubmitGlobal}
                 onApprove={onApprove}
                 onReject={onReject}

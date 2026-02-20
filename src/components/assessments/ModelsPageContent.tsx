@@ -59,9 +59,10 @@ interface AssessmentModel {
 interface ModelsPageContentProps {
     isAdmin?: boolean;
     clientId?: string;
+    baseUrl?: string;
 }
 
-export function ModelsPageContent({ isAdmin, clientId }: ModelsPageContentProps) {
+export function ModelsPageContent({ isAdmin, clientId, baseUrl: baseUrlProp }: ModelsPageContentProps) {
     const router = useRouter();
     const [models, setModels] = useState<AssessmentModel[]>([]);
     const [loading, setLoading] = useState(true);
@@ -73,7 +74,8 @@ export function ModelsPageContent({ isAdmin, clientId }: ModelsPageContentProps)
 
     const permissions = useRoleCompetencyPermissions();
 
-    const baseUrl = isAdmin ? "/assessments/admin/models" : `/assessments/clients/${clientId}/models`;
+    const computedBaseUrl = isAdmin ? "/assessments/admin/models" : `/assessments/clients/${clientId}/models`;
+    const baseUrl = baseUrlProp ?? computedBaseUrl;
     const apiUrl = "/api/assessments/admin/models"; // Using same API for now, since it resolves via session
 
     const fetchModels = async () => {

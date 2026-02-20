@@ -65,7 +65,7 @@ function GlobalStatusBadge({ status }: { status: string | null | undefined }) {
  * Shared competencies + roles UI for both /assessments/admin/competencies and /assessments/clients/[clientId]/competencies.
  * Data is scoped by /api/admin/competencies and /api/admin/roles (RLS) based on session.
  */
-export function CompetenciesPageContent() {
+export function CompetenciesPageContent({ baseUrl = "/assessments/admin/competencies" }: { baseUrl?: string } = {}) {
     const { data: session, status } = useSession();
     const permissions = useRoleCompetencyPermissions();
     const [competencies, setCompetencies] = useState<any[]>([]);
@@ -285,7 +285,7 @@ export function CompetenciesPageContent() {
                                                     </Button>
                                                 )}
                                                 <Button variant="ghost" size="sm" asChild className="hover:text-red-600 h-8 px-3">
-                                                    <Link href={`/assessments/admin/competencies/${comp.id}`}>
+                                                    <Link href={`${baseUrl}/${comp.id}`}>
                                                         Manage <ChevronRight className="ml-1 h-3 w-3" />
                                                     </Link>
                                                 </Button>
@@ -373,7 +373,7 @@ export function CompetenciesPageContent() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="sm" asChild className="hover:text-red-600 h-8 px-3">
-                                                <Link href={`/assessments/admin/roles/${role.id}`}>
+                                                <Link href={`${baseUrl.replace('/competencies', '/roles')}/${role.id}`}>
                                                     Manage <ChevronRight className="ml-1 h-3 w-3" />
                                                 </Link>
                                             </Button>
