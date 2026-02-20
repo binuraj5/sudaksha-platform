@@ -41,12 +41,31 @@ export async function GET(
         const roles = await prisma.role.findMany({
             where: whereClause,
             include: {
-                competencies: { include: { competency: true } }
+                competencies: { include: { competency: true } },
+                tenant: { select: { id: true, name: true } },
+                _count: { select: { competencies: true, assessmentModels: true } }
             },
             orderBy: { name: 'asc' }
         });
 
-        return NextResponse.json(roles);
+        const userRole = (session.user as any)?.role;
+        const userTenantId = (session.user as any)?.tenantId;
+        const isSuperAdmin = userRole === 'SUPER_ADMIN' || userRole === 'TENANT_ADMIN';
+
+        // Decorate roles with permission flags (same shape as /api/admin/roles response)
+        const rolesWithFlags = roles.map(role => {
+            const isOwned = role.tenantId === clientId;
+            const canModify = isSuperAdmin || isOwned;
+            return {
+                ...role,
+                _canEdit: canModify,
+                _canDelete: canModify,
+                _canSubmitGlobal: isOwned && role.visibility !== 'UNIVERSAL' && !role.globalSubmissionStatus,
+                _isOwned: isOwned,
+            };
+        });
+
+        return NextResponse.json(rolesWithFlags);
 
     } catch (error) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

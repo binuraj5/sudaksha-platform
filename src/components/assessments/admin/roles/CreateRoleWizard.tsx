@@ -28,7 +28,11 @@ interface RoleFormData {
     description: string;
 }
 
-export function CreateRoleWizard() {
+interface CreateRoleWizardProps {
+    returnUrl?: string; // Optional path to redirect back to, e.g. /assessments/org/[slug]/roles
+}
+
+export function CreateRoleWizard({ returnUrl = "/assessments/admin/roles" }: CreateRoleWizardProps = {}) {
     const router = useRouter();
     const permissions = useRoleCompetencyPermissions();
     const [currentStep, setCurrentStep] = useState(1);
@@ -71,7 +75,7 @@ export function CreateRoleWizard() {
 
             if (res.success) {
                 toast.success("Role created successfully!");
-                router.push("/assessments/admin/roles");
+                router.push(returnUrl);
             } else {
                 toast.error("Failed to create role: " + res.error);
             }

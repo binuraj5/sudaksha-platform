@@ -75,8 +75,8 @@ export function Sidebar() {
 
     if (isSwitcherApplicable) {
         if (viewMode === "ADMIN") {
-            // ADMIN MODE: Show Admin Menu + My Profile (both)
-            displayNavigation = permittedNavigation;
+            // ADMIN MODE: Show ONLY Admin Menu (Hide My Profile in sidebar, as it's in the switcher)
+            displayNavigation = permittedNavigation.filter(item => item.id !== 'my-page-section');
         } else {
             // PERSONAL MODE: Show ONLY My Profile items, promoted to top level
             const myPageSection = permittedNavigation.find(item => item.id === 'my-page-section');

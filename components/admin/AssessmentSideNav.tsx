@@ -147,7 +147,10 @@ export function AssessmentSideNav() {
         mainLinks = employeeLinks;
     }
 
-    const showMyProfile = (isClientPath || effectiveRole === "TENANT_ADMIN" || effectiveRole === "DEPARTMENT_HEAD" || effectiveRole === "TEAM_LEAD" || role === "EMPLOYEE") && clientAdminLinks.length > 0;
+    const hideProfileRoles = ["TENANT_ADMIN", "CLIENT_ADMIN", "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD", "TEAM_LEADER", "SUPER_ADMIN", "ADMIN"];
+    const isHiddenRole = hideProfileRoles.includes(role || "") || hideProfileRoles.includes(effectiveRole || "");
+
+    const showMyProfile = !isHiddenRole && (isClientPath || role === "EMPLOYEE" || role === "MEMBER") && clientAdminLinks.length > 0;
 
     return (
         <nav className="space-y-4">

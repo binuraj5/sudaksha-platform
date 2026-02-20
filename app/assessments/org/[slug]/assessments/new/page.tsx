@@ -1,11 +1,10 @@
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
+import { OrgCreateAssessmentWizard } from "./OrgCreateAssessmentWizard";
 
-/**
- * Org-scoped assessment creation redirect.
- * Redirects admins to the admin assessment builder scoped to their tenant.
- */
+const ALLOWED_ROLES = ["SUPER_ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN"];
+
 export default async function OrgAssessmentNewPage({
     params,
 }: {
@@ -16,9 +15,13 @@ export default async function OrgAssessmentNewPage({
 
     if (!session) redirect("/assessments/login");
 
-    const tenant = await prisma.tenant.findUnique({ where: { slug } });
+    const role = (session.user as any)?.role;
+    if (!role || !ALLOWED_ROLES.includes(role)) {
+        redirect("/assessments/login");
+    }
+
+    const tenant = await prisma.tenant.findUnique({ where: { slug }, select: { id: true } });
     if (!tenant) notFound();
 
-    // Redirect to admin model creation page, pre-scoped to this org's tenant
-    redirect(`/assessments/admin/models/create`);
+    return <OrgCreateAssessmentWizard slug={slug} clientId={tenant.id} />;
 }

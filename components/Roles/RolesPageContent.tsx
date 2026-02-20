@@ -27,6 +27,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { EditRoleDialog } from "@/components/admin/EditRoleDialog";
 import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissions";
+import { RoleRequestForm } from "./RoleRequestForm";
+import { RoleRequestsList } from "./RoleRequestsList";
 
 /**
  * Shared roles list UI for both /assessments/admin/roles and /assessments/clients/[clientId]/roles.
@@ -44,6 +46,11 @@ export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/r
     const [roles, setRoles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [levelFilter, setLevelFilter] = useState("ALL");
+    const [deptFilter, setDeptFilter] = useState("ALL");
+    const [statusFilter, setStatusFilter] = useState("ALL");
+
     const permissions = useRoleCompetencyPermissions();
 
     useEffect(() => {
@@ -116,7 +123,11 @@ export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/r
     const handleDelete = async (roleId: string, roleName: string) => {
         if (!confirm(`Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`)) return;
         try {
-            const response = await fetch(`/api/admin/roles/${roleId}`, { method: "DELETE" });
+            // Use tenant-scoped endpoint when clientId is provided, otherwise use admin endpoint
+            const endpoint = clientId
+                ? `/api/clients/${clientId}/roles/${roleId}`
+                : `/api/admin/roles/${roleId}`;
+            const response = await fetch(endpoint, { method: "DELETE" });
             if (!response.ok) throw new Error("Failed to delete role");
             toast.success("Role deleted successfully");
             fetchRoles();
@@ -130,12 +141,41 @@ export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/r
     const visibleTabs = [
         { value: "all", label: "All Roles" },
         { value: "GLOBAL", label: "Global", show: true },
-        { value: "ORGANIZATION", label: isSuperAdmin ? "By Organization" : "My Organization", show: permissions.visibleScopes.includes("ORGANIZATION") },
+        { value: "ORGANIZATION", label: isSuperAdmin ? "By Organization" : "My Organization", show: !!clientId || permissions.visibleScopes.includes("ORGANIZATION") },
         { value: "DEPARTMENT", label: "My Department", show: permissions.visibleScopes.includes("DEPARTMENT") && !isSuperAdmin },
         { value: "TEAM", label: "My Team", show: permissions.visibleScopes.includes("TEAM") && !isSuperAdmin },
         { value: "CLASS", label: "My Class", show: permissions.visibleScopes.includes("CLASS") && !isSuperAdmin },
         { value: "pending_review", label: "⏳ Pending Review", show: isSuperAdmin },
+        { value: "request_role", label: "Request Role", show: !!clientId },
+        { value: "my_requests", label: "My Requests", show: !!clientId },
     ].filter((t) => t.show !== false);
+
+    // Filter Logic
+    const finalRoles = roles.filter((role) => {
+        // 1. Search Query (Title/Code)
+        if (searchQuery && !role.name?.toLowerCase().includes(searchQuery.toLowerCase()) && !role.code?.toLowerCase().includes(searchQuery.toLowerCase())) {
+            return false;
+        }
+        // 2. Level Filter
+        if (levelFilter !== "ALL" && role.overallLevel !== levelFilter) {
+            return false;
+        }
+        // 3. Status Filter
+        if (statusFilter !== "ALL") {
+            if (statusFilter === "ACTIVE" && role.status !== "APPROVED") return false;
+            if (statusFilter === "DRAFT" && role.status !== "DRAFT") return false;
+            // Add other status matches as needed
+        }
+        // 4. Department Filter (Optional if role has department mapping)
+        if (deptFilter !== "ALL" && role.department !== deptFilter) {
+            return false;
+        }
+
+        return true;
+    });
+
+    // Extract unique departments for the filter dropdown
+    const uniqueDepartments = Array.from(new Set(roles.map(r => r.department).filter(Boolean))) as string[];
 
     if (loading) {
         return (
@@ -168,14 +208,53 @@ export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/r
                 </div>
             </div>
 
-            <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-slate-200">
-                <div className="relative flex-1">
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-lg border border-slate-200">
+                <div className="relative flex-1 w-full sm:w-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input placeholder="Search roles..." className="pl-10" />
+                    <Input
+                        placeholder="Search roles by title..."
+                        className="pl-10 w-full"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </div>
-                <Button variant="outline" className="flex items-center gap-2">
-                    <Filter className="w-4 h-4" /> Filters
-                </Button>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                    <select
+                        className="flex h-10 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={levelFilter}
+                        onChange={(e) => setLevelFilter(e.target.value)}
+                    >
+                        <option value="ALL">All Levels</option>
+                        <option value="JUNIOR">Junior</option>
+                        <option value="MIDDLE">Middle</option>
+                        <option value="SENIOR">Senior</option>
+                        <option value="EXPERT">Expert</option>
+                    </select>
+
+                    <select
+                        className="flex h-10 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="ALL">All Statuses</option>
+                        <option value="ACTIVE">Active / Approved</option>
+                        <option value="DRAFT">Draft</option>
+                    </select>
+
+                    {uniqueDepartments.length > 0 && (
+                        <select
+                            className="flex h-10 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            value={deptFilter}
+                            onChange={(e) => setDeptFilter(e.target.value)}
+                        >
+                            <option value="ALL">All Departments</option>
+                            {uniqueDepartments.map((deptName) => (
+                                <option key={deptName} value={deptName}>{deptName}</option>
+                            ))}
+                        </select>
+                    )}
+                </div>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -184,46 +263,64 @@ export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/r
                         <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
                     ))}
                 </TabsList>
-                <TabsContent value={activeTab}>
-                    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Role Title</TableHead>
-                                    <TableHead>Level</TableHead>
-                                    <TableHead>Competencies</TableHead>
-                                    <TableHead>Models</TableHead>
-                                    <TableHead>Department</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {roles.length === 0 ? (
+                {activeTab !== "request_role" && activeTab !== "my_requests" && (
+                    <TabsContent value={activeTab}>
+                        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-12 text-slate-500">
-                                            No roles found. Click &quot;Create New Role&quot; to get started.
-                                        </TableCell>
+                                        <TableHead>Role Title</TableHead>
+                                        <TableHead>Level</TableHead>
+                                        <TableHead>Competencies</TableHead>
+                                        <TableHead>Models</TableHead>
+                                        <TableHead>Department</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
-                                ) : (
-                                    <FilteredRoleRows
-                                        roles={roles}
-                                        activeTab={activeTab}
-                                        isSuperAdmin={isSuperAdmin}
-                                        permissions={permissions}
-                                        router={router}
-                                        onSubmitGlobal={handleSubmitGlobal}
-                                        onApprove={handleApprove}
-                                        onReject={handleReject}
-                                        onDelete={handleDelete}
-                                        onEditSuccess={fetchRoles}
-                                        baseUrl={baseUrl}
-                                    />
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </TabsContent>
+                                </TableHeader>
+                                <TableBody>
+                                    {finalRoles.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={7} className="text-center py-12 text-slate-500">
+                                                No roles found matching the selected filters. Click &quot;Create New Role&quot; or adjust your search to get started.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        <FilteredRoleRows
+                                            roles={finalRoles}
+                                            activeTab={activeTab}
+                                            isSuperAdmin={isSuperAdmin}
+                                            permissions={permissions}
+                                            router={router}
+                                            onSubmitGlobal={handleSubmitGlobal}
+                                            onApprove={handleApprove}
+                                            onReject={handleReject}
+                                            onDelete={handleDelete}
+                                            onEditSuccess={fetchRoles}
+                                            baseUrl={baseUrl}
+                                            clientId={clientId}
+                                        />
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </TabsContent>
+                )}
+
+                {clientId && (
+                    <TabsContent value="request_role">
+                        <div className="bg-white rounded-lg border border-slate-200 p-6">
+                            <h2 className="text-xl font-bold mb-4">Request New Role</h2>
+                            <RoleRequestForm clientId={clientId} />
+                        </div>
+                    </TabsContent>
+                )}
+
+                {clientId && (
+                    <TabsContent value="my_requests">
+                        <RoleRequestsList clientId={clientId} />
+                    </TabsContent>
+                )}
             </Tabs>
         </div>
     );
@@ -241,6 +338,7 @@ function FilteredRoleRows({
     onDelete,
     onEditSuccess,
     baseUrl,
+    clientId,
 }: {
     roles: any[];
     activeTab: string;
@@ -253,6 +351,7 @@ function FilteredRoleRows({
     onDelete: (id: string, name: string) => void;
     onEditSuccess: () => void;
     baseUrl: string;
+    clientId?: string;
 }) {
     const filtered = roles.filter((r) => {
         if (activeTab === "all") return true;
@@ -308,6 +407,7 @@ function FilteredRoleRows({
                 onReject={onReject}
                 onDelete={onDelete}
                 onEditSuccess={onEditSuccess}
+                clientId={clientId}
             />
         );
     }
@@ -325,6 +425,7 @@ function RoleTableRow({
     onReject,
     onDelete,
     onEditSuccess,
+    clientId,
 }: {
     role: any;
     permissions: any;
@@ -335,6 +436,7 @@ function RoleTableRow({
     onReject: (r: any) => void;
     onDelete: (id: string, name: string) => void;
     onEditSuccess: () => void;
+    clientId?: string;
 }) {
     return (
         <TableRow>
@@ -377,6 +479,7 @@ function RoleTableRow({
                             <EditRoleDialog
                                 role={role}
                                 onSuccess={onEditSuccess}
+                                clientId={clientId}
                                 trigger={
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                         <Edit className="w-4 h-4 mr-2" /> Edit Details

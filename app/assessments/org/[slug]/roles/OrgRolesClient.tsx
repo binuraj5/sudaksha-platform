@@ -2,7 +2,6 @@
 
 import { RolesPageContent } from "@/components/Roles/RolesPageContent";
 import { BulkUploadRolesDialog } from "@/components/Roles/BulkUploadRolesDialog";
-import { CreateRoleDialog } from "@/components/Roles/CreateRoleDialog";
 
 export function OrgRolesClient({
     clientId,
@@ -16,11 +15,9 @@ export function OrgRolesClient({
     return (
         <RolesPageContent
             baseUrl={`/assessments/org/${slug}/roles`}
+            clientId={clientId}
             extraActions={
-                <>
-                    <BulkUploadRolesDialog clientId={clientId} />
-                    <CreateRoleDialog clientId={clientId} isInstitution={isInstitution} />
-                </>
+                <BulkUploadRolesDialog clientId={clientId} />
             }
         />
     );

@@ -6,7 +6,8 @@ import { Plus, FileText, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 
-type AssessmentRow = { id: string; name: string; description: string | null; sourceType: string };
+type AssessmentRow = { id: string; name: string; description: string | null; sourceType: string; status: string };
+
 
 export default async function OrgAssessmentsPage({
     params,
@@ -29,9 +30,9 @@ export default async function OrgAssessmentsPage({
         const rows = await prisma.assessmentModel.findMany({
             where: {
                 tenantId: clientId,
-                status: { in: ["PUBLISHED", "ACTIVE"] as any[] },
+                status: { in: ["DRAFT", "PUBLISHED", "ACTIVE"] as any[] },
             },
-            select: { id: true, name: true, description: true, sourceType: true },
+            select: { id: true, name: true, description: true, sourceType: true, status: true },
             orderBy: { createdAt: "desc" },
             take: 50,
         });
@@ -40,6 +41,7 @@ export default async function OrgAssessmentsPage({
             name: r.name,
             description: r.description,
             sourceType: r.sourceType ?? "",
+            status: r.status ?? "DRAFT",
         }));
     } catch (e) {
         console.error("[OrgAssessmentsPage] Failed to fetch assessments:", e);
@@ -71,9 +73,15 @@ export default async function OrgAssessmentsPage({
                             <CardDescription className="line-clamp-2">{model.description ?? ""}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex gap-2 mb-2">
+                            <div className="flex gap-2 flex-wrap">
                                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                                     {model.sourceType}
+                                </span>
+                                <span className={`text-xs px-2 py-1 rounded ${model.status === "PUBLISHED" || model.status === "ACTIVE"
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-yellow-100 text-yellow-800"
+                                    }`}>
+                                    {model.status}
                                 </span>
                             </div>
                         </CardContent>

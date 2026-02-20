@@ -52,9 +52,10 @@ interface EditRoleDialogProps {
     };
     trigger?: React.ReactNode;
     onSuccess?: () => void;
+    clientId?: string; // If provided, uses tenant-scoped PATCH API
 }
 
-export function EditRoleDialog({ role, trigger, onSuccess }: EditRoleDialogProps) {
+export function EditRoleDialog({ role, trigger, onSuccess, clientId }: EditRoleDialogProps) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -84,7 +85,10 @@ export function EditRoleDialog({ role, trigger, onSuccess }: EditRoleDialogProps
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true);
         try {
-            const response = await fetch(`/api/admin/roles/${role.id}`, {
+            const endpoint = clientId
+                ? `/api/clients/${clientId}/roles/${role.id}`
+                : `/api/admin/roles/${role.id}`;
+            const response = await fetch(endpoint, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values),

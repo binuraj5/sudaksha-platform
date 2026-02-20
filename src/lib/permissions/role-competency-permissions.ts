@@ -5,6 +5,7 @@ export type UserRole =
   | 'SUPER_ADMIN'
   | 'ADMIN' // Legacy/alias for TENANT_ADMIN
   | 'TENANT_ADMIN'
+  | 'CLIENT_ADMIN'
   | 'DEPARTMENT_HEAD'
   | 'TEAM_LEADER'
   | 'INSTITUTION_ADMIN'
@@ -99,6 +100,7 @@ export function getCreatableScope(user: UserContext): Scope | null {
 
     case 'TENANT_ADMIN':
     case 'INSTITUTION_ADMIN':
+    case 'CLIENT_ADMIN':
       return 'ORGANIZATION';
 
     case 'DEPARTMENT_HEAD':
@@ -217,20 +219,36 @@ export function buildRoleVisibilityFilter(user: UserContext) {
   };
 }
 
-// Same pattern for competencies
+// Competency model does NOT have `isActive` — use deletedAt: null instead
 export function buildCompetencyVisibilityFilter(user: UserContext) {
-  return buildRoleVisibilityFilter(user); // Same logic
+  const u = withNormalizedRole(user);
+  const levelFilter = user.tenantType === 'INSTITUTION'
+    ? { allowedLevels: { hasSome: ['JUNIOR'] } }
+    : {};
+
+  if (u.role === 'SUPER_ADMIN') {
+    return { deletedAt: null, ...levelFilter };
+  }
+
+  return {
+    deletedAt: null,
+    ...levelFilter,
+    OR: [
+      { scope: 'GLOBAL' },
+      { scope: 'ORGANIZATION', tenantId: user.tenantId },
+      ...(user.departmentId ? [{ scope: 'DEPARTMENT', tenantId: user.tenantId, departmentId: user.departmentId }] : []),
+      ...(user.teamId ? [{ scope: 'TEAM', tenantId: user.tenantId, teamId: user.teamId }] : []),
+      ...(user.classId ? [{ scope: 'CLASS', tenantId: user.tenantId, teamId: user.classId }] : []),
+    ],
+  };
 }
 
 // ─────────────────────────────────────────
 // PRISMA FILTER: Assessment Models
 // ─────────────────────────────────────────
+// AssessmentModel does NOT have `isActive` — filter by status instead
 export function buildAssessmentVisibilityFilter(user: UserContext) {
   const u = withNormalizedRole(user);
-
-  if (u.role === 'SUPER_ADMIN') {
-    return { isActive: true };
-  }
 
   const userTenantId = user.tenantId || (user as any).clientId;
   const tenantFilter = userTenantId ? [
@@ -238,9 +256,12 @@ export function buildAssessmentVisibilityFilter(user: UserContext) {
     { clientId: userTenantId }
   ] : [{ tenantId: 'impossible' }];
 
+  if (u.role === 'SUPER_ADMIN') {
+    return {};
+  }
+
   if (u.role === 'MEMBER') {
     return {
-      isActive: true,
       status: 'PUBLISHED',
       OR: tenantFilter
     };
@@ -248,7 +269,6 @@ export function buildAssessmentVisibilityFilter(user: UserContext) {
 
   // Corp Admin, Dept Head, Team Lead see all their tenant's models
   return {
-    isActive: true,
     OR: tenantFilter
   };
 }
@@ -270,9 +290,11 @@ export function canUserModifyRole(
   // Must be in same tenant
   if (role.tenantId !== user.tenantId) return false;
 
-  // Org scope: Tenant Admin can modify
+  // Org scope: Tenant Admin or CLIENT_ADMIN can modify
   if (role.scope === 'ORGANIZATION') {
-    return ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
+    return ['TENANT_ADMIN', 'INSTITUTION_ADMIN', 'CLIENT_ADMIN'].includes(r) ||
+      // Also allow the role creator
+      (role.tenantId === user.tenantId && role.createdByUserId === user.id);
   }
 
   // Dept scope: Dept head or above in same dept
