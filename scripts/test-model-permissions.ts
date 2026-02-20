@@ -1,5 +1,5 @@
 import { buildAssessmentVisibilityFilter, getRoleCompetencyPermissions } from "../src/lib/permissions/role-competency-permissions";
-import { UserRole } from "@prisma/client";
+import { UserRole, TenantType } from "@prisma/client";
 
 const mockUsers = [
     { name: "Super Admin", role: "SUPER_ADMIN", tenantId: null, departmentId: null, teamId: null, type: "SUPER_ADMIN" },
@@ -17,10 +17,10 @@ async function main() {
         const userContext = {
             id: 'mock-user',
             role: u.role as UserRole,
-            tenantId: u.tenantId,
-            tenantType: u.type,
-            departmentId: u.departmentId,
-            teamId: u.teamId,
+            tenantId: u.tenantId || "",
+            tenantType: u.type as any,
+            departmentId: u.departmentId || undefined,
+            teamId: u.teamId || undefined,
         };
 
         const filter = buildAssessmentVisibilityFilter(userContext);

@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const file = video instanceof File ? video : new File([video], "video.webm", { type: video.type });
+        const file = video instanceof File ? video : new File([video], "video.webm", { type: (video as any).type });
         const result = await analyzeVideoPython({
             videoFile: file,
             competencyName,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useDropzone } from "react-dropzone";
 import { UploadCloud, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ interface LogoUploadProps {
 export function LogoUpload({ currentLogo, clientId, onUpload }: LogoUploadProps) {
     const [preview, setPreview] = useState<string | null>(currentLogo || null);
     const [uploading, setUploading] = useState(false);
+    const router = useRouter();
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
@@ -34,7 +36,7 @@ export function LogoUpload({ currentLogo, clientId, onUpload }: LogoUploadProps)
         setPreview(objectUrl);
         setUploading(true);
 
-        // Upload
+        // Upload file
         const formData = new FormData();
         formData.append("file", file);
 
@@ -44,13 +46,30 @@ export function LogoUpload({ currentLogo, clientId, onUpload }: LogoUploadProps)
                 body: formData,
             });
 
-            if (res.ok) {
-                const data = await res.json();
-                onUpload(data.url);
-                toast.success("Logo uploaded successfully");
-            } else {
+            if (!res.ok) {
                 toast.error("Upload failed");
-                setPreview(currentLogo); // Revert
+                setPreview(currentLogo);
+                return;
+            }
+
+            const { url } = await res.json();
+
+            // Auto-persist the logo URL to the database immediately
+            const saveRes = await fetch(`/api/clients/${clientId}/settings`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ branding: { logoUrl: url } }),
+            });
+
+            if (saveRes.ok) {
+                onUpload(url);
+                toast.success("Logo uploaded and saved successfully");
+                // Refresh server components (PortalHeader) to show new logo
+                router.refresh();
+            } else {
+                // File uploaded but DB save failed — still notify client with URL
+                onUpload(url);
+                toast.warning("Logo uploaded — click 'Save Branding' to apply it to the portal");
             }
         } catch (error) {
             console.error("Upload error", error);
@@ -60,7 +79,7 @@ export function LogoUpload({ currentLogo, clientId, onUpload }: LogoUploadProps)
             setUploading(false);
         }
 
-    }, [clientId, currentLogo, onUpload]);
+    }, [clientId, currentLogo, onUpload, router]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,

@@ -39,6 +39,10 @@ export async function POST(
             return NextResponse.json({ error: "Component not found" }, { status: 404 });
         }
 
+        if (component.model?.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot generate questions for a published assessment model" }, { status: 403 });
+        }
+
         const competency = component.competency;
         if (!competency) {
             return NextResponse.json({ error: "Component has no linked competency" }, { status: 400 });

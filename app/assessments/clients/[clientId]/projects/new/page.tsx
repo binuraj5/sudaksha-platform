@@ -1,5 +1,4 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-config";
+import { getApiSession } from "@/lib/get-session";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { getLabelsForTenant } from "@/lib/tenant-labels";
 import { prisma } from "@/lib/prisma";
 
 export default async function NewProjectPage({ params }: { params: Promise<{ clientId: string }> }) {
-    const session = await getServerSession(authOptions);
+    const session = await getApiSession();
     const { clientId } = await params;
     if (!session?.user) redirect("/assessments/login");
 

@@ -43,7 +43,7 @@ export async function PUT(
                             select: { tenantId: true, type: true },
                         });
                         if (existing?.type === 'STUDENT') {
-                            const validation = await validateStudentOrgUnit(existing.tenantId, orgUnitId ?? null);
+                            const validation = await validateStudentOrgUnit(existing.tenantId || "", orgUnitId ?? null);
                             if (!validation.ok) {
                                 return NextResponse.json(
                                     { error: validation.error ?? 'Invalid org unit for student' },

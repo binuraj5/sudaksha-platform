@@ -57,6 +57,19 @@ export async function PUT(
 
         const { industries, experienceLevel, ...data } = validation.data;
 
+        const existing = await prisma.assessmentModelComponent.findUnique({
+            where: { id },
+            include: { model: true }
+        });
+
+        if (!existing) {
+            return NextResponse.json({ error: "Component not found" }, { status: 404 });
+        }
+
+        if (existing.model.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot modify components of a published model" }, { status: 403 });
+        }
+
         const component = await prisma.assessmentModelComponent.update({
             where: { id },
             data: {
@@ -82,6 +95,20 @@ export async function DELETE(
         }
 
         const { id } = await params;
+
+        // Check if component exists and model is not PUBLISHED
+        const existing = await prisma.assessmentModelComponent.findUnique({
+            where: { id },
+            include: { model: true }
+        });
+
+        if (!existing) {
+            return NextResponse.json({ error: "Component not found" }, { status: 404 });
+        }
+
+        if (existing.model.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot delete components of a published model" }, { status: 403 });
+        }
 
         // Check if component is used in any user assessment components
         const usageCount = await prisma.userAssessmentComponent.count({

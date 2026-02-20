@@ -157,7 +157,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
                 // Institution students: orgUnitId must be a CLASS (FSD validation)
                 if (existing.type === 'STUDENT' && orgUnitId !== undefined) {
-                    const validation = await validateStudentOrgUnit(existing.tenantId, orgUnitId ?? null);
+                    const validation = await validateStudentOrgUnit(existing.tenantId || "", orgUnitId ?? null);
                     if (!validation.ok) {
                         throw new ValidationError(validation.error ?? 'Invalid org unit for student');
                     }

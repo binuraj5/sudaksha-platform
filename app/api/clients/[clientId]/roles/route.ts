@@ -60,7 +60,13 @@ export async function POST(
     const session = await getApiSession();
     const { clientId } = await params;
 
-    if (!session || (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'TENANT_ADMIN')) {
+    const role = (session?.user as any)?.role as string | undefined;
+    const userTenantId = (session?.user as any)?.tenantId as string | undefined;
+
+    const isSuperOrTenantAdmin = role === "SUPER_ADMIN" || role === "TENANT_ADMIN";
+    const isClientAdminOwner = role === "CLIENT_ADMIN" && userTenantId === clientId;
+
+    if (!session || (!isSuperOrTenantAdmin && !isClientAdminOwner)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -76,14 +82,8 @@ export async function POST(
         const code = `CUST-${prefix}${count + 1}`;
 
         // Create Role
-        const role = await prisma.$transaction(async (tx) => {
-            const status = submitForApproval ? 'PENDING' : 'DRAFT'; // Logic mapping
-            // ApprovalStatus enum: PENDING, APPROVED, REJECTED, DRAFT (DRAFT was already there? or I need to validte enum values)
-            // Enum in schema: DRAFT, PENDING, APPROVED, REJECTED (ApprovalStatus lines 1746-1750? No, ApprovalStatus was lines 1512? No wait)
-            // Let's check Schema lines for `ApprovalStatus`.
-            // Line 1746: DRAFT, PENDING, APPROVED, REJECTED. Correct.
-
-            const newRole = await tx.role.create({
+        const newRole = await prisma.$transaction(async (tx) => {
+            const created = await tx.role.create({
                 data: {
                     tenantId: clientId,
                     name,
@@ -93,29 +93,31 @@ export async function POST(
                     visibility: 'TENANT_SPECIFIC',
                     status: (submitForApproval ? 'PENDING' : 'DRAFT') as any,
                     competencies: {
-                        create: (competencyIds || []).map((id: string) => ({ competencyId: id, requiredLevel: 'MIDDLE' })) // Default level for now
+                        create: (competencyIds || []).map((id: string) => ({
+                            competencyId: id,
+                            requiredLevel: 'MIDDLE'
+                        }))
                     },
                     createdBy: session.user.id
                 }
             });
 
             if (submitForApproval) {
-                // Create Approval Request
                 await tx.approvalRequest.create({
                     data: {
                         tenantId: clientId,
-                        type: 'ROLE', // ApprovalType
-                        entityId: newRole.id,
+                        type: 'ROLE',
+                        entityId: created.id,
                         status: 'PENDING',
-                        originalData: newRole as any,
+                        originalData: created as any,
                         comments: "Initial submission"
                     }
                 });
             }
-            return newRole;
+            return created;
         });
 
-        return NextResponse.json(role);
+        return NextResponse.json(newRole);
 
     } catch (error) {
         console.error("Create Role Error:", error);

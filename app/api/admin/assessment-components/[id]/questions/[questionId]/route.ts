@@ -15,11 +15,22 @@ export async function DELETE(
 
         const { id, questionId } = await params;
 
+        const component = await prisma.assessmentModelComponent.findUnique({
+            where: { id },
+            include: { model: true }
+        });
+
+        if (!component) {
+            return NextResponse.json({ error: "Component not found" }, { status: 404 });
+        }
+
+        if (component.model?.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot delete questions of a published model" }, { status: 403 });
+        }
+
         await prisma.componentQuestion.delete({
             where: { id: questionId }
         });
-
-
 
         return NextResponse.json({ success: true });
     } catch (error) {

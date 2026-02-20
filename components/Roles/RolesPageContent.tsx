@@ -35,9 +35,11 @@ import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissio
 interface RolesPageContentProps {
     extraActions?: ReactNode;
     baseUrl?: string;
+    /** When provided, fetches from the tenant-scoped API instead of the super-admin one */
+    clientId?: string;
 }
 
-export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/roles" }: RolesPageContentProps = {}) {
+export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/roles", clientId }: RolesPageContentProps = {}) {
     const router = useRouter();
     const [roles, setRoles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -46,14 +48,19 @@ export function RolesPageContent({ extraActions, baseUrl = "/assessments/admin/r
 
     useEffect(() => {
         fetchRoles();
-    }, []);
+    }, [clientId]);
 
     const fetchRoles = async () => {
         try {
-            const response = await fetch("/api/admin/roles");
+            // Use tenant-scoped endpoint when clientId is provided (org portal)
+            const endpoint = clientId
+                ? `/api/clients/${clientId}/roles`
+                : "/api/admin/roles";
+            const response = await fetch(endpoint);
             if (!response.ok) throw new Error("Failed to fetch roles");
             const data = await response.json();
-            setRoles(data.roles || []);
+            // /api/admin/roles returns { roles: [] }, tenant endpoint returns [] directly
+            setRoles(Array.isArray(data) ? data : (data.roles || []));
         } catch (error) {
             toast.error("Failed to load roles");
             console.error(error);

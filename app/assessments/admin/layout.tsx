@@ -90,8 +90,28 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 ml-60 lg:ml-64 min-h-screen">
-                <div className="p-6 lg:p-8">
+            <main className="flex-1 ml-60 lg:ml-64 min-h-screen flex flex-col">
+                {/* Top Header Bar */}
+                <header className="h-16 bg-white border-b border-border sticky top-0 z-40 flex items-center justify-between px-6 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <img src="/logo.png" alt="Sudaksha" className="h-10 w-auto max-w-[120px] object-contain" />
+                        <div className="h-5 w-px bg-border mx-1" />
+                        <div>
+                            <p className="text-sm font-semibold text-foreground leading-none">Super Admin Panel</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">Sudaksha Intelligence Platform</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="text-right hidden sm:block">
+                            <p className="text-sm font-medium text-foreground leading-none">{session.user.name}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">{session.user.email}</p>
+                        </div>
+                        <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                            {session.user.name?.charAt(0)}
+                        </div>
+                    </div>
+                </header>
+                <div className="p-6 lg:p-8 flex-1">
                     {children}
                 </div>
             </main>

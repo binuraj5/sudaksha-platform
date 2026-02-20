@@ -23,6 +23,19 @@ export async function POST(
             return NextResponse.json({ error: "Invalid questions format" }, { status: 400 });
         }
 
+        const component = await prisma.assessmentModelComponent.findUnique({
+            where: { id: componentId },
+            include: { model: true }
+        });
+
+        if (!component) {
+            return NextResponse.json({ error: "Component not found" }, { status: 404 });
+        }
+
+        if (component.model.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot modify a published assessment model" }, { status: 403 });
+        }
+
         // Add componentId to each question and ensure type consistency
         const formattedQuestions = questions.map((q, idx) => ({
             componentId,

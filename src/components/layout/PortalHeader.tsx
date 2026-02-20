@@ -32,13 +32,21 @@ export default function PortalHeader({ branding, session }: { branding?: PortalB
                             <img
                                 src={branding.logoUrl}
                                 alt={branding.tenantName || "Logo"}
-                                className="h-9 w-9 flex-shrink-0 rounded object-contain"
+                                className="h-12 w-auto max-w-[140px] flex-shrink-0 rounded object-contain"
                             />
+                        ) : branding?.tenantName ? (
+                            /* Tenant portal without a custom logo — show initial avatar */
+                            <div className="h-12 w-12 flex-shrink-0 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <span className="text-indigo-700 font-bold text-lg">
+                                    {branding.tenantName.charAt(0).toUpperCase()}
+                                </span>
+                            </div>
                         ) : (
+                            /* Sudaksha admin portal — show Sudaksha logo */
                             <img
                                 src="/logo.png"
                                 alt="Sudaksha Logo"
-                                className="h-9 w-9 flex-shrink-0 w-auto"
+                                className="h-12 w-auto max-w-[140px] flex-shrink-0 object-contain"
                             />
                         )}
                         {branding?.tenantName && (

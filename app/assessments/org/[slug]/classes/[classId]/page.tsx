@@ -30,7 +30,7 @@ export default async function OrgClassDetailPage({
       slug={slug}
       clientId={tenant.id}
       classId={classId}
-      classData={cls}
+      classData={{ ...cls, department: cls.department ?? undefined }}
       userRole={userRole}
       userId={userId}
     />

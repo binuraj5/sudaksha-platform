@@ -26,14 +26,21 @@ export default async function OrgAssessmentsPage({
 
     let assessments: AssessmentRow[] = [];
     try {
-        const rows = await prisma.$queryRaw<AssessmentRow[]>`
-            SELECT id, name, description, "sourceType"
-            FROM "AssessmentModel"
-            WHERE "isActive" = true AND ("isPublished" = true OR "isPublished" IS NULL)
-            ORDER BY "createdAt" DESC
-            LIMIT 20
-        `;
-        assessments = rows;
+        const rows = await prisma.assessmentModel.findMany({
+            where: {
+                tenantId: clientId,
+                status: { in: ["PUBLISHED", "ACTIVE"] as any[] },
+            },
+            select: { id: true, name: true, description: true, sourceType: true },
+            orderBy: { createdAt: "desc" },
+            take: 50,
+        });
+        assessments = rows.map((r) => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            sourceType: r.sourceType ?? "",
+        }));
     } catch (e) {
         console.error("[OrgAssessmentsPage] Failed to fetch assessments:", e);
     }

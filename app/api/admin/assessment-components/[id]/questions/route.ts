@@ -22,6 +22,19 @@ export async function POST(
             return NextResponse.json({ error: validation.error.format() }, { status: 400 });
         }
 
+        const component = await prisma.assessmentModelComponent.findUnique({
+            where: { id },
+            include: { model: true }
+        });
+
+        if (!component) {
+            return NextResponse.json({ error: "Component not found" }, { status: 404 });
+        }
+
+        if (component.model.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot add questions to a published model" }, { status: 403 });
+        }
+
         const question = await prisma.componentQuestion.create({
             data: {
                 componentId: id,

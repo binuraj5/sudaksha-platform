@@ -79,7 +79,7 @@ export default function CreateAssessmentPage() {
             if (res.ok) {
                 const data = await res.json();
                 setRoleCompetencies(data);
-                const ids = new Set(data.map((rc: CompetencyMapping) => rc.competencyId));
+                const ids = new Set<string>(data.map((rc: CompetencyMapping) => rc.competencyId));
                 setSelectedIds(ids);
                 const w: Record<string, number> = {};
                 data.forEach((rc: CompetencyMapping) => {
@@ -257,10 +257,10 @@ export default function CreateAssessmentPage() {
                     <div key={s.num} className="flex items-center">
                         <div
                             className={`flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium ${step === s.num
-                                    ? "bg-primary text-primary-foreground"
-                                    : step > s.num
-                                        ? "bg-primary/10 text-primary"
-                                        : "bg-muted text-muted-foreground"
+                                ? "bg-primary text-primary-foreground"
+                                : step > s.num
+                                    ? "bg-primary/10 text-primary"
+                                    : "bg-muted text-muted-foreground"
                                 }`}
                         >
                             {step > s.num ? <Check className="w-4 h-4" /> : s.num}

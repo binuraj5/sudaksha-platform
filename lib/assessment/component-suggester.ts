@@ -25,7 +25,7 @@ export enum ComponentType {
     ADAPTIVE_QUESTIONNAIRE = "ADAPTIVE_QUESTIONNAIRE",
 }
 
-type CompetencyCategory = "TECHNICAL" | "BEHAVIORAL" | "COGNITIVE" | "DOMAIN_SPECIFIC" | "COMMUNICATION" | "LEADERSHIP" | "ANALYTICAL";
+type CompetencyCategory = "TECHNICAL" | "BEHAVIORAL" | "COGNITIVE" | "DOMAIN_SPECIFIC";
 type TargetLevel = "JUNIOR" | "MIDDLE" | "SENIOR" | "EXPERT";
 
 const COMPONENT_ICONS: Record<string, string> = {

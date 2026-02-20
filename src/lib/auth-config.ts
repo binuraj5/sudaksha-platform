@@ -1,9 +1,9 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import type { NextAuthOptions } from "next-auth";
 
-export const authOptions: NextAuthOptions = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const authOptions: any = {
     secret: process.env.NEXTAUTH_SECRET,
     trustHost: true,
     useSecureCookies: process.env.NODE_ENV === "production",
@@ -67,19 +67,19 @@ export const authOptions: NextAuthOptions = {
                     // 2b. Member-only fallback: some flows (e.g. register-client) create Member but not User
                     let member = user
                         ? await prisma.member.findFirst({
-                              where: { email: { equals: user.email, mode: "insensitive" as const } },
-                              include: {
-                                  managedUnits: { where: { isActive: true }, select: { id: true, type: true } },
-                                  tenant: true
-                              }
-                          })
+                            where: { email: { equals: user.email, mode: "insensitive" as const } },
+                            include: {
+                                managedUnits: { where: { isActive: true }, select: { id: true, type: true } },
+                                tenant: true
+                            }
+                        })
                         : await prisma.member.findFirst({
-                              where: { email: emailFilter },
-                              include: {
-                                  managedUnits: { where: { isActive: true }, select: { id: true, type: true } },
-                                  tenant: true
-                              }
-                          });
+                            where: { email: emailFilter },
+                            include: {
+                                managedUnits: { where: { isActive: true }, select: { id: true, type: true } },
+                                tenant: true
+                            }
+                        });
 
                     if (!user && member) {
                         // Member-only: authenticate with Member.password

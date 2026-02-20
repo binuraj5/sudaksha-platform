@@ -8,183 +8,177 @@ datasource db {
 }
 
 model Trainer {
-  id          String        @id @default(cuid())
-  name        String
-  email       String        @unique
-  bio         String
-  expertise   Json
-  experience  Int
-  rating      Float         @default(0)
-  imageUrl    String?
-  linkedinUrl String?
-  status      TrainerStatus @default(ACTIVE)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  isPublished Boolean       @default(false)
-  courses     Course[]
-  batches     CourseBatch[]
-
-  // Comprehensive trainer schema
-  firstName   String?
-  lastName    String?
-  profileImageUrl String?
-  title       String?
+  id                           String        @id @default(cuid())
+  name                         String
+  email                        String        @unique
+  bio                          String
+  expertise                    Json
+  experience                   Int
+  rating                       Float         @default(0)
+  imageUrl                     String?
+  linkedinUrl                  String?
+  status                       TrainerStatus @default(ACTIVE)
+  createdAt                    DateTime      @default(now())
+  updatedAt                    DateTime      @updatedAt
+  isPublished                  Boolean       @default(false)
+  availableForCourses          Json?
+  certifications               Json?
+  currentCompany               String?
+  currentDesignation           String?
+  firstName                    String?
+  industriesWorked             Json?
+  lastName                     String?
+  preferredBatchTypes          Json?
+  primaryExpertise             Json?
+  profileImageUrl              String?
+  secondaryExpertise           Json?
+  title                        String?
   totalIndustryExperienceYears Int?
+  totalReviews                 Int           @default(0)
+  totalStudentsTaught          Int           @default(0)
   totalTeachingExperienceYears Int?
-  currentDesignation String?
-  currentCompany String?
-  primaryExpertise Json?
-  secondaryExpertise Json?
-  industriesWorked Json?
-  certifications Json?
-  totalStudentsTaught Int    @default(0)
-  totalReviews Int          @default(0)
-  availableForCourses Json?
-  preferredBatchTypes Json?
+  courses                      Course[]
+  batches                      CourseBatch[]
 }
 
 model Course {
-  id                     String             @id @default(cuid())
-  name                   String
-  slug                   String             @unique
-  deliveryMode           BatchMode          @default(ONLINE)
-  industry               String             @default("Generic/All Industries")
-  isSelfPaced            Boolean            @default(false)
-  enrollmentUrl          String?
-  description            String
-  shortDescription       String?
-  duration               Int
-  price                  Float
-  rating                 Float              @default(0)
-  status                 CourseStatus       @default(DRAFT)
-  audienceLevel          AudienceLevel
-  skillTags              Json
-  learningObjectives     Json
-  moduleBreakdown        Json
-  imageUrl               String?
-  videoUrl               String?
-  language               String             @default("English")
-  maxStudents            Int?
-  certification          Boolean            @default(false)
-  trainerId              String
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
-  prerequisites          String?
-  certificateProvider    String?
-  certificateType        String?
-  corporateAvailable     Boolean            @default(false)
-  cpeCredits             Decimal?
-  customizationAvailable Boolean            @default(false)
-  durationDays           Int?
-  durationHours          Decimal?
-  durationWeeks          Int?
-  hasCaseStudies         Boolean            @default(false)
-  hasPersonalActivities  Boolean            @default(false)
-  hasProcessFrameworks   Boolean            @default(false)
-  hasProjects            Boolean            @default(false)
-  industryRecognition    String?
-  maxBatchSize           Int?
-  minBatchSize           Int?
-  newDeliveryModes       DeliveryMode[]
-  onsiteAvailable        Boolean            @default(false)
-  prerequisiteText       String?
-  publishedAt            DateTime?
-  requiredExperience     String?
-  sessionsPerWeek        Int?
-  subCategory            String?
-  targetAudience         String?
-  targetRoles            String[]
-  technicalRequirements  String?
-  title                  String?
-  category               String
-  categoryType           String
-  targetLevel            String
-  courseType             String
-  newBatches             Batch[]
-  trainer                Trainer            @relation(fields: [trainerId], references: [id], onDelete: Cascade)
-  batches                CourseBatch[]
-  includedFeatures       CourseFeature[]
-  instructors            CourseInstructor[]
-  modules                CourseModule[]
-  reviews                CourseReview[]
-  deliverables           Deliverable[]
-  learningOutcomes       LearningOutcome[]
-  relatedCourses         RelatedCourse[]
-
-  // Comprehensive course schema fields
-  courseCode             String?            @unique // e.g. "SUD-JFS-320"
-  longDescription        String?            @db.Text
-  categoryPrimary       CategoryPrimary?
-  categorySecondary      String?
-  technologyDomain       String?
-  industryVertical       Json?             // ["FinTech", "E-commerce"]
-  industrySpecific       Boolean           @default(false)
-  targetAudienceDisplay  TargetAudienceDisplay?
-  experienceRequired     String?
-  prerequisiteSkills     Json?
-  finishingSchoolProgram Boolean           @default(false)
-  courseTypeDisplay      CourseTypeDisplay?
-  deliveryModeJson       Json?             // ["Live Online", "Weekend", "Intensive"]
-  isCorporateOnly        Boolean           @default(false)
-  isIndividualAvailable  Boolean           @default(true)
-  totalDurationWeeks     Int?
-  totalHours             Int?
-  totalClasses           Int?
-  classDurationMinutes   Int?
-  hoursPerWeek           Int?
-  batchType              BatchTypeDisplay?
-  scheduleDetails        Json?
-  totalModules           Int?
-  totalLessons           Int?
-  skillsGained           Json?
-  toolsCovered           Json?
-  capstoneProjectTitle   String?
-  capstoneProjectDescription String?       @db.Text
+  id                           String                   @id @default(cuid())
+  name                         String
+  slug                         String                   @unique
+  deliveryMode                 BatchMode                @default(ONLINE)
+  industry                     String                   @default("Generic/All Industries")
+  isSelfPaced                  Boolean                  @default(false)
+  enrollmentUrl                String?
+  description                  String
+  shortDescription             String?
+  duration                     Int
+  price                        Float
+  rating                       Float                    @default(0)
+  status                       CourseStatus             @default(DRAFT)
+  audienceLevel                AudienceLevel
+  skillTags                    Json
+  learningObjectives           Json
+  moduleBreakdown              Json
+  imageUrl                     String?
+  videoUrl                     String?
+  language                     String                   @default("English")
+  maxStudents                  Int?
+  certification                Boolean                  @default(false)
+  trainerId                    String
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
+  prerequisites                String?
+  certificateProvider          String?
+  certificateType              String?
+  corporateAvailable           Boolean                  @default(false)
+  cpeCredits                   Decimal?
+  customizationAvailable       Boolean                  @default(false)
+  durationDays                 Int?
+  durationHours                Decimal?
+  durationWeeks                Int?
+  hasCaseStudies               Boolean                  @default(false)
+  hasPersonalActivities        Boolean                  @default(false)
+  hasProcessFrameworks         Boolean                  @default(false)
+  hasProjects                  Boolean                  @default(false)
+  industryRecognition          String?
+  maxBatchSize                 Int?
+  minBatchSize                 Int?
+  newDeliveryModes             DeliveryMode[]
+  onsiteAvailable              Boolean                  @default(false)
+  prerequisiteText             String?
+  publishedAt                  DateTime?
+  requiredExperience           String?
+  sessionsPerWeek              Int?
+  subCategory                  String?
+  targetAudience               String?
+  targetRoles                  String[]
+  technicalRequirements        String?
+  title                        String?
+  category                     String
+  categoryType                 String
+  targetLevel                  String
+  courseType                   String
+  assessmentsJson              Json?
+  averagePlacementRate         Decimal?
+  averageSalaryHikePercent     Decimal?
+  averageSalaryMax             Decimal?
+  averageSalaryMin             Decimal?
+  basePrice                    Decimal?
+  batchType                    BatchTypeDisplay?
+  capstoneProjectDescription   String?
   capstoneProjectDurationHours Int?
-  miniProjectsCount      Int?
-  miniProjects           Json?
-  assessmentsJson        Json?
-  certificationName      String?
-  primaryTrainerId       String?
-  trainerPool            Json?
-  trainerExperienceRequired String?
-  basePrice              Decimal?
-  discountedPrice       Decimal?
-  currency               String?           @default("INR")
-  emiAvailable           Boolean           @default(false)
-  emiOptions             Json?
-  earlyBirdDiscount     Decimal?
-  groupDiscount         Decimal?
-  placementSupport       Boolean           @default(false)
-  averagePlacementRate   Decimal?
-  averageSalaryMin       Decimal?
-  averageSalaryMax       Decimal?
-  averageSalaryHikePercent Decimal?
-  topHiringCompanies     Json?
-  careerPaths            Json?
-  overallRating          Decimal?
-  totalReviews           Int               @default(0)
-  ratingDistribution    Json?
-  totalStudentsTrained   Int               @default(0)
-  currentBatchEnrolled  Int               @default(0)
-  statusDisplay          CourseStatusDisplay?
-  isFeatured             Boolean           @default(false)
-  isTrending             Boolean           @default(false)
-  isNew                  Boolean           @default(false)
-  featuredOrder          Int?
-  metaTitle              String?
-  metaDescription        String?           @db.Text
-  metaKeywords           Json?
-  ogImageUrl             String?
-  lmsCourseId            String?
-  lmsLastSyncAt          DateTime?
-
-  // Relations for comprehensive schema
-  coursePrerequisites     CoursePrerequisite[]
-  courseFaqs             CourseFaq[]
-  courseMedia            CourseMedia[]
-  courseOutcomes         CourseOutcome[]
-  industrySpecificCourses IndustrySpecificCourse[]
+  capstoneProjectTitle         String?
+  careerPaths                  Json?
+  categoryPrimary              CategoryPrimary?
+  categorySecondary            String?
+  certificationName            String?
+  classDurationMinutes         Int?
+  courseCode                   String?                  @unique
+  courseTypeDisplay            CourseTypeDisplay?
+  currency                     String?                  @default("INR")
+  currentBatchEnrolled         Int                      @default(0)
+  deliveryModeJson             Json?
+  discountedPrice              Decimal?
+  earlyBirdDiscount            Decimal?
+  emiAvailable                 Boolean                  @default(false)
+  emiOptions                   Json?
+  experienceRequired           String?
+  featuredOrder                Int?
+  finishingSchoolProgram       Boolean                  @default(false)
+  groupDiscount                Decimal?
+  hoursPerWeek                 Int?
+  industrySpecific             Boolean                  @default(false)
+  industryVertical             Json?
+  isCorporateOnly              Boolean                  @default(false)
+  isFeatured                   Boolean                  @default(false)
+  isIndividualAvailable        Boolean                  @default(true)
+  isNew                        Boolean                  @default(false)
+  isTrending                   Boolean                  @default(false)
+  lmsCourseId                  String?
+  lmsLastSyncAt                DateTime?
+  longDescription              String?
+  metaDescription              String?
+  metaKeywords                 Json?
+  metaTitle                    String?
+  miniProjects                 Json?
+  miniProjectsCount            Int?
+  ogImageUrl                   String?
+  overallRating                Decimal?
+  placementSupport             Boolean                  @default(false)
+  prerequisiteSkills           Json?
+  primaryTrainerId             String?
+  ratingDistribution           Json?
+  scheduleDetails              Json?
+  skillsGained                 Json?
+  statusDisplay                CourseStatusDisplay?
+  targetAudienceDisplay        TargetAudienceDisplay?
+  technologyDomain             String?
+  toolsCovered                 Json?
+  topHiringCompanies           Json?
+  totalClasses                 Int?
+  totalDurationWeeks           Int?
+  totalHours                   Int?
+  totalLessons                 Int?
+  totalModules                 Int?
+  totalReviews                 Int                      @default(0)
+  totalStudentsTrained         Int                      @default(0)
+  trainerExperienceRequired    String?
+  trainerPool                  Json?
+  newBatches                   Batch[]
+  trainer                      Trainer                  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  batches                      CourseBatch[]
+  courseFaqs                   CourseFaq[]
+  includedFeatures             CourseFeature[]
+  instructors                  CourseInstructor[]
+  courseMedia                  CourseMedia[]
+  modules                      CourseModule[]
+  courseOutcomes               CourseOutcome[]
+  coursePrerequisites          CoursePrerequisite[]
+  reviews                      CourseReview[]
+  deliverables                 Deliverable[]
+  industrySpecificCourses      IndustrySpecificCourse[]
+  learningOutcomes             LearningOutcome[]
+  relatedCourses               RelatedCourse[]
 
   @@index([category, status])
   @@index([status])
@@ -219,25 +213,23 @@ model FinishingSchool {
 }
 
 model CourseModule {
-  id          String         @id @default(cuid())
-  title       String
-  description String?
-  order       Int
-  duration    Int
-  courseId    String
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  lessons     CourseLesson[]
-  course      Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  // Comprehensive schema
-  moduleNumber Int?
-  moduleTitle  String?
-  moduleDescription String?  @db.Text
+  id                  String         @id @default(cuid())
+  title               String
+  description         String?
+  order               Int
+  duration            Int
+  courseId            String
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  handsOnLabs         Json?
+  learningObjectives  Json?
+  moduleDescription   String?
   moduleDurationHours Int?
-  learningObjectives Json?
-  topicsCovered Json?
-  handsOnLabs Json?
+  moduleNumber        Int?
+  moduleTitle         String?
+  topicsCovered       Json?
+  lessons             CourseLesson[]
+  course              Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId])
   @@index([order])
@@ -245,26 +237,24 @@ model CourseModule {
 }
 
 model CourseLesson {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  content     String?
-  videoUrl    String?
-  duration    Int
-  order       Int
-  isFree      Boolean      @default(false)
-  moduleId    String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  module      CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-
-  // Comprehensive schema
-  lessonNumber Int?
-  lessonTitle  String?
-  lessonDescription String? @db.Text
-  lessonType   LessonType?
+  id                    String       @id @default(cuid())
+  title                 String
+  description           String?
+  content               String?
+  videoUrl              String?
+  duration              Int
+  order                 Int
+  isFree                Boolean      @default(false)
+  moduleId              String
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  lessonDescription     String?
   lessonDurationMinutes Int?
-  resources    Json?
+  lessonNumber          Int?
+  lessonTitle           String?
+  lessonType            LessonType?
+  resources             Json?
+  module                CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@index([moduleId])
   @@index([order])
@@ -272,37 +262,35 @@ model CourseLesson {
 }
 
 model CourseBatch {
-  id              String      @id @default(cuid())
-  name            String
-  courseId        String
-  trainerId       String
-  startDate       DateTime
-  endDate         DateTime
-  schedule        String
-  mode            BatchMode   @default(ONLINE)
-  maxStudents     Int
-  currentStudents Int         @default(0)
-  price           Float?
-  status          BatchStatus @default(UPCOMING)
-  location        String?
-  meetingUrl      String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  course          Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  trainer         Trainer     @relation(fields: [trainerId], references: [id], onDelete: Cascade)
-
-  // Comprehensive schema
-  batchCode       String?     @unique
-  batchType       BatchTypeDisplay?
-  scheduleDetails Json?
-  timezone        String?     @default("IST")
+  id                String             @id @default(cuid())
+  name              String
+  courseId          String
+  trainerId         String
+  startDate         DateTime
+  endDate           DateTime
+  schedule          String
+  mode              BatchMode          @default(ONLINE)
+  maxStudents       Int
+  currentStudents   Int                @default(0)
+  price             Float?
+  status            BatchStatus        @default(UPCOMING)
+  location          String?
+  meetingUrl        String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   assignedTrainerId String?
-  enrolledStudents Int       @default(0)
-  waitlistCount   Int        @default(0)
-  deliveryMode    BatchDeliveryMode?
+  batchCode         String?            @unique
+  batchType         BatchTypeDisplay?
   classroomLocation String?
-  onlinePlatform  String?
-  courseReviews   CourseReview[]
+  deliveryMode      BatchDeliveryMode?
+  enrolledStudents  Int                @default(0)
+  onlinePlatform    String?
+  scheduleDetails   Json?
+  timezone          String?            @default("IST")
+  waitlistCount     Int                @default(0)
+  course            Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  trainer           Trainer            @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  courseReviews     CourseReview[]
 
   @@index([courseId])
   @@index([trainerId])
@@ -313,38 +301,36 @@ model CourseBatch {
 }
 
 model CourseReview {
-  id           String   @id @default(cuid())
-  courseId     String
-  studentName  String
-  studentEmail String
-  rating       Int
-  comment      String?
-  verified     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  // Comprehensive schema
-  studentId    String?
-  batchId      String?
-  contentQualityRating Int?
-  trainerRating Int?
-  supportRating Int?
+  id                     String       @id @default(cuid())
+  courseId               String
+  studentName            String
+  studentEmail           String
+  rating                 Int
+  comment                String?
+  verified               Boolean      @default(false)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  batchId                String?
+  cons                   String?
+  contentQualityRating   Int?
+  courseCompletedDate    DateTime?
+  isFeatured             Boolean      @default(false)
+  isVerified             Boolean      @default(false)
   placementSupportRating Int?
-  valueForMoneyRating Int?
-  reviewTitle  String?
-  reviewText   String?  @db.Text
-  pros         String?  @db.Text
-  cons         String?  @db.Text
-  studentDesignation String?
-  studentCompany String?
-  studentPhotoUrl String?
-  isVerified   Boolean  @default(false)
-  isFeatured   Boolean  @default(false)
-  reviewStatus ReviewStatus @default(PENDING)
-  courseCompletedDate DateTime?
-  reviewDate   DateTime?
-  batch        CourseBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  pros                   String?
+  reviewDate             DateTime?
+  reviewStatus           ReviewStatus @default(PENDING)
+  reviewText             String?
+  reviewTitle            String?
+  studentCompany         String?
+  studentDesignation     String?
+  studentId              String?
+  studentPhotoUrl        String?
+  supportRating          Int?
+  trainerRating          Int?
+  valueForMoneyRating    Int?
+  batch                  CourseBatch? @relation(fields: [batchId], references: [id])
+  course                 Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId])
   @@index([rating])
@@ -354,87 +340,87 @@ model CourseReview {
 }
 
 model CoursePrerequisite {
-  id                String           @id @default(cuid())
-  courseId          String
-  prerequisiteType PrerequisiteType
-  prerequisiteTitle String?
-  prerequisiteDescription String?    @db.Text
-  sortOrder         Int?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  course            Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id                      String           @id @default(cuid())
+  courseId                String
+  prerequisiteType        PrerequisiteType
+  prerequisiteTitle       String?
+  prerequisiteDescription String?
+  sortOrder               Int?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  course                  Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId, sortOrder])
 }
 
 model CourseFaq {
-  id          String   @id @default(cuid())
-  courseId    String
-  question    String   @db.Text
-  answer      String   @db.Text
-  category    String?
-  sortOrder   Int?
-  isFeatured  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  courseId   String
+  question   String
+  answer     String
+  category   String?
+  sortOrder  Int?
+  isFeatured Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId, sortOrder])
 }
 
 model CourseMedia {
-  id              String        @id @default(cuid())
-  courseId        String
-  mediaType       CourseMediaType
-  mediaUrl        String
-  mediaTitle      String?
-  mediaDescription String?      @db.Text
-  thumbnailUrl    String?
-  isPrimary       Boolean       @default(false)
-  sortOrder       Int?
-  createdAt       DateTime      @default(now())
-  course          Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id               String          @id @default(cuid())
+  courseId         String
+  mediaType        CourseMediaType
+  mediaUrl         String
+  mediaTitle       String?
+  mediaDescription String?
+  thumbnailUrl     String?
+  isPrimary        Boolean         @default(false)
+  sortOrder        Int?
+  createdAt        DateTime        @default(now())
+  course           Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId, mediaType])
 }
 
 model CourseOutcome {
-  id                      String   @id @default(cuid())
-  courseId                String
-  batchId                 String?
-  totalStudents           Int?
-  studentsPlaced          Int?
-  placementRate           Decimal?
-  averageSalary           Decimal?
-  minSalary               Decimal?
-  maxSalary               Decimal?
-  placementCompanies      Json?
-  averagePreAssessmentScore Decimal?
+  id                         String   @id @default(cuid())
+  courseId                   String
+  batchId                    String?
+  totalStudents              Int?
+  studentsPlaced             Int?
+  placementRate              Decimal?
+  averageSalary              Decimal?
+  minSalary                  Decimal?
+  maxSalary                  Decimal?
+  placementCompanies         Json?
+  averagePreAssessmentScore  Decimal?
   averagePostAssessmentScore Decimal?
-  skillImprovementPercent Decimal?
-  completionRate          Decimal?
-  projectSubmissionRate   Decimal?
-  dataPeriod              String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-  course                  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  skillImprovementPercent    Decimal?
+  completionRate             Decimal?
+  projectSubmissionRate      Decimal?
+  dataPeriod                 String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  course                     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId])
 }
 
 model IndustrySpecificCourse {
-  id                        String          @id @default(cuid())
-  courseId                  String
-  industryVertical          IndustryVertical
+  id                          String           @id @default(cuid())
+  courseId                    String
+  industryVertical            IndustryVertical
   industryChallengesAddressed Json?
-  complianceCertifications Json?
-  technologyStackFocus      Json?
-  domainKnowledgeIncluded   String?          @db.Text
-  industryCaseStudies       Json?
-  sampleProjects            Json?
-  createdAt                 DateTime        @default(now())
-  updatedAt                 DateTime        @updatedAt
-  course                    Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  complianceCertifications    Json?
+  technologyStackFocus        Json?
+  domainKnowledgeIncluded     String?
+  industryCaseStudies         Json?
+  sampleProjects              Json?
+  createdAt                   DateTime         @default(now())
+  updatedAt                   DateTime         @updatedAt
+  course                      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([industryVertical])
 }
@@ -758,22 +744,22 @@ model MasterCategory {
 }
 
 model MasterIndustry {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                     String                  @id @default(cuid())
+  name                   String                  @unique
+  slug                   String                  @unique
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
   roleAssignmentRequests RoleAssignmentRequest[]
 }
 
 model MasterDepartment {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                     String                  @id @default(cuid())
+  name                   String                  @unique
+  slug                   String                  @unique
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
   roleAssignmentRequests RoleAssignmentRequest[]
 }
 
@@ -805,44 +791,42 @@ model MasterDomain {
 }
 
 model User {
-  id                 String                  @id @default(cuid())
-  email              String                  @unique
-  password           String
-  name               String
-  role               UserRole                @default(ASSESSOR)
-  userType           UserType                @default(TENANT)
-  clientId           String?
-  employeeId         String?                 @unique
-  department         String?
-  departmentId       String?
-  projectId          String?
-  accountType        AccountType             @default(INDIVIDUAL)
-  isActive           Boolean                 @default(true)
-  emailVerified      DateTime?
-  failedAttempts     Int                     @default(0)
-  lockoutUntil       DateTime?
-  createdAt          DateTime                @default(now())
-  updatedAt          DateTime                @updatedAt
-  assignedRoleId     String?
-  assessorProfile    AssessorProfile?
-  managedProjects    ProjectManager[]
-  projectAssessments ProjectUserAssessment[]
-  assignedRole       Role?                   @relation("UserRole", fields: [assignedRoleId], references: [id])
-  client             Client?                 @relation(fields: [clientId], references: [id])
-  dept               Department?             @relation(fields: [departmentId], references: [id])
-  proj               Project?                @relation(fields: [projectId], references: [id])
-  assessments        UserAssessmentModel[]
-  reports            Report[]
-  componentLibrariesCreated ComponentLibrary[]
+  id                                String                     @id @default(cuid())
+  email                             String                     @unique
+  password                          String
+  name                              String
+  role                              UserRole                   @default(ASSESSOR)
+  clientId                          String?
+  employeeId                        String?                    @unique
+  department                        String?
+  departmentId                      String?
+  projectId                         String?
+  accountType                       AccountType                @default(INDIVIDUAL)
+  isActive                          Boolean                    @default(true)
+  emailVerified                     DateTime?
+  createdAt                         DateTime                   @default(now())
+  updatedAt                         DateTime                   @updatedAt
+  assignedRoleId                    String?
+  failedAttempts                    Int                        @default(0)
+  lockoutUntil                      DateTime?
+  userType                          UserType                   @default(TENANT)
   adaptiveComponentLibrariesCreated AdaptiveComponentLibrary[]
-  publishRequestsAsRequester GlobalPublishRequest[] @relation("PublishRequester")
-  publishRequestsAsReviewer  GlobalPublishRequest[] @relation("PublishReviewer")
-  
-  // NEW: Relations for role/competency creation and approval
-  rolesCreated              Role[]                   @relation("RoleCreatedBy")
-  competenciesCreated       Competency[]              @relation("CompetencyCreatedBy")
-  submittedApprovals        GlobalApprovalRequest[]   @relation("SubmittedApprovals")
-  reviewedApprovals         GlobalApprovalRequest[]   @relation("ReviewedApprovals")
+  assessorProfile                   AssessorProfile?
+  competenciesCreated               Competency[]               @relation("CompetencyCreatedBy")
+  componentLibrariesCreated         ComponentLibrary[]
+  reviewedApprovals                 GlobalApprovalRequest[]    @relation("ReviewedApprovals")
+  submittedApprovals                GlobalApprovalRequest[]    @relation("SubmittedApprovals")
+  publishRequestsAsRequester        GlobalPublishRequest[]     @relation("PublishRequester")
+  publishRequestsAsReviewer         GlobalPublishRequest[]     @relation("PublishReviewer")
+  managedProjects                   ProjectManager[]
+  projectAssessments                ProjectUserAssessment[]
+  reports                           Report[]
+  rolesCreated                      Role[]                     @relation("RoleCreatedBy")
+  assignedRole                      Role?                      @relation("UserRole", fields: [assignedRoleId], references: [id])
+  client                            Client?                    @relation(fields: [clientId], references: [id])
+  dept                              Department?                @relation(fields: [departmentId], references: [id])
+  proj                              Project?                   @relation(fields: [projectId], references: [id])
+  assessments                       UserAssessmentModel[]
 
   @@index([email])
   @@index([employeeId])
@@ -866,126 +850,98 @@ model AssessorProfile {
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Removed legacy model
-
-// Internal models removed for consolidation
-
 model ComponentQuestion {
-  id          String @id @default(cuid())
-  componentId String
-
-  questionText String
-  questionType QuestionType
-
-  options       Json? // For MCQ: [{ text, isCorrect, order }]
-  correctAnswer String? // For short answer, true/false
-
-  points    Int  @default(1)
-  timeLimit Int? // Seconds
-
-  linkedIndicators String[] // Array of indicator UUIDs
+  id               String                      @id @default(cuid())
+  componentId      String
+  questionText     String
+  questionType     QuestionType
+  points           Int                         @default(1)
+  timeLimit        Int?
+  order            Int                         @default(0)
+  options          Json?
+  correctAnswer    String?
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
+  linkedIndicators String[]
   explanation      String?
-
-  order    Int   @default(0)
-  metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  component AssessmentModelComponent    @relation(fields: [componentId], references: [id], onDelete: Cascade)
-  responses ComponentQuestionResponse[]
+  metadata         Json?
+  component        AssessmentModelComponent    @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  responses        ComponentQuestionResponse[]
 
   @@index([componentId])
 }
 
-// Removed Prerequisite model
-
 model AssessmentModel {
-  id        String  @id @default(cuid())
-  tenantId  String?
-  createdBy String
-
-  name        String
-  code        String  @unique // AUTO: ASM001
-  slug        String  @unique // Legacy DB column, synced with code
-  description String?
-
-  sourceType  ModelSourceType   @default(ROLE_BASED)
-  roleId      String?
-  targetLevel ProficiencyLevel? @default(JUNIOR)
-
-  durationMinutes        Int?
-  passingScore           Int?    @default(60) // Percentage
-  maxAttempts            Int     @default(3)
-  randomizeQuestions     Boolean @default(false)
-  showResultsImmediately Boolean @default(true)
-
-  status     AssessmentStatus @default(DRAFT)
-  isTemplate Boolean          @default(false)
-
-  version  String  @default("1.0.0")
-  isActive Boolean @default(true)
-  metadata Json? // Additional settings
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  publishedAt DateTime?
-
-  // NEW: Visibility and publishing (Phase 1)
-  visibility             String   @default("PRIVATE") // PRIVATE | ORGANIZATION | GLOBAL
-  publishedToGlobal       Boolean  @default(false)
-  globalPublishStatus     String?  // PENDING | APPROVED | REJECTED
+  id                       String                     @id @default(cuid())
+  name                     String
+  slug                     String                     @unique
+  description              String?
+  sourceType               ModelSourceType            @default(ROLE_BASED)
+  roleId                   String?
+  targetLevel              ProficiencyLevel?          @default(JUNIOR)
+  visibility               String                     @default("PRIVATE")
+  clientId                 String?
+  version                  String                     @default("1.0.0")
+  isActive                 Boolean                    @default(true)
+  createdBy                String
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  tenantId                 String?
+  code                     String                     @unique
+  passingScore             Int?                       @default(60)
+  durationMinutes          Int?
+  maxAttempts              Int                        @default(3)
+  randomizeQuestions       Boolean                    @default(false)
+  showResultsImmediately   Boolean                    @default(true)
+  status                   AssessmentStatus           @default(DRAFT)
+  isTemplate               Boolean                    @default(false)
+  metadata                 Json?
+  publishedAt              DateTime?
+  publishedToGlobal        Boolean                    @default(false)
+  globalPublishStatus      String?
   globalPublishRequestedBy String?
   globalPublishRequestedAt DateTime?
   globalPublishApprovedBy  String?
   globalPublishApprovedAt  DateTime?
-  completionPercentage    Int      @default(0) // 0-100
-
-  tenant              Tenant?                    @relation(fields: [tenantId], references: [id])
-  role                Role?                      @relation(fields: [roleId], references: [id])
-  components          AssessmentModelComponent[]
-  projectAssignments  ProjectAssessmentModel[]
-  userAssignments     UserAssessmentModel[]
-  memberAssessments   MemberAssessment[]
-  activityAssessments ActivityAssessment[]
-  client              Client?                    @relation(fields: [clientId], references: [id])
-  clientId            String?
+  completionPercentage     Int                        @default(0)
+  activityAssessments      ActivityAssessment[]
+  client                   Client?                    @relation(fields: [clientId], references: [id])
+  role                     Role?                      @relation(fields: [roleId], references: [id])
+  tenant                   Tenant?                    @relation(fields: [tenantId], references: [id])
+  components               AssessmentModelComponent[]
+  memberAssessments        MemberAssessment[]
+  projectAssignments       ProjectAssessmentModel[]
+  userAssignments          UserAssessmentModel[]
 }
 
 model AssessmentModelComponent {
-  id           String  @id @default(cuid())
-  modelId      String
-  competencyId String?
-
-  weight       Float             @default(1.0)
-  targetLevel  ProficiencyLevel?
-  indicatorIds String[] // Array of UUIDs from competencies
-
-  order                Int     @default(0)
-  isRequired           Boolean @default(true)
-  isTimed              Boolean @default(true)
-  customDuration       Int?
-  difficultyAdaptation Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // NEW: Component library and metadata (Phase 1)
-  isFromLibrary       Boolean  @default(false)
-  libraryComponentId  String?
-  componentType      String   @default("QUESTIONNAIRE") // MCQ | SITUATIONAL | CODE | ESSAY | VOICE | VIDEO | PANEL | ADAPTIVE_AI | QUESTIONNAIRE
-  status             String   @default("DRAFT") // DRAFT | IN_PROGRESS | COMPLETE
-  completionPercentage Int    @default(0)
-  estimatedDuration   Int?    // Minutes
-  config             Json?    // Component-specific config (VOICE, VIDEO, CODE, ADAPTIVE_AI)
-
+  id                       String                    @id @default(cuid())
+  modelId                  String
+  order                    Int                       @default(0)
+  isRequired               Boolean                   @default(true)
+  isTimed                  Boolean                   @default(true)
+  customDuration           Int?
+  difficultyAdaptation     Boolean                   @default(false)
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  competencyId             String?
+  indicatorIds             String[]
+  targetLevel              ProficiencyLevel?
+  weight                   Float                     @default(1.0)
+  isFromLibrary            Boolean                   @default(false)
+  libraryComponentId       String?
+  componentType            String                    @default("QUESTIONNAIRE")
+  status                   String                    @default("DRAFT")
+  completionPercentage     Int                       @default(0)
+  estimatedDuration        Int?
+  config                   Json?
+  adaptiveSessions         AdaptiveSession[]
   competency               Competency?               @relation(fields: [competencyId], references: [id])
+  libraryComponent         ComponentLibrary?         @relation("ComponentToLibrary", fields: [libraryComponentId], references: [id])
   model                    AssessmentModel           @relation(fields: [modelId], references: [id], onDelete: Cascade)
   questions                ComponentQuestion[]
-  userAssessmentComponents UserAssessmentComponent[]
-  libraryComponent         ComponentLibrary?        @relation("ComponentToLibrary", fields: [libraryComponentId], references: [id])
-  adaptiveSessions         AdaptiveSession[]
   panelInterviews          PanelInterview[]
+  userAssessmentComponents UserAssessmentComponent[]
 
   @@index([modelId])
   @@index([competencyId])
@@ -1145,48 +1101,46 @@ model ComponentQuestionResponse {
 }
 
 model Tenant {
-  id                String             @id @default(cuid())
-  name              String
-  slug              String             @unique
-  type              TenantType         @default(CORPORATE)
-  email             String             @unique
-  phone             String?
-  address           String?
-  logo              String?
-  brandColor        String?
-  isActive          Boolean            @default(true)
-  plan              TenantPlan         @default(STARTER)
-  subscriptionStart DateTime           @default(now())
-  subscriptionEnd   DateTime?
-  maxMembers        Int                @default(100)
-  maxActivities     Int                @default(5)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  createdBy         String
-  features          Json? // { "aiQuestions": true, "bulkUpload": true, ... }
-  subscriptionTier  SubscriptionTier   @default(STARTER)
-  subscriptions     Subscription[]
-  invoices          Invoice[]
-  usageRecords      UsageRecord[]
-  featureActivations FeatureActivation[]
-  activities        Activity[]
-  approvalRequests       ApprovalRequest[]
-  roleAssignmentRequests RoleAssignmentRequest[]
-  competencies           Competency[]
-  members           Member[]
-  orgUnits          OrganizationUnit[]
-  roles             Role[]
-  settings          TenantSettings?
-  surveys           Survey[]
-  reports           Report[]
-  reportTemplates   ReportTemplate[]
-  curriculumNodes   CurriculumNode[]
-  assessmentModels  AssessmentModel[]
-  componentLibraries ComponentLibrary[]
+  id                         String                     @id @default(cuid())
+  name                       String
+  slug                       String                     @unique
+  type                       TenantType                 @default(CORPORATE)
+  email                      String                     @unique
+  phone                      String?
+  address                    String?
+  logo                       String?
+  brandColor                 String?
+  isActive                   Boolean                    @default(true)
+  plan                       TenantPlan                 @default(STARTER)
+  subscriptionStart          DateTime                   @default(now())
+  subscriptionEnd            DateTime?
+  maxMembers                 Int                        @default(100)
+  maxActivities              Int                        @default(5)
+  createdAt                  DateTime                   @default(now())
+  updatedAt                  DateTime                   @updatedAt
+  createdBy                  String
+  features                   Json?
+  subscriptionTier           SubscriptionTier           @default(STARTER)
+  activities                 Activity[]
   adaptiveComponentLibraries AdaptiveComponentLibrary[]
-  
-  // NEW: Global approval requests
-  globalApprovalRequests GlobalApprovalRequest[]
+  approvalRequests           ApprovalRequest[]
+  assessmentModels           AssessmentModel[]
+  competencies               Competency[]
+  componentLibraries         ComponentLibrary[]
+  curriculumNodes            CurriculumNode[]
+  featureActivations         FeatureActivation[]
+  globalApprovalRequests     GlobalApprovalRequest[]
+  invoices                   Invoice[]
+  members                    Member[]
+  orgUnits                   OrganizationUnit[]
+  reports                    Report[]
+  reportTemplates            ReportTemplate[]
+  roles                      Role[]
+  roleAssignmentRequests     RoleAssignmentRequest[]
+  subscriptions              Subscription[]
+  surveys                    Survey[]
+  settings                   TenantSettings?
+  usageRecords               UsageRecord[]
 
   @@index([slug])
   @@index([type])
@@ -1194,99 +1148,83 @@ model Tenant {
 }
 
 model TenantSettings {
-  id                    String  @id @default(cuid())
-  tenantId              String  @unique
+  id                    String   @id @default(cuid())
+  tenantId              String   @unique
   primaryColor          String?
   secondaryColor        String?
   logoUrl               String?
   faviconUrl            String?
   customDomain          String?
-  enableOrgUnits        Boolean @default(true)
-  enableManagers        Boolean @default(true)
-  enableCustomTemplates Boolean @default(false)
+  enableOrgUnits        Boolean  @default(true)
+  enableManagers        Boolean  @default(true)
+  enableCustomTemplates Boolean  @default(false)
   emailFromName         String?
   emailFromAddress      String?
   smtpConfig            Json?
-
-  // Organization Details
-  city           String?
-  district       String?
-  state          String?
-  country        String?
-  timezone       String?
-  description    String?
-  lineOfBusiness String?
-  website        String?
-  phone          String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  city                  String?
+  country               String?
+  description           String?
+  district              String?
+  lineOfBusiness        String?
+  phone                 String?
+  state                 String?
+  timezone              String?
+  website               String?
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {
-  id        String   @id @default(cuid())
-  tenantId  String
-  planType  SubscriptionTier
-  userCount Int
-  billingPeriod BillingPeriod
-  
-  features  Json // Snapshot of features at time of sub
-  
-  basePrice      Decimal @db.Decimal(10, 2)
-  addonsPrice    Decimal @db.Decimal(10, 2)
-  discountPercent Decimal @db.Decimal(5, 2)
-  totalPrice     Decimal @db.Decimal(10, 2)
-  currency       String  @default("USD")
-  
-  stripeCustomerId   String?
-  stripeSubscriptionId String?
-  stripePriceId      String?
-  
-  status             SubscriptionStatus
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  cancelAtPeriodEnd  Boolean             @default(false)
-  
-  assessmentsUsedThisPeriod Int @default(0)
-  assessmentsIncluded       Int @default(100)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  tenant       Tenant        @relation(fields: [tenantId], references: [id])
-  invoices     Invoice[]
-  usageRecords UsageRecord[]
+  id                        String             @id @default(cuid())
+  tenantId                  String
+  planType                  SubscriptionTier
+  userCount                 Int
+  billingPeriod             BillingPeriod
+  features                  Json
+  basePrice                 Decimal            @db.Decimal(10, 2)
+  addonsPrice               Decimal            @db.Decimal(10, 2)
+  discountPercent           Decimal            @db.Decimal(5, 2)
+  totalPrice                Decimal            @db.Decimal(10, 2)
+  currency                  String             @default("USD")
+  stripeCustomerId          String?
+  stripeSubscriptionId      String?
+  stripePriceId             String?
+  status                    SubscriptionStatus
+  currentPeriodStart        DateTime
+  currentPeriodEnd          DateTime
+  cancelAtPeriodEnd         Boolean            @default(false)
+  assessmentsUsedThisPeriod Int                @default(0)
+  assessmentsIncluded       Int                @default(100)
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+  invoices                  Invoice[]
+  tenant                    Tenant             @relation(fields: [tenantId], references: [id])
+  usageRecords              UsageRecord[]
 
   @@index([tenantId])
   @@index([status])
 }
 
 model Invoice {
-  id             String   @id @default(cuid())
-  subscriptionId String
-  tenantId       String
-  
-  invoiceNumber String @unique
-  amountDue     Decimal @db.Decimal(10, 2)
-  amountPaid    Decimal @db.Decimal(10, 2)
-  currency      String  @default("USD")
-  
-  status  InvoiceStatus
-  dueDate DateTime
-  paidAt  DateTime?
-  
+  id                    String        @id @default(cuid())
+  subscriptionId        String
+  tenantId              String
+  invoiceNumber         String        @unique
+  amountDue             Decimal       @db.Decimal(10, 2)
+  amountPaid            Decimal       @db.Decimal(10, 2)
+  currency              String        @default("USD")
+  status                InvoiceStatus
+  dueDate               DateTime
+  paidAt                DateTime?
   stripeInvoiceId       String?
   stripePaymentIntentId String?
-  
-  lineItems Json
-  pdfUrl    String?
-  
-  createdAt DateTime @default(now())
-  
-  subscription Subscription @relation(fields: [subscriptionId], references: [id])
-  tenant       Tenant       @relation(fields: [tenantId], references: [id])
-  usageRecords UsageRecord[]
+  lineItems             Json
+  pdfUrl                String?
+  createdAt             DateTime      @default(now())
+  subscription          Subscription  @relation(fields: [subscriptionId], references: [id])
+  tenant                Tenant        @relation(fields: [tenantId], references: [id])
+  usageRecords          UsageRecord[]
 
   @@index([subscriptionId])
   @@index([tenantId])
@@ -1294,24 +1232,20 @@ model Invoice {
 }
 
 model UsageRecord {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   subscriptionId String
   tenantId       String
   invoiceId      String?
-  
-  resourceType String // ASSESSMENT, CODE_TEST, VOICE_INTERVIEW, SURVEY_RESPONSE
-  resourceId   String?
-  quantity     Int    @default(1)
-  
-  unitPrice  Decimal @db.Decimal(10, 2)
-  totalPrice Decimal @db.Decimal(10, 2)
-  
-  recordedAt DateTime @default(now())
-  billedAt   DateTime?
-  
-  subscription Subscription @relation(fields: [subscriptionId], references: [id])
-  tenant       Tenant       @relation(fields: [tenantId], references: [id])
-  invoice      Invoice?      @relation(fields: [invoiceId], references: [id])
+  resourceType   String
+  resourceId     String?
+  quantity       Int          @default(1)
+  unitPrice      Decimal      @db.Decimal(10, 2)
+  totalPrice     Decimal      @db.Decimal(10, 2)
+  recordedAt     DateTime     @default(now())
+  billedAt       DateTime?
+  invoice        Invoice?     @relation(fields: [invoiceId], references: [id])
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  tenant         Tenant       @relation(fields: [tenantId], references: [id])
 
   @@index([subscriptionId])
   @@index([tenantId])
@@ -1319,86 +1253,72 @@ model UsageRecord {
 }
 
 model FeatureActivation {
-  id        String   @id @default(cuid())
-  tenantId  String
-  featureKey String
-  
-  activatedAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  tenantId    String
+  featureKey  String
+  activatedAt DateTime  @default(now())
   activatedBy String?
-  
-  expiresAt DateTime?
-  isActive  Boolean   @default(true)
-  
-  tenant Tenant @relation(fields: [tenantId], references: [id])
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@index([featureKey])
 }
 
 model Member {
-  id       String     @id @default(cuid())
-  tenantId String?
-  type     MemberType @default(EMPLOYEE)
-  role     MemberRole @default(ASSESSOR) // System Access Role
-  status   MemberStatus @default(PENDING)
-  invitationToken      String?   @unique
-  invitationSentAt     DateTime?
-  invitationAcceptedAt DateTime?
-
-  // Personal Info
-  memberCode    String? // Legacy / display code
-  enrollmentNumber String? @unique // Student enrollment ID (INSTITUTION)
-  employeeId      String? @unique // Employee ID (CORPORATE)
-  firstName     String?
-  lastName      String?
-  name          String // Computable or Full Name
-  email         String    @unique
-  password      String
-  phone         String?
-  designation   String?
-  reportingToId String?
-  joiningDate   DateTime?
-
-  externalId    String?
-  orgUnitId     String?
-  isActive      Boolean   @default(true)
-  emailVerified DateTime?
-  avatar        String?
-  bio           String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Student status (Enhancement #2 - INSTITUTION)
-  hasGraduated   Boolean   @default(false)
-  graduationDate DateTime? @db.Date
-
-  // Faculty type (INSTITUTION) - PERMANENT, ADJUNCT, VISITING (can assign assessments based on curriculum)
-  facultyType   String?
-
-  assignedActivities ActivityMember[]
-  reports            Report[]
-  orgUnit            OrganizationUnit?  @relation(fields: [orgUnitId], references: [id])
-  tenant             Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assessments        MemberAssessment[]
-  adaptiveSessions   AdaptiveSession[]
-  managedUnits       OrganizationUnit[] @relation("UnitManager")
-  surveyResponses    SurveyResponse[]
-
-  // Relations
-  reportingManager Member?    @relation("ReportingManager", fields: [reportingToId], references: [id])
-  directReports    Member[]   @relation("ReportingManager")
-  managedProjects  Activity[] @relation("ProjectOwner")
-
-  currentRoleId            String?
+  id                       String                  @id @default(cuid())
+  tenantId                 String?
+  type                     MemberType              @default(EMPLOYEE)
+  role                     MemberRole              @default(ASSESSOR)
+  email                    String                  @unique
+  password                 String
+  name                     String
+  externalId               String?
+  orgUnitId                String?
+  isActive                 Boolean                 @default(true)
+  emailVerified            DateTime?
+  phone                    String?
+  avatar                   String?
+  bio                      String?
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
   aspirationalRoleId       String?
-  previousRoles            Json? // List of past roles/titles
-  careerFormData           Json? // The 9-section form data
-  selfAssignedCompetencies Json? // Competencies set by the user
-  developmentPlan          Json? // Auto-generated or manual plan based on gaps
-  currentRole              Role?   @relation("MemberCurrentRole", fields: [currentRoleId], references: [id])
-  aspirationalRole         Role?   @relation("MemberAspirationalRole", fields: [aspirationalRoleId], references: [id])
-  metadata                 Json?   // For B2C: { userMode, freeAssessmentsUsed, subscriptionTier }
+  careerFormData           Json?
+  currentRoleId            String?
+  previousRoles            Json?
+  selfAssignedCompetencies Json?
+  enrollmentNumber         String?                 @unique
+  employeeId               String?                 @unique
+  hasGraduated             Boolean                 @default(false)
+  graduationDate           DateTime?               @db.Date
+  facultyType              String?
+  designation              String?
+  developmentPlan          Json?
+  firstName                String?
+  invitationAcceptedAt     DateTime?
+  invitationSentAt         DateTime?
+  invitationToken          String?                 @unique
+  joiningDate              DateTime?
+  lastName                 String?
+  memberCode               String?
+  metadata                 Json?
+  reportingToId            String?
+  status                   MemberStatus            @default(PENDING)
+  managedProjects          Activity[]              @relation("ProjectOwner")
+  assignedActivities       ActivityMember[]
+  adaptiveSessions         AdaptiveSession[]
+  aspirationalRole         Role?                   @relation("MemberAspirationalRole", fields: [aspirationalRoleId], references: [id])
+  currentRole              Role?                   @relation("MemberCurrentRole", fields: [currentRoleId], references: [id])
+  orgUnit                  OrganizationUnit?       @relation(fields: [orgUnitId], references: [id])
+  reportingManager         Member?                 @relation("ReportingManager", fields: [reportingToId], references: [id])
+  directReports            Member[]                @relation("ReportingManager")
+  tenant                   Tenant?                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assessments              MemberAssessment[]
+  managedUnits             OrganizationUnit[]      @relation("UnitManager")
+  reports                  Report[]
   roleAssignmentRequests   RoleAssignmentRequest[]
+  surveyResponses          SurveyResponse[]
 
   @@index([tenantId])
   @@index([type])
@@ -1418,9 +1338,9 @@ model OrganizationUnit {
   description      String?
   parentId         String?
   managerId        String?
-  isActive         Boolean            @default(true)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+  isActive         Boolean            @default(true)
   scopedActivities ActivityOrgUnit[]
   members          Member[]
   manager          Member?            @relation("UnitManager", fields: [managerId], references: [id])
@@ -1436,39 +1356,34 @@ model OrganizationUnit {
 }
 
 model Activity {
-  id          String         @id @default(cuid())
-  tenantId    String
-  type        ActivityType   @default(PROJECT)
-  name        String
-  slug        String
-  description String?
-  status      ActivityStatus @default(ACTIVE)
-  startDate   DateTime
-  endDate     DateTime?
-  createdBy   String
-
-  // New Fields for M1-6
-  code     String  @default("PROJ001")
-  ownerId  String?
-  metadata Json?
-
-  // Course-specific (nullable for backward compatibility)
-  yearBegin     Int?
-  yearEnd       Int?
-  division      CourseDivision?
-  semesterCount Int?
-  yearCount     Int?
-  deletedAt     DateTime?
-  deletedBy     String?
-
-  owner             Member?              @relation("ProjectOwner", fields: [ownerId], references: [id])
+  id                String               @id @default(cuid())
+  tenantId          String
+  type              ActivityType         @default(PROJECT)
+  name              String
+  slug              String
+  description       String?
+  status            ActivityStatus       @default(ACTIVE)
+  startDate         DateTime
+  endDate           DateTime?
+  createdBy         String
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
+  yearBegin         Int?
+  yearEnd           Int?
+  division          CourseDivision?
+  semesterCount     Int?
+  yearCount         Int?
+  deletedAt         DateTime?
+  deletedBy         String?
+  code              String               @default("PROJ001")
+  metadata          Json?
+  ownerId           String?
+  owner             Member?              @relation("ProjectOwner", fields: [ownerId], references: [id])
   tenant            Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assessments       ActivityAssessment[]
+  curriculumNodes   ActivityCurriculum[]
   members           ActivityMember[]
   orgUnits          ActivityOrgUnit[]
-  curriculumNodes   ActivityCurriculum[]
   memberAssessments MemberAssessment[]
 
   @@unique([tenantId, slug])
@@ -1493,12 +1408,12 @@ model ActivityMember {
 }
 
 model ActivityOrgUnit {
-  id            String           @id @default(cuid())
-  activityId    String
-  orgUnitId     String
-  relationship  String?          // 'SCOPED_TO' (course→dept), 'CONTAINS' (course→class)
-  createdAt     DateTime         @default(now())
-  activity      Activity         @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  id           String           @id @default(cuid())
+  activityId   String
+  orgUnitId    String
+  createdAt    DateTime         @default(now())
+  relationship String?
+  activity     Activity         @relation(fields: [activityId], references: [id], onDelete: Cascade)
   orgUnit      OrganizationUnit @relation(fields: [orgUnitId], references: [id], onDelete: Cascade)
 
   @@unique([activityId, orgUnitId])
@@ -1508,21 +1423,20 @@ model ActivityOrgUnit {
 }
 
 model CurriculumNode {
-  id          String         @id @default(cuid())
+  id          String               @id @default(cuid())
   tenantId    String
-  type        CurriculumType @default(SUBJECT)
+  type        CurriculumType       @default(SUBJECT)
   name        String
   code        String
   description String?
   parentId    String?
-  isActive    Boolean        @default(true)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  parent     CurriculumNode?      @relation("CurriculumHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children   CurriculumNode[]     @relation("CurriculumHierarchy")
-  tenant     Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  activities ActivityCurriculum[]
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  activities  ActivityCurriculum[]
+  parent      CurriculumNode?      @relation("CurriculumHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children    CurriculumNode[]     @relation("CurriculumHierarchy")
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1530,37 +1444,36 @@ model CurriculumNode {
 }
 
 model ActivityCurriculum {
-  id               String   @id @default(cuid())
+  id               String         @id @default(cuid())
   activityId       String
   curriculumNodeId String
-  createdAt        DateTime @default(now())
-
-  activity       Activity       @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  curriculumNode CurriculumNode @relation(fields: [curriculumNodeId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  activity         Activity       @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  curriculumNode   CurriculumNode @relation(fields: [curriculumNodeId], references: [id], onDelete: Cascade)
 
   @@unique([activityId, curriculumNodeId])
 }
 
 model MemberAssessment {
-  id                   String           @id @default(cuid())
+  id                   String            @id @default(cuid())
   memberId             String
   activityId           String?
   assessmentModelId    String
-  assignmentType       AssignmentType   @default(SELF_SELECTED)
+  assignmentType       AssignmentType    @default(SELF_SELECTED)
   assignedBy           String?
-  status               AssessmentStatus @default(DRAFT)
+  status               AssessmentStatus  @default(DRAFT)
   startedAt            DateTime?
   completedAt          DateTime?
   submittedAt          DateTime?
-  completionPercentage Float            @default(0)
+  completionPercentage Float             @default(0)
   overallScore         Float?
   passed               Boolean?
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
-  activity             Activity?        @relation(fields: [activityId], references: [id])
-  member               Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  assessmentModel      AssessmentModel  @relation(fields: [assessmentModelId], references: [id], onDelete: Cascade)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
   adaptiveSessions     AdaptiveSession[]
+  activity             Activity?         @relation(fields: [activityId], references: [id])
+  assessmentModel      AssessmentModel   @relation(fields: [assessmentModelId], references: [id], onDelete: Cascade)
+  member               Member            @relation(fields: [memberId], references: [id], onDelete: Cascade)
   panelInterviews      PanelInterview[]
 
   @@index([memberId])
@@ -1704,8 +1617,6 @@ model DepartmentManager {
   @@index([departmentId])
 }
 
-// Removed legacy model
-
 model RuntimeGeneratedQuestion {
   id                  String    @id @default(cuid())
   assessmentSessionId String
@@ -1731,117 +1642,86 @@ model RuntimeGeneratedQuestion {
 }
 
 model Role {
-  id                  String           @id @default(cuid())
-  name                String           @unique
-  code                String?          @unique
-  description         String
-  overallLevel        ProficiencyLevel @default(JUNIOR)
-  department          String?
-  industries          Industry[]
-  keyResponsibilities String?
-  requiredExperience  String?
-  educationRequired   String?
-  isActive            Boolean          @default(true)
-  createdBy           String?
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-  tenantId            String?
-  status              ApprovalStatus   @default(APPROVED) // DRAFT for new tenant roles
-
-  // NEW: Scope & Visibility
-  scope              String           @default("GLOBAL")
-  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM | CLASS (CLASS = Class Teacher's class, Institution)
-  
-  departmentId       String?          // null = org-wide, set = department-specific
-  teamId             String?          // TEAM scope: team id; CLASS scope: class (org unit) id
-  createdByUserId    String?          // who created this role
-  
-  // NEW: Experience Level Restriction
-  allowedLevels      String[]         @default(["JUNIOR","MIDDLE","SENIOR","EXPERT"])
-  // Institutions: ["JUNIOR"] only
-  
-  // NEW: Global Approval Workflow
-  globalSubmissionStatus  String?
-  // null | PENDING | APPROVED | REJECTED | CHANGES_REQUESTED
-  
-  globalSubmittedBy       String?
-  globalSubmittedAt       DateTime?
-  globalApprovedBy        String?
-  globalApprovedAt        DateTime?
-  globalRejectionReason   String?
-  
-  // Soft delete
-  deletedAt          DateTime?
-
-  // M1-8 Approval Fields
-  visibility      RoleVisibility @default(TENANT_SPECIFIC)
-  approvedBy      String?
-  approvedAt      DateTime?
-  rejectionReason String?
-
-  assessmentModels   AssessmentModel[]
-  tenant             Tenant?           @relation(fields: [tenantId], references: [id])
-  competencies       RoleCompetency[]
-  users              User[]            @relation("UserRole")
-  memberCurrent               Member[]                 @relation("MemberCurrentRole")
-  memberAspirational          Member[]                 @relation("MemberAspirationalRole")
+  id                                String                  @id @default(cuid())
+  name                              String                  @unique
+  code                              String?                 @unique
+  description                       String
+  overallLevel                      ProficiencyLevel        @default(JUNIOR)
+  department                        String?
+  industries                        Industry[]
+  keyResponsibilities               String?
+  requiredExperience                String?
+  educationRequired                 String?
+  isActive                          Boolean                 @default(true)
+  createdBy                         String?
+  createdAt                         DateTime                @default(now())
+  updatedAt                         DateTime                @updatedAt
+  tenantId                          String?
+  status                            ApprovalStatus          @default(APPROVED)
+  approvedAt                        DateTime?
+  approvedBy                        String?
+  rejectionReason                   String?
+  visibility                        RoleVisibility          @default(TENANT_SPECIFIC)
+  allowedLevels                     String[]                @default(["JUNIOR", "MIDDLE", "SENIOR", "EXPERT"])
+  createdByUserId                   String?
+  deletedAt                         DateTime?
+  departmentId                      String?
+  globalApprovedAt                  DateTime?
+  globalApprovedBy                  String?
+  globalRejectionReason             String?
+  globalSubmissionStatus            String?
+  globalSubmittedAt                 DateTime?
+  globalSubmittedBy                 String?
+  scope                             String                  @default("GLOBAL")
+  teamId                            String?
+  assessmentModels                  AssessmentModel[]
+  memberAspirational                Member[]                @relation("MemberAspirationalRole")
+  memberCurrent                     Member[]                @relation("MemberCurrentRole")
+  creator                           User?                   @relation("RoleCreatedBy", fields: [createdByUserId], references: [id])
+  tenant                            Tenant?                 @relation(fields: [tenantId], references: [id])
   roleAssignmentRequestsFromProfile RoleAssignmentRequest[] @relation("RoleAssignmentRequestRole")
-  
-  // NEW: Relations
-  creator            User?             @relation("RoleCreatedBy", fields: [createdByUserId], references: [id])
-  
+  competencies                      RoleCompetency[]
+  users                             User[]                  @relation("UserRole")
+
   @@index([scope])
   @@index([tenantId])
   @@index([globalSubmissionStatus])
 }
 
 model Competency {
-  id                        String                     @id @default(cuid())
-  name                      String                     @unique
-  description               String
-  category                  CompetencyCategory         @default(TECHNICAL)
-  industries                Industry[]
-  createdBy                 String?
-  createdAt                 DateTime                   @default(now())
-  updatedAt                 DateTime                   @updatedAt
-  usageCount                Int                        @default(0)
-  lastUsedAt                DateTime?
-  tenantId                  String?
-  status                    ApprovalStatus             @default(APPROVED)
-  
-  // NEW: Scope & Visibility (same pattern as Role)
-  scope              String           @default("GLOBAL")
-  // GLOBAL | ORGANIZATION | DEPARTMENT | TEAM | CLASS
-  
-  departmentId       String?          // null = org-wide, set = department-specific
-  teamId             String?          // TEAM scope: team id; CLASS scope: class (org unit) id
-  createdByUserId    String?          // who created this competency
-  
-  // NEW: Experience Level Restriction
-  allowedLevels      String[]         @default(["JUNIOR","MIDDLE","SENIOR","EXPERT"])
-  
-  // NEW: Global Approval
-  globalSubmissionStatus  String?
-  globalSubmittedBy       String?
-  globalSubmittedAt       DateTime?
-  globalApprovedBy        String?
-  globalApprovedAt        DateTime?
-  globalRejectionReason   String?
-  
-  // Soft delete
-  deletedAt          DateTime?
-  
-  tenant                    Tenant?                    @relation(fields: [tenantId], references: [id])
-  indicators                CompetencyIndicator[]
-  roleLinks                 RoleCompetency[]
-  assessmentModelComponents AssessmentModelComponent[]
-  componentLibraryEntries   ComponentLibrary[]
+  id                         String                     @id @default(cuid())
+  name                       String                     @unique
+  description                String
+  category                   CompetencyCategory         @default(TECHNICAL)
+  industries                 Industry[]
+  createdBy                  String?
+  createdAt                  DateTime                   @default(now())
+  updatedAt                  DateTime                   @updatedAt
+  usageCount                 Int                        @default(0)
+  lastUsedAt                 DateTime?
+  tenantId                   String?
+  status                     ApprovalStatus             @default(APPROVED)
+  allowedLevels              String[]                   @default(["JUNIOR", "MIDDLE", "SENIOR", "EXPERT"])
+  createdByUserId            String?
+  deletedAt                  DateTime?
+  departmentId               String?
+  globalApprovedAt           DateTime?
+  globalApprovedBy           String?
+  globalRejectionReason      String?
+  globalSubmissionStatus     String?
+  globalSubmittedAt          DateTime?
+  globalSubmittedBy          String?
+  scope                      String                     @default("GLOBAL")
+  teamId                     String?
   adaptiveComponentLibraries AdaptiveComponentLibrary[]
-  adaptiveSessions         AdaptiveSession[]
-  
-  // NEW: Relations
-  creator            User?             @relation("CompetencyCreatedBy", fields: [createdByUserId], references: [id])
-  
+  adaptiveSessions           AdaptiveSession[]
+  assessmentModelComponents  AssessmentModelComponent[]
+  creator                    User?                      @relation("CompetencyCreatedBy", fields: [createdByUserId], references: [id])
+  tenant                     Tenant?                    @relation(fields: [tenantId], references: [id])
+  indicators                 CompetencyIndicator[]
+  componentLibraryEntries    ComponentLibrary[]
+  roleLinks                  RoleCompetency[]
+
   @@index([scope])
   @@index([tenantId])
   @@index([globalSubmissionStatus])
@@ -1880,38 +1760,29 @@ model RoleCompetency {
   @@index([roleId])
 }
 
-// Phase 1: Component Library - reusable assessment components
 model ComponentLibrary {
-  id                 String   @id @default(cuid())
-  tenantId           String?
-  createdBy          String
-
-  name               String
-  description        String?
-
-  componentType      String   // MCQ | SITUATIONAL | CODE | ESSAY | VOICE | VIDEO | PANEL
-  competencyId       String
-  targetLevel        String   // JUNIOR | MIDDLE | SENIOR | EXPERT
-
-  visibility         String   @default("PRIVATE") // PRIVATE | ORGANIZATION | GLOBAL
-
-  usageCount         Int      @default(0)
-  rating             Decimal? @db.Decimal(3, 2)
-
-  questions          Json     // Array of questions
-  metadata           Json?
-
-  publishedToGlobal  Boolean  @default(false)
+  id                      String                     @id @default(cuid())
+  tenantId                String?
+  createdBy               String
+  name                    String
+  description             String?
+  componentType           String
+  competencyId            String
+  targetLevel             String
+  visibility              String                     @default("PRIVATE")
+  usageCount              Int                        @default(0)
+  rating                  Decimal?                   @db.Decimal(3, 2)
+  questions               Json
+  metadata                Json?
+  publishedToGlobal       Boolean                    @default(false)
   globalPublishApprovedBy String?
   globalPublishApprovedAt DateTime?
-
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  tenant             Tenant?  @relation(fields: [tenantId], references: [id])
-  creator            User     @relation(fields: [createdBy], references: [id])
-  competency         Competency @relation(fields: [competencyId], references: [id])
-  usedInComponents   AssessmentModelComponent[] @relation("ComponentToLibrary")
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime                   @updatedAt
+  usedInComponents        AssessmentModelComponent[] @relation("ComponentToLibrary")
+  competency              Competency                 @relation(fields: [competencyId], references: [id])
+  creator                 User                       @relation(fields: [createdBy], references: [id])
+  tenant                  Tenant?                    @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId])
   @@index([competencyId])
@@ -1920,66 +1791,61 @@ model ComponentLibrary {
   @@index([visibility])
 }
 
-// Phase 1: Component suggestions by category and level
 model ComponentSuggestion {
   id                 String   @id @default(cuid())
-
-  competencyCategory String   // TECHNICAL | BEHAVIORAL | COGNITIVE | DOMAIN_SPECIFIC
-  targetLevel        String   // JUNIOR | MIDDLE | SENIOR | EXPERT
-
-  suggestedType      String   // MCQ | SITUATIONAL | CODE | ESSAY | VOICE | VIDEO
-  priority           String   // HIGH | MEDIUM | LOW
+  competencyCategory String
+  targetLevel        String
+  suggestedType      String
+  priority           String
   reason             String
-
   createdAt          DateTime @default(now())
 
   @@index([competencyCategory, targetLevel])
 }
 
-// Panel Interview: Scheduling and evaluation (Phase: Panel Interview feature)
 model Panel {
-  id                String   @id @default(cuid())
-  tenantId          String?
-  name              String
-  description       String?
-  durationMinutes   Int      @default(60)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  interviews        PanelInterview[]
-  members           PanelMember[]
+  id              String           @id @default(cuid())
+  tenantId        String?
+  name            String
+  description     String?
+  durationMinutes Int              @default(60)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  interviews      PanelInterview[]
+  members         PanelMember[]
 
   @@index([tenantId])
 }
 
 model PanelMember {
-  id        String   @id @default(cuid())
-  panelId   String
-  userId    String
-  role      String?  // HIRING_MANAGER | TECHNICAL_LEAD | PEER_INTERVIEWER
-  createdAt DateTime @default(now())
-  panel    Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  id          String            @id @default(cuid())
+  panelId     String
+  userId      String
+  role        String?
+  createdAt   DateTime          @default(now())
   evaluations PanelEvaluation[]
+  panel       Panel             @relation(fields: [panelId], references: [id], onDelete: Cascade)
 
   @@index([panelId])
 }
 
 model PanelInterview {
-  id                  String   @id @default(cuid())
-  candidateId         String?  // Member.id or User.id
-  panelId             String
-  memberAssessmentId   String?  // Links to assessment submission
-  componentId         String?  // Links to assessment component
-  scheduledTime       DateTime
-  durationMinutes     Int      @default(60)
-  meetingLink         String?
-  status              String   @default("SCHEDULED") // SCHEDULED | COMPLETED | CANCELLED
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  completedAt         DateTime?
-  panel               Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
-  memberAssessment    MemberAssessment? @relation(fields: [memberAssessmentId], references: [id], onDelete: SetNull)
-  component           AssessmentModelComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
-  evaluations         PanelEvaluation[]
+  id                 String                    @id @default(cuid())
+  candidateId        String?
+  panelId            String
+  memberAssessmentId String?
+  componentId        String?
+  scheduledTime      DateTime
+  durationMinutes    Int                       @default(60)
+  meetingLink        String?
+  status             String                    @default("SCHEDULED")
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  completedAt        DateTime?
+  evaluations        PanelEvaluation[]
+  component          AssessmentModelComponent? @relation(fields: [componentId], references: [id])
+  memberAssessment   MemberAssessment?         @relation(fields: [memberAssessmentId], references: [id])
+  panel              Panel                     @relation(fields: [panelId], references: [id], onDelete: Cascade)
 
   @@index([panelId])
   @@index([candidateId])
@@ -1989,69 +1855,66 @@ model PanelInterview {
 }
 
 model PanelEvaluation {
-  id               String    @id @default(cuid())
+  id               String         @id @default(cuid())
   panelInterviewId String
   panelistId       String
   panelMemberId    String?
-  scores           Json?     // { competencyId: score }
-  feedback         String?   @db.Text
-  recommendation   String?   // STRONG_HIRE | HIRE | MAYBE | NO_HIRE
+  scores           Json?
+  feedback         String?
+  recommendation   String?
   submittedAt      DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   panelInterview   PanelInterview @relation(fields: [panelInterviewId], references: [id], onDelete: Cascade)
-  panelMember      PanelMember?   @relation(fields: [panelMemberId], references: [id], onDelete: SetNull)
+  panelMember      PanelMember?   @relation(fields: [panelMemberId], references: [id])
 
   @@index([panelInterviewId])
 }
 
-// Phase 1: Master Assessment Engine - Adaptive AI
 model AdaptiveComponentLibrary {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   tenantId     String
   createdBy    String
   name         String
   description  String?
   competencyId String
-  targetLevel  String   // JUNIOR | MIDDLE | SENIOR | EXPERT
-  config       Json     // min_questions, max_questions, starting_difficulty, etc.
-  visibility   String   @default("PRIVATE")
-  usageCount   Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  creator    User       @relation(fields: [createdBy], references: [id])
-  competency Competency @relation(fields: [competencyId], references: [id])
+  targetLevel  String
+  config       Json
+  visibility   String     @default("PRIVATE")
+  usageCount   Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  competency   Competency @relation(fields: [competencyId], references: [id])
+  creator      User       @relation(fields: [createdBy], references: [id])
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([competencyId])
 }
 
 model AdaptiveSession {
-  id                  String    @id @default(cuid())
-  memberAssessmentId   String
-  componentId          String
-  memberId             String
-  competencyId         String
-  currentAbility      Decimal   @db.Decimal(4, 2)
-  initialAbility      Decimal   @db.Decimal(4, 2)
-  targetLevel          String
-  questionsAsked       Int       @default(0)
-  questionsCorrect     Int       @default(0)
-  status               String    @default("IN_PROGRESS") // IN_PROGRESS | COMPLETED | ABANDONED
-  config               Json
-  startedAt            DateTime  @default(now())
-  lastActivityAt       DateTime  @default(now())
-  completedAt          DateTime?
-  finalScore           Decimal?  @db.Decimal(5, 2)
-  abilityEstimate      Decimal?  @db.Decimal(4, 2)
-
-  memberAssessment MemberAssessment        @relation(fields: [memberAssessmentId], references: [id], onDelete: Cascade)
-  component        AssessmentModelComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
-  member           Member                  @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  competency       Competency              @relation(fields: [competencyId], references: [id])
-  questions        AdaptiveQuestion[]
+  id                 String                   @id @default(cuid())
+  memberAssessmentId String
+  componentId        String
+  memberId           String
+  competencyId       String
+  currentAbility     Decimal                  @db.Decimal(4, 2)
+  initialAbility     Decimal                  @db.Decimal(4, 2)
+  targetLevel        String
+  questionsAsked     Int                      @default(0)
+  questionsCorrect   Int                      @default(0)
+  status             String                   @default("IN_PROGRESS")
+  config             Json
+  startedAt          DateTime                 @default(now())
+  lastActivityAt     DateTime                 @default(now())
+  completedAt        DateTime?
+  finalScore         Decimal?                 @db.Decimal(5, 2)
+  abilityEstimate    Decimal?                 @db.Decimal(4, 2)
+  questions          AdaptiveQuestion[]
+  competency         Competency               @relation(fields: [competencyId], references: [id])
+  component          AssessmentModelComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  memberAssessment   MemberAssessment         @relation(fields: [memberAssessmentId], references: [id], onDelete: Cascade)
+  member             Member                   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@index([memberAssessmentId])
   @@index([componentId])
@@ -2059,47 +1922,41 @@ model AdaptiveSession {
 }
 
 model AdaptiveQuestion {
-  id                String    @id @default(cuid())
-  sessionId         String
-  questionText      String    @db.Text
-  questionType      String
-  options           Json?
-  correctAnswer     String?
-  explanation       String?   @db.Text
-  difficulty        Decimal   @db.Decimal(4, 2)
-  sequenceNumber    Int
-  generationPrompt  String?   @db.Text
-  generatedAt       DateTime  @default(now())
-  candidateAnswer   String?   @db.Text
-  isCorrect         Boolean?
-  timeTakenSeconds  Int?
-  answeredAt        DateTime?
-  pointsAwarded     Decimal?  @db.Decimal(5, 2)
-  maxPoints         Decimal?  @db.Decimal(5, 2)
-
-  session AdaptiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id               String          @id @default(cuid())
+  sessionId        String
+  questionText     String
+  questionType     String
+  options          Json?
+  correctAnswer    String?
+  explanation      String?
+  difficulty       Decimal         @db.Decimal(4, 2)
+  sequenceNumber   Int
+  generationPrompt String?
+  generatedAt      DateTime        @default(now())
+  candidateAnswer  String?
+  isCorrect        Boolean?
+  timeTakenSeconds Int?
+  answeredAt       DateTime?
+  pointsAwarded    Decimal?        @db.Decimal(5, 2)
+  maxPoints        Decimal?        @db.Decimal(5, 2)
+  session          AdaptiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
   @@index([sessionId, sequenceNumber])
 }
 
-// Phase 1: Global publish requests
 model GlobalPublishRequest {
-  id                 String   @id @default(cuid())
-
-  entityType         String   // MODEL | COMPONENT
-  entityId           String
-
-  requestedBy        String
-  requestedAt        DateTime @default(now())
-
-  status             String   @default("PENDING") // PENDING | APPROVED | REJECTED
-  reviewedBy         String?
-  reviewedAt        DateTime?
-  reviewComments     String?
-
-  requester          User     @relation("PublishRequester", fields: [requestedBy], references: [id])
-  reviewer           User?    @relation("PublishReviewer", fields: [reviewedBy], references: [id])
+  id             String    @id @default(cuid())
+  entityType     String
+  entityId       String
+  requestedBy    String
+  requestedAt    DateTime  @default(now())
+  status         String    @default("PENDING")
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  reviewComments String?
+  requester      User      @relation("PublishRequester", fields: [requestedBy], references: [id])
+  reviewer       User?     @relation("PublishReviewer", fields: [reviewedBy], references: [id])
 
   @@index([status])
   @@index([entityType, entityId])
@@ -2112,19 +1969,16 @@ model ApprovalRequest {
   entityId          String
   status            ApprovalStatus @default(PENDING)
   comments          String?
-  requesterId       String?        // ID of the person making the request
-  reviewerId        String?        // ID of the Super Admin who reviewed it
   reviewedAt        DateTime?
-  rejectionReason   String?
-
-  // Snapshots
-  originalData      Json?
-  modifiedData      Json?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
   modificationNotes String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  modifiedData      Json?
+  originalData      Json?
+  rejectionReason   String?
+  requesterId       String?
+  reviewerId        String?
+  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([status])
@@ -2133,47 +1987,44 @@ model ApprovalRequest {
   @@index([reviewerId])
 }
 
-// Simpler role assignment request from profile (inline "Request role" flow)
 model RoleAssignmentRequest {
-  id                    String   @id @default(cuid())
-  memberId              String
-  tenantId              String
-  requestedRoleName      String
-  description           String?
-  totalExperienceYears  Int
-  context               String   // 'current' | 'aspirational'
-  status                String   @default("PENDING") // PENDING | APPROVED | REJECTED
-  assignedRoleId        String?  // Set when admin creates role and assigns
-  roleCreatedAt         DateTime?  // Set when admin creates role from approval UI
-  processedBy            String?
-  processedAt           DateTime?
-  rejectionReason       String?
-  departmentId          String?  // FK to MasterDepartment; null when departmentOtherText used
-  departmentOtherText   String?  // When user selects "Other" department (can be added to MasterDepartment on approval)
-  industryId            String?  // FK to MasterIndustry; null when industryOtherText used
-  industryOtherText     String?  // When user selects "Other" industry (can be added to MasterIndustry on approval)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  member                Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assignedRole          Role?    @relation("RoleAssignmentRequestRole", fields: [assignedRoleId], references: [id])
-  department            MasterDepartment? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  industry              MasterIndustry?   @relation(fields: [industryId], references: [id], onDelete: SetNull)
+  id                   String            @id @default(cuid())
+  memberId             String
+  tenantId             String
+  requestedRoleName    String
+  description          String?
+  totalExperienceYears Int
+  context              String
+  status               String            @default("PENDING")
+  assignedRoleId       String?
+  processedBy          String?
+  processedAt          DateTime?
+  rejectionReason      String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  roleCreatedAt        DateTime?
+  departmentId         String?
+  departmentOtherText  String?
+  industryId           String?
+  industryOtherText    String?
+  assignedRole         Role?             @relation("RoleAssignmentRequestRole", fields: [assignedRoleId], references: [id])
+  department           MasterDepartment? @relation(fields: [departmentId], references: [id])
+  industry             MasterIndustry?   @relation(fields: [industryId], references: [id])
+  member               Member            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  tenant               Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([memberId])
   @@index([tenantId])
   @@index([status])
 }
 
-// Enhancement #1: Approval audit trail (Phase 3)
 model ApprovalHistory {
   id              String   @id @default(cuid())
-  entityType      String   // 'ROLE' | 'COMPETENCY'
+  entityType      String
   entityId        String
-  approverRole    String   // 'TEAM_LEAD', 'CLASS_TEACHER', 'DEPT_HEAD', 'SUPER_ADMIN'
+  approverRole    String
   approverUserId  String?
-  action          String   // 'SUBMITTED', 'APPROVED', 'REJECTED', 'RESUBMITTED'
+  action          String
   actionAt        DateTime @default(now())
   comments        String?
   iterationNumber Int      @default(1)
@@ -2183,33 +2034,211 @@ model ApprovalHistory {
   @@index([entityId, iterationNumber])
 }
 
-// Enhancement #5: Intelligent Recommendations (Phase 4)
 model RecommendationRule {
-  id                String   @id @default(cuid())
-  category          String?   // 'ASSESSMENT', 'REPORT', 'SURVEY'
-  triggerContext    Json?     // Conditions that trigger this recommendation
-  recommendationText String?  @db.Text
-  rationale         String?   @db.Text
-  autoApplyValues   Json?     // Values to auto-fill if user clicks "Apply"
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  isActive          Boolean   @default(true)
-  usage             RecommendationUsage[]
+  id                 String                @id @default(cuid())
+  category           String?
+  triggerContext     Json?
+  recommendationText String?
+  rationale          String?
+  autoApplyValues    Json?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  isActive           Boolean               @default(true)
+  usage              RecommendationUsage[]
 
   @@index([category])
 }
 
 model RecommendationUsage {
-  id        String   @id @default(cuid())
+  id        String             @id @default(cuid())
   ruleId    String
   userId    String?
   context   Json?
-  action    String   // 'APPLIED', 'DISMISSED', 'MODIFIED'
-  createdAt DateTime @default(now())
+  action    String
+  createdAt DateTime           @default(now())
   rule      RecommendationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 
   @@index([ruleId])
   @@index([userId])
+}
+
+model Survey {
+  id             String             @id @default(cuid())
+  tenantId       String
+  name           String
+  description    String?
+  purpose        String?
+  targetAudience String?
+  scoringEnabled Boolean            @default(false)
+  scoringMethod  String?            @default("AVERAGE")
+  metadata       Json?
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  status         SurveyStatus       @default(DRAFT)
+  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignments    SurveyAssignment[]
+  questions      SurveyQuestion[]
+  responses      SurveyResponse[]
+
+  @@index([tenantId])
+}
+
+model SurveyQuestion {
+  id           String             @id @default(cuid())
+  surveyId     String
+  questionText String
+  questionType SurveyQuestionType
+  options      Json?
+  order        Int
+  isRequired   Boolean            @default(true)
+  points       Float?             @default(0)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  answers      SurveyAnswer[]
+  survey       Survey             @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@index([surveyId])
+}
+
+model SurveyAssignment {
+  id               String           @id @default(cuid())
+  surveyId         String
+  targetType       SurveyTargetType
+  targetId         String?
+  assignedAt       DateTime         @default(now())
+  dueDate          DateTime?
+  reminderSettings Json?
+  survey           Survey           @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@index([surveyId])
+}
+
+model SurveyResponse {
+  id          String         @id @default(cuid())
+  surveyId    String
+  memberId    String?
+  score       Float?
+  completedAt DateTime       @default(now())
+  metadata    Json?
+  answers     SurveyAnswer[]
+  member      Member?        @relation(fields: [memberId], references: [id])
+  survey      Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@index([surveyId])
+  @@index([memberId])
+}
+
+model SurveyAnswer {
+  id         String         @id @default(cuid())
+  responseId String
+  questionId String
+  answerData Json
+  points     Float?
+  question   SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  response   SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  @@index([responseId])
+  @@index([questionId])
+}
+
+model CodeSubmission {
+  id          String   @id @default(cuid())
+  challengeId String
+  problemId   String
+  memberId    String
+  code        String
+  language    String
+  status      String
+  score       Float
+  createdAt   DateTime @default(now())
+}
+
+model ReportTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        String?
+  config      Json
+  isSystem    Boolean  @default(false)
+  tenantId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reports     Report[]
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@index([isSystem])
+  @@index([tenantId])
+}
+
+model Report {
+  id          String           @id @default(cuid())
+  tenantId    String
+  templateId  String
+  userId      String
+  name        String
+  filters     Json?
+  generatedAt DateTime         @default(now())
+  expiresAt   DateTime?
+  fileUrl     String?
+  status      String           @default("COMPLETED")
+  memberId    String?
+  member      Member?          @relation(fields: [memberId], references: [id])
+  template    ReportTemplate   @relation(fields: [templateId], references: [id])
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id])
+  schedules   ReportSchedule[]
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model ReportSchedule {
+  id         String    @id @default(cuid())
+  reportId   String
+  frequency  String
+  recipients Json
+  isActive   Boolean   @default(true)
+  lastRunAt  DateTime?
+  nextRunAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  report     Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+}
+
+model AdminUser {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  passwordHash    String
+  twoFactorSecret String?
+  isActive        Boolean   @default(true)
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model GlobalApprovalRequest {
+  id             String    @id @default(cuid())
+  entityType     String
+  entityId       String
+  tenantId       String
+  submittedBy    String
+  submittedAt    DateTime  @default(now())
+  status         String    @default("PENDING")
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  reviewNotes    String?
+  entitySnapshot Json
+  reviewer       User?     @relation("ReviewedApprovals", fields: [reviewedBy], references: [id])
+  submitter      User      @relation("SubmittedApprovals", fields: [submittedBy], references: [id])
+  tenant         Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@index([status])
+  @@index([tenantId])
+  @@index([entityType, entityId])
 }
 
 enum CourseCategory {
@@ -2286,7 +2315,6 @@ enum DeliveryMode {
   HYBRID
 }
 
-// Comprehensive course schema enums
 enum CategoryPrimary {
   IT
   NON_IT
@@ -2453,8 +2481,8 @@ enum UserRole {
   ADMIN
   DEPT_HEAD
   TEAM_LEAD
-  INDIVIDUAL
   EMPLOYEE
+  INDIVIDUAL
 }
 
 enum IndicatorUsageType {
@@ -2513,11 +2541,11 @@ enum QuestionType {
   ESSAY
   SCENARIO_BASED
   VIDEO_RESPONSE
-  VOICE_RESPONSE
   FILE_UPLOAD
   DRAG_DROP
   MATCHING
   FILL_IN_BLANK
+  VOICE_RESPONSE
 }
 
 enum ModelSourceType {
@@ -2596,9 +2624,9 @@ enum MemberRole {
   ASSESSOR
   DEPT_HEAD
   TEAM_LEAD
-  CLASS_TEACHER   // Institution: class teacher (manages one or more classes)
-  INDIVIDUAL
+  CLASS_TEACHER
   EMPLOYEE
+  INDIVIDUAL
 }
 
 enum UnitType {
@@ -2624,23 +2652,23 @@ enum ActivityType {
   CURRICULUM
   BOOTCAMP
   INITIATIVE
-  COURSE        // Institution academic program (e.g. B.Tech CSE 2023–27)
+  COURSE
 }
 
 enum CourseDivision {
-  SEMESTER      // Only semesters (e.g., MBA: Sem 1-4)
-  YEAR          // Only years (e.g., Certificate: Year 1)
-  BOTH          // Both semesters and years (e.g., B.Tech: 4 years = 8 semesters)
+  SEMESTER
+  YEAR
+  BOTH
 }
 
 enum ActivityStatus {
   DRAFT
-  PLANNED
   ACTIVE
-  ON_HOLD
   PAUSED
   COMPLETED
   ARCHIVED
+  PLANNED
+  ON_HOLD
 }
 
 enum ClientPlan {
@@ -2723,162 +2751,6 @@ enum SurveyStatus {
   ARCHIVED
 }
 
-model Survey {
-  id             String             @id @default(cuid())
-  tenantId       String
-  name           String
-  description    String?
-  purpose        String?
-  status         SurveyStatus       @default(DRAFT)
-  targetAudience String?
-  scoringEnabled Boolean            @default(false)
-  scoringMethod  String?            @default("AVERAGE")
-  metadata       Json? // settings, branding, emails
-  isActive       Boolean            @default(true)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  tenant         Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  questions      SurveyQuestion[]
-  assignments    SurveyAssignment[]
-  responses      SurveyResponse[]
-
-  @@index([tenantId])
-}
-
-model SurveyQuestion {
-  id           String             @id @default(cuid())
-  surveyId     String
-  questionText String
-  questionType SurveyQuestionType
-  options      Json? // For MCQ, MSQ, Likert
-  order        Int
-  isRequired   Boolean            @default(true)
-  points       Float?             @default(0)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  survey       Survey             @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  answers      SurveyAnswer[]
-
-  @@index([surveyId])
-}
-
-model SurveyAssignment {
-  id               String           @id @default(cuid())
-  surveyId         String
-  targetType       SurveyTargetType
-  targetId         String? // ID of Dept, Team, or Role
-  assignedAt       DateTime         @default(now())
-  dueDate          DateTime?
-  reminderSettings Json?
-  survey           Survey           @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-
-  @@index([surveyId])
-}
-
-model SurveyResponse {
-  id          String         @id @default(cuid())
-  surveyId    String
-  memberId    String? // NULL if anonymous
-  score       Float?
-  completedAt DateTime       @default(now())
-  metadata    Json? // device, browser, etc
-  survey      Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  member      Member?        @relation(fields: [memberId], references: [id], onDelete: SetNull)
-  answers     SurveyAnswer[]
-
-  @@index([surveyId])
-  @@index([memberId])
-}
-
-model SurveyAnswer {
-  id         String         @id @default(cuid())
-  responseId String
-  questionId String
-  answerData Json // The actual answer
-  points     Float?
-  response   SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
-  question   SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@index([responseId])
-  @@index([questionId])
-}
-
-model CodeSubmission {
-  id          String   @id @default(cuid())
-  challengeId String
-  problemId   String
-  memberId    String
-  code        String
-  language    String
-  status      String
-  score       Float
-  createdAt   DateTime @default(now())
-}
-
-model ReportTemplate {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
-  type        String? // PDF, EXCEL, CSV
-  config      Json // Data sources, metrics, visualizations default config
-  isSystem    Boolean @default(false)
-
-  tenantId String?
-  tenant   Tenant? @relation(fields: [tenantId], references: [id])
-
-  reports Report[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([isSystem])
-  @@index([tenantId])
-}
-
-model Report {
-  id         String @id @default(cuid())
-  tenantId   String
-  templateId String
-  userId     String
-
-  name    String
-  filters Json? // Applied filters
-
-  generatedAt DateTime  @default(now())
-  expiresAt   DateTime?
-  fileUrl     String? // S3 or local path
-  status      String    @default("COMPLETED") // PENDING, PROCESSING, COMPLETED, FAILED
-
-  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  template ReportTemplate @relation(fields: [templateId], references: [id])
-  user     User           @relation(fields: [userId], references: [id]) // Creator
-  member   Member?        @relation(fields: [memberId], references: [id]) // Optional Member Link
-  memberId String?
-
-  schedules ReportSchedule[]
-
-  @@index([tenantId])
-  @@index([userId])
-}
-
-model ReportSchedule {
-  id         String  @id @default(cuid())
-  reportId   String
-  frequency  String // DAILY, WEEKLY, MONTHLY
-  recipients Json // Array of emails
-  isActive   Boolean @default(true)
-
-  lastRunAt DateTime?
-  nextRunAt DateTime?
-
-  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([reportId])
-}
-
 enum SubscriptionTier {
   STARTER
   GROWTH
@@ -2920,46 +2792,4 @@ enum MemberStatus {
   ACTIVE
   INACTIVE
   INVITED
-}
-
-model AdminUser {
-  id                String    @id @default(cuid())
-  email              String    @unique
-  name               String
-  passwordHash       String
-  twoFactorSecret    String?
-  isActive           Boolean   @default(true)
-  lastLoginAt        DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-}
-
-// NEW TABLE: Global Approval Requests Queue
-model GlobalApprovalRequest {
-  id                 String   @id @default(cuid())
-  
-  entityType         String   // ROLE | COMPETENCY
-  entityId           String
-  
-  tenantId           String
-  submittedBy        String
-  submittedAt        DateTime @default(now())
-  
-  status             String   @default("PENDING")
-  // PENDING | APPROVED | REJECTED | CHANGES_REQUESTED
-  
-  reviewedBy         String?
-  reviewedAt         DateTime?
-  reviewNotes        String?
-  
-  // Snapshot of what was submitted (for review)
-  entitySnapshot     Json     // Full role/competency data at time of submission
-  
-  tenant             Tenant   @relation(fields: [tenantId], references: [id])
-  submitter          User     @relation("SubmittedApprovals", fields: [submittedBy], references: [id])
-  reviewer           User?    @relation("ReviewedApprovals", fields: [reviewedBy], references: [id])
-  
-  @@index([status])
-  @@index([tenantId])
-  @@index([entityType, entityId])
 }

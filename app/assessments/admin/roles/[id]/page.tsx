@@ -9,6 +9,8 @@ import Link from "next/link";
 import { MapCompetencyDialog } from "@/components/admin/MapCompetencyDialog";
 import { GenerateAssessmentDialog } from "@/components/admin/GenerateAssessmentDialog";
 import { RoleCompetencyRow } from "@/components/admin/RoleCompetencyRow";
+import { BulkUploadRoleCompetenciesDialog } from "@/components/Roles/BulkUploadRoleCompetenciesDialog";
+import { AIGenerateRoleCompetenciesDialog } from "@/components/Roles/AIGenerateRoleCompetenciesDialog";
 
 const ROLES_ALLOWED = [
     "SUPER_ADMIN", "ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN",
@@ -105,7 +107,18 @@ export default async function RoleFrameworkPage({
                             </h2>
                             <p className="text-sm text-gray-500">Skills and proficiency levels required for this role.</p>
                         </div>
-                        <MapCompetencyDialog roleId={id} competencies={allCompetencies} />
+                        <div className="flex gap-2">
+                            <AIGenerateRoleCompetenciesDialog
+                                roleId={id}
+                                roleName={role.name}
+                                roleLevel={role.overallLevel}
+                            />
+                            <BulkUploadRoleCompetenciesDialog
+                                roleId={id}
+                                roleName={role.name}
+                            />
+                            <MapCompetencyDialog roleId={id} competencies={allCompetencies} />
+                        </div>
                     </div>
 
                     <div className="grid gap-4">

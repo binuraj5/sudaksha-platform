@@ -32,7 +32,7 @@ export default async function MyAssessmentsPage() {
     const assessments = await prisma.memberAssessment.findMany({
         where: {
             memberId: member.id,
-            status: { in: ["DRAFT", "IN_PROGRESS", "ASSIGNED"] }
+            status: { in: ["DRAFT", "IN_PROGRESS", "ASSIGNED"] as any[] }
         },
         include: {
             assessmentModel: {

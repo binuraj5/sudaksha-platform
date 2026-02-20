@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getLabelsForTenant } from '@/lib/tenant-labels';
 import { useApi } from '@/hooks/use-api';
-import { getApiSession } from '@/lib/auth-config';
 import { toast } from 'sonner';
 
 interface CurricularHierarchy {
@@ -55,7 +54,7 @@ interface Subject {
 interface Topic {
   id: string;
   name: string;
-  description?: string;  
+  description?: string;
   subjectId: string;
   assessments?: Assessment[];
 }
@@ -207,7 +206,7 @@ export default function CurriculumManagementPage() {
 
         {/* Selection Interface */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Departments Column */}
           <div className="space-y-4">
             <Card className="bg-white shadow-sm">
@@ -258,8 +257,8 @@ export default function CurriculumManagementPage() {
                           <div className="text-xs text-gray-600">{program.code}</div>
                         </div>
                         <Button
-                          variant="outline" 
-                          size="xs"
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleAddSubject(program.courses[0]?.id)}
                         >
                           <Plus className="h-3 w-3 mr-1" />
@@ -294,7 +293,7 @@ export default function CurriculumManagementPage() {
                       <div className="font-medium text-sm text-gray-900">{course.name}</div>
                       <div className="text-xs text-gray-600">{course.code}</div>
                     </div>
-                    
+
                     {/* Subjects */}
                     <div className="space-y-2 ml-3">
                       {course.subjects?.map(subject => (
@@ -305,19 +304,19 @@ export default function CurriculumManagementPage() {
                               <span className="text-sm font-medium">{subject.name}</span>
                             </div>
                             <Button
-                              variant="ghost" 
-                              size="xs"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleAddTopic(subject.id)}
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
                           </div>
-                          
+
                           {/* Topics */}
                           {subject.topics?.map(topic => (
                             <div key={topic.id} className="pl-4 mb-1">
                               <div className="text-xs text-gray-700 font-medium">{topic.name}</div>
-                              {topic.assessments?.length > 0 && (
+                              {topic.assessments && topic.assessments.length > 0 && (
                                 <div className="text-xs text-blue-600 mt-1">
                                   Linked: {topic.assessments.length} assessment{topic.assessments.length > 1 ? 's' : ''}
                                 </div>
@@ -326,11 +325,11 @@ export default function CurriculumManagementPage() {
                           ))}
                         </div>
                       ))}
-                      
+
                       {/* Add Subject Button */}
                       <Button
                         variant="outline"
-                        size="xs" 
+                        size="sm"
                         className="w-full mt-2"
                         onClick={() => handleAddSubject(course.id)}
                       >

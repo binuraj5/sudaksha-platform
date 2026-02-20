@@ -10,7 +10,14 @@ export async function POST(
     const session = await getApiSession();
     const { clientId } = await params;
 
-    if (!session || (session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'TENANT_ADMIN')) {
+    const role = (session?.user as any)?.role as string | undefined;
+    const userTenantId = (session?.user as any)?.tenantId as string | undefined;
+
+    const isSuperOrTenantAdmin = role === "SUPER_ADMIN" || role === "TENANT_ADMIN";
+    // CLIENT_ADMIN may manage their own tenant's branding
+    const isClientAdminOwner = role === "CLIENT_ADMIN" && userTenantId === clientId;
+
+    if (!session || (!isSuperOrTenantAdmin && !isClientAdminOwner)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -23,7 +30,7 @@ export async function POST(
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = file.name.split('.').pop() || 'png';
+        const ext = file.name.split(".").pop() || "png";
         const filename = `logo-${Date.now()}.${ext}`;
 
         // Ensure directory exists

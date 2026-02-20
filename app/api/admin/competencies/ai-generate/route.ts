@@ -7,8 +7,14 @@ export async function POST(request: Request) {
     try {
         const session = await getApiSession();
         const u = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-        if (!session || !isAdmin) {
+        const ALLOWED_ROLES = [
+            "SUPER_ADMIN", "ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN",
+            "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"
+        ];
+        const hasAccess =
+            u?.userType === "SUPER_ADMIN" ||
+            (!!u?.role && ALLOWED_ROLES.includes(u.role));
+        if (!session || !hasAccess) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

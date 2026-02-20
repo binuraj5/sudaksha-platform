@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
     Plus,
@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
 export default function ClientAssessmentQuestionsPage() {
-    const params = use(params);
+    const params = useParams();
     const router = useRouter();
     const modelId = params.modelId as string;
     const clientId = params.clientId as string;

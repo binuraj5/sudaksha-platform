@@ -26,9 +26,12 @@ export async function POST(
 
         const { componentId, weightage, order, isRequired, isTimed, customDuration } = validation.data;
 
-        // Check model existence
+        // Check model existence and status
         const model = await prisma.assessmentModel.findUnique({ where: { id } });
         if (!model) return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        if (model.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot add components to a published model" }, { status: 403 });
+        }
 
         // Add component to model (competencyId optional; componentId in body treated as competencyId if linking to competency)
         const relation = await prisma.assessmentModelComponent.create({

@@ -44,7 +44,7 @@ export default async function TenantLayout({
     }
 
     const branding = {
-        logoUrl: (tenant as any).settings?.logoUrl || '/logo.png',
+        logoUrl: (tenant as any).settings?.logoUrl || (tenant as any).logo || undefined,
         primaryColor: (tenant as any).settings?.primaryColor || '#4f46e5',
         tenantName: tenant.name
     };

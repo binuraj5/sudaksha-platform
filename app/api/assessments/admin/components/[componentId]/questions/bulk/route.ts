@@ -36,11 +36,15 @@ export async function POST(
         // Fetch current component to get valid indicators
         const component = await prisma.assessmentModelComponent.findUnique({
             where: { id: componentId },
-            select: { indicatorIds: true }
+            select: { indicatorIds: true, model: { select: { status: true } } }
         });
 
         if (!component) {
             return NextResponse.json({ error: "Component not found" }, { status: 404 });
+        }
+
+        if (component.model.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot modify a published assessment model" }, { status: 403 });
         }
 
         const validIndicatorIds = new Set(component.indicatorIds);
