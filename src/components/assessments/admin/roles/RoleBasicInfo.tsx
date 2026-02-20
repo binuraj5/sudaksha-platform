@@ -11,6 +11,7 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissions";
 
 const INDUSTRIES = [
     "Information Technology",
@@ -36,6 +37,7 @@ interface RoleBasicInfoProps {
 }
 
 export function RoleBasicInfo({ data, setData, selectedIndustries, setSelectedIndustries }: RoleBasicInfoProps) {
+    const permissions = useRoleCompetencyPermissions();
 
     const handleChange = (field: string, value: string) => {
         setData({ ...data, [field]: value });
@@ -83,21 +85,30 @@ export function RoleBasicInfo({ data, setData, selectedIndustries, setSelectedIn
             <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <Label htmlFor="level">Proficiency Level</Label>
-                    <Select
-                        value={data.overallLevel}
-                        onValueChange={(val) => handleChange("overallLevel", val)}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {LEVELS.map((lvl) => (
-                                <SelectItem key={lvl.value} value={lvl.value}>
-                                    {lvl.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {permissions.isInstitution ? (
+                        <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded h-10 w-full">
+                            <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 shadow-none border-none">Junior / Fresher</Badge>
+                            <span className="text-xs text-amber-600">
+                                Locked — institutions only
+                            </span>
+                        </div>
+                    ) : (
+                        <Select
+                            value={data.overallLevel}
+                            onValueChange={(val) => handleChange("overallLevel", val)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select level" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {LEVELS.map((lvl) => (
+                                    <SelectItem key={lvl.value} value={lvl.value}>
+                                        {lvl.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 <div className="space-y-2">

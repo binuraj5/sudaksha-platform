@@ -10,6 +10,7 @@ import { RoleCompetencies } from "@/components/assessments/admin/roles/RoleCompe
 
 import { createRoleWithCompetencies } from "@/lib/actions/role-actions";
 import { toast } from "sonner";
+import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissions";
 
 
 // Define the steps
@@ -29,6 +30,7 @@ interface RoleFormData {
 
 export function CreateRoleWizard() {
     const router = useRouter();
+    const permissions = useRoleCompetencyPermissions();
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState<RoleFormData>({
         name: "",
@@ -105,12 +107,21 @@ export function CreateRoleWizard() {
                 </nav>
             </div>
 
-            <div className="mb-8 flex items-center justify-between">
+            <div className="mb-8 flex flex-col gap-2">
                 <h2 className="text-2xl font-bold text-slate-900">
                     {currentStep === 1 && "Start by defining the role"}
                     {currentStep === 2 && "Add Competencies"}
                     {currentStep === 3 && "Review and Save"}
                 </h2>
+                {!permissions.canApproveGlobal && permissions.creatableScope && currentStep === 1 && (
+                    <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-start gap-2">
+                        <span className="mt-0.5">ℹ️</span>
+                        <div>
+                            This role will be created at <strong>{permissions.creatableScope.toLowerCase()}</strong> level.
+                            {permissions.canSubmitForGlobal && " You can submit it for global review after saving."}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <Card>

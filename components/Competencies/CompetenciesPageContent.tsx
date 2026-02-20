@@ -159,7 +159,7 @@ export function CompetenciesPageContent() {
                     )}
                 </div>
                 <div className="flex gap-3 flex-wrap">
-                    {permissions.isSuperAdmin && (
+                    {permissions.canApproveGlobal && (
                         <>
                             <BulkUploadCompetenciesDialog />
                             <AIGenerateCompetencyDialog />
@@ -169,7 +169,7 @@ export function CompetenciesPageContent() {
                         <>
                             <CreateRoleDialog
                                 scopeInfo={
-                                    !permissions.isSuperAdmin && permissions.creatableScope
+                                    !permissions.canApproveGlobal && permissions.creatableScope
                                         ? `This will be created at ${SCOPE_CONFIG[permissions.creatableScope]?.label ?? permissions.creatableScope} level.`
                                         : undefined
                                 }
@@ -177,7 +177,7 @@ export function CompetenciesPageContent() {
                             />
                             <CreateCompetencyDialog
                                 scopeInfo={
-                                    !permissions.isSuperAdmin && permissions.creatableScope
+                                    !permissions.canApproveGlobal && permissions.creatableScope
                                         ? `This will be created at ${SCOPE_CONFIG[permissions.creatableScope]?.label ?? permissions.creatableScope} level.`
                                         : undefined
                                 }

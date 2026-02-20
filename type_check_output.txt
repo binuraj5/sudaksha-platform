@@ -1,0 +1,40 @@
+﻿app/api/entities/[entityType]/[id]/route.ts(46,77): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+app/api/v1/members/[id]/route.ts(160,69): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+app/api/video/analyze/route.ts(32,100): error TS2339: Property 'type' does not exist on type 'never'.
+app/api/voice/transcribe/route.ts(22,100): error TS2339: Property 'type' does not exist on type 'never'.
+app/assessments/admin/models/[modelId]/builder/page.tsx(155,56): error TS2339: Property 'id' does not exist on type '{ name: string; category: string; indicators?: { id: string; text: string; level: string; }[] | undefined; }'.
+app/assessments/admin/models/[modelId]/builder/page.tsx(157,29): error TS2345: Argument of type '{ name: string; category: string; indicators?: { id: string; text: string; level: string; }[] | undefined; }[]' is not assignable to parameter of type 'SetStateAction<Competency[]>'.
+  Type '{ name: string; category: string; indicators?: { id: string; text: string; level: string; }[] | undefined; }[]' is not assignable to type 'Competency[]'.
+    Property 'id' is missing in type '{ name: string; category: string; indicators?: { id: string; text: string; level: string; }[] | undefined; }' but required in type 'Competency'.
+app/assessments/admin/models/[modelId]/builder/page.tsx(461,84): error TS2345: Argument of type 'Competency' is not assignable to parameter of type 'Pick<{ id: string; name: string; description: string; status: ApprovalStatus; createdAt: Date; updatedAt: Date; category: CompetencyCategory; ... 16 more ...; lastUsedAt: Date | null; }, "category">'.
+  Types of property 'category' are incompatible.
+    Type 'string' is not assignable to type 'CompetencyCategory'.
+app/assessments/admin/models/create/page.tsx(81,32): error TS2345: Argument of type 'Set<unknown>' is not assignable to parameter of type 'SetStateAction<Set<string>>'.
+  Type 'Set<unknown>' is not assignable to type 'Set<string>'.
+    Type 'unknown' is not assignable to type 'string'.
+app/assessments/clients/[clientId]/assessments/[modelId]/questions/page.tsx(29,11): error TS7022: 'params' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+app/assessments/clients/[clientId]/assessments/[modelId]/questions/page.tsx(29,24): error TS2448: Block-scoped variable 'params' used before its declaration.
+app/assessments/clients/[clientId]/employees/new/page.tsx(16,27): error TS2304: Cannot find name 'getApiSession'.
+app/assessments/clients/[clientId]/projects/new/page.tsx(14,19): error TS2339: Property 'user' does not exist on type '{}'.
+app/assessments/individuals/my-assessments/page.tsx(35,37): error TS2322: Type '"IN_PROGRESS"' is not assignable to type 'AssessmentStatus'.
+app/assessments/individuals/my-assessments/page.tsx(35,52): error TS2322: Type '"ASSIGNED"' is not assignable to type 'AssessmentStatus'.
+app/assessments/org/[slug]/classes/[classId]/page.tsx(33,7): error TS2322: Type '{ description: string | undefined; department: { id: string; name: string; code: string; } | null; course: { id: string; name: string; slug: string; code: string; } | null; courseId: string | null; ... 15 more ...; managerId: string | null; }' is not assignable to type '{ id: string; name: string; code: string; description?: string | undefined; department?: { id: string; name: string; code: string; } | undefined; course?: { id: string; name: string; code: string; slug: string; } | null | undefined; courseId?: string | ... 1 more ... | undefined; classTeacher?: { ...; } | ... 1 more...'.
+  Types of property 'department' are incompatible.
+    Type '{ id: string; name: string; code: string; } | null' is not assignable to type '{ id: string; name: string; code: string; } | undefined'.
+      Type 'null' is not assignable to type '{ id: string; name: string; code: string; } | undefined'.
+app/assessments/org/[slug]/program-curriculum/page.tsx(12,10): error TS2305: Module '"@/lib/auth-config"' has no exported member 'getApiSession'.
+app/assessments/org/[slug]/program-curriculum/page.tsx(262,27): error TS2322: Type '"xs"' is not assignable to type '"default" | "icon" | "sm" | "lg" | null | undefined'.
+app/assessments/org/[slug]/program-curriculum/page.tsx(309,31): error TS2322: Type '"xs"' is not assignable to type '"default" | "icon" | "sm" | "lg" | null | undefined'.
+app/assessments/org/[slug]/program-curriculum/page.tsx(320,32): error TS18048: 'topic.assessments.length' is possibly 'undefined'.
+app/assessments/org/[slug]/program-curriculum/page.tsx(322,44): error TS18048: 'topic.assessments' is possibly 'undefined'.
+app/assessments/org/[slug]/program-curriculum/page.tsx(322,81): error TS18048: 'topic.assessments' is possibly 'undefined'.
+app/assessments/org/[slug]/program-curriculum/page.tsx(333,25): error TS2322: Type '"xs"' is not assignable to type '"default" | "icon" | "sm" | "lg" | null | undefined'.
+components/assessments/AssessmentBuilderWizard.tsx(158,17): error TS2345: Argument of type 'Competency' is not assignable to parameter of type 'Pick<{ id: string; name: string; description: string; status: ApprovalStatus; createdAt: Date; updatedAt: Date; category: CompetencyCategory; ... 16 more ...; lastUsedAt: Date | null; }, "category">'.
+  Types of property 'category' are incompatible.
+    Type 'string' is not assignable to type 'CompetencyCategory'.
+components/Career/ProfileWizard.tsx(706,76): error TS7006: Parameter 'x' implicitly has an 'any' type.
+components/Career/ProfileWizard.tsx(799,117): error TS7006: Parameter 'x' implicitly has an 'any' type.
+components/Career/ProfileWizard.tsx(827,117): error TS7006: Parameter 'x' implicitly has an 'any' type.
+src/lib/auth-config.ts(4,15): error TS2305: Module '"next-auth"' has no exported member 'NextAuthOptions'.
