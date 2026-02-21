@@ -9,7 +9,7 @@ export default function AddTrainerPage() {
                 <p className="text-gray-500">Enter trainer details. Validation is minimal for internal use.</p>
             </div>
 
-            <form action={async (formData) => { await createTrainer(formData); }} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-6">
+            <form action={async (formData) => { "use server"; await createTrainer(formData); }} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-6">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
                     <input

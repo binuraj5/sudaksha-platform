@@ -14,7 +14,7 @@ export async function POST(
 ) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -72,11 +72,19 @@ export async function POST(
         await prisma.$transaction(async (tx) => {
             await tx.componentQuestion.deleteMany({ where: { componentId } });
 
+            const sanitizeQuestionType = (type: any): QuestionType => {
+                const validTypes = ["MULTIPLE_CHOICE", "TRUE_FALSE", "CODING_CHALLENGE", "ESSAY", "SCENARIO_BASED", "VIDEO_RESPONSE", "FILE_UPLOAD", "DRAG_DROP", "MATCHING", "FILL_IN_BLANK", "VOICE_RESPONSE"];
+                const upperType = String(type || "MULTIPLE_CHOICE").toUpperCase();
+                if (upperType === "MSQ" || upperType === "MCQ") return "MULTIPLE_CHOICE" as QuestionType;
+                if (validTypes.includes(upperType)) return upperType as QuestionType;
+                return "MULTIPLE_CHOICE" as QuestionType;
+            };
+
             await tx.componentQuestion.createMany({
                 data: questions.map((q, idx) => ({
                     componentId,
                     questionText: q.questionText ?? "",
-                    questionType: (q.questionType ?? "MULTIPLE_CHOICE") as QuestionType,
+                    questionType: sanitizeQuestionType(q.questionType),
                     options: q.options ?? [],
                     correctAnswer: q.correctAnswer ? String(q.correctAnswer) : null,
                     points: q.points ?? 1,

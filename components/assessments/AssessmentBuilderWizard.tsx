@@ -55,6 +55,16 @@ interface AssessmentBuilderWizardProps {
     targetLevel: "JUNIOR" | "MIDDLE" | "SENIOR" | "EXPERT";
     /** When provided, skip SELECT_COMPETENCIES and use these as pre-selected */
     preSelectedCompetencyIds?: string[] | null;
+    initialModel?: {
+        id: string;
+        name: string;
+        components: {
+            id: string;
+            competencyId: string | null;
+            componentType: string;
+        }[];
+        competencyWeights: Record<string, number>;
+    } | null;
 }
 
 function calculateCompetencyProgress(selection: ComponentSelection): number {
@@ -85,6 +95,7 @@ export function AssessmentBuilderWizard({
     roleCompetencies = [],
     targetLevel,
     preSelectedCompetencyIds = null,
+    initialModel = null,
 }: AssessmentBuilderWizardProps) {
     const router = useRouter();
     const competencyWeightsRef = useRef<Record<string, number> | null>(null);
@@ -102,16 +113,24 @@ export function AssessmentBuilderWizard({
     }, []);
 
     const [modelName, setModelName] = useState(
-        `${roleName} - ${targetLevel} Assessment`
+        initialModel?.name || `${roleName} - ${targetLevel} Assessment`
     );
     const [step, setStep] = useState<
         "OVERVIEW" | "SELECT_COMPETENCIES" | "COMPONENTS" | "BUILD"
-    >("OVERVIEW");
+    >(initialModel ? "BUILD" : "OVERVIEW");
+
+    const initialCompetencyIds = useMemo(() => {
+        if (initialModel) {
+            return Array.from(new Set(initialModel.components.map(c => c.competencyId).filter(Boolean))) as string[];
+        }
+        return preSelectedCompetencyIds;
+    }, [initialModel, preSelectedCompetencyIds]);
+
     const [competencySelection, setCompetencySelection] = useState<CompetencySelection | null>(
-        preSelectedCompetencyIds?.length
+        initialCompetencyIds?.length
             ? {
-                selectedCompetencyIds: preSelectedCompetencyIds,
-                weights: {},
+                selectedCompetencyIds: initialCompetencyIds,
+                weights: initialModel?.competencyWeights || {},
             }
             : null
     );
@@ -135,7 +154,7 @@ export function AssessmentBuilderWizard({
             setSelectStepWeights(w);
         }
     }, [step, roleCompetencies]);
-    const [modelId, setModelId] = useState<string | null>(null);
+    const [modelId, setModelId] = useState<string | null>(initialModel?.id || null);
     const [creatingModel, setCreatingModel] = useState(false);
 
     const [selections, setSelections] = useState<Map<string, ComponentSelection>>(
@@ -158,15 +177,21 @@ export function AssessmentBuilderWizard({
                 comp as unknown as { category: "TECHNICAL" | "BEHAVIORAL" | "COGNITIVE" | "DOMAIN_SPECIFIC" },
                 targetLevel
             );
+
+            const existingComponentsForComp = initialModel?.components.filter(c => c.competencyId === comp.id) || [];
+
             newSelections.set(comp.id, {
                 competencyId: comp.id,
                 suggestedComponents: suggestions,
-                selectedComponents: new Set(),
-                componentStatus: new Map(),
+                selectedComponents: new Set(existingComponentsForComp.map(c => c.componentType as ComponentType)),
+                componentStatus: new Map(existingComponentsForComp.map(c => [
+                    c.componentType as ComponentType,
+                    { status: "NOT_STARTED", progress: 0, componentId: c.id }
+                ])),
             });
         });
         setSelections(newSelections);
-    }, [effectiveCompetencies, targetLevel]);
+    }, [effectiveCompetencies, targetLevel, initialModel]);
 
     const calculateProgress = (): number => {
         let totalComponents = 0;

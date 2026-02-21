@@ -50,14 +50,14 @@ function ScopeBadge({ scope }: { scope: string }) {
     );
 }
 
-function GlobalStatusBadge({ status }: { status: string | null | undefined }) {
+function GlobalStatusBadge({ status, notes }: { status: string | null | undefined, notes?: string | null }) {
     if (!status || status === "APPROVED") return null;
     if (status === "PENDING")
-        return <Badge className="ml-1 bg-amber-100 text-amber-700 text-[10px]">Pending</Badge>;
+        return <Badge className="ml-1 bg-amber-100 text-amber-700 text-[10px]" title={notes || "Pending Review"}>Pending</Badge>;
     if (status === "CHANGES_REQUESTED")
-        return <Badge className="ml-1 bg-orange-100 text-orange-700 text-[10px]">Changes requested</Badge>;
+        return <Badge className="ml-1 bg-orange-100 text-orange-700 text-[10px]" title={notes || "Changes requested"}>Changes requested</Badge>;
     if (status === "REJECTED")
-        return <Badge className="ml-1 bg-red-100 text-red-700 text-[10px]">Rejected</Badge>;
+        return <Badge className="ml-1 bg-red-100 text-red-700 text-[10px]" title={notes || "Rejected"}>Rejected</Badge>;
     return null;
 }
 
@@ -245,7 +245,7 @@ export function CompetenciesPageContent({ baseUrl = "/assessments/admin/competen
                                         <TableCell>
                                             <div className="flex flex-wrap items-center gap-1">
                                                 <ScopeBadge scope={comp.scope ?? "GLOBAL"} />
-                                                <GlobalStatusBadge status={comp.globalSubmissionStatus} />
+                                                <GlobalStatusBadge status={comp.globalSubmissionStatus} notes={comp.globalReviewNotes} />
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -281,7 +281,7 @@ export function CompetenciesPageContent({ baseUrl = "/assessments/admin/competen
                                                             }
                                                         }}
                                                     >
-                                                        Go Global
+                                                        {comp.globalSubmissionStatus ? "Resubmit Global" : "Go Global"}
                                                     </Button>
                                                 )}
                                                 <Button variant="ghost" size="sm" asChild className="hover:text-red-600 h-8 px-3">
@@ -358,7 +358,7 @@ export function CompetenciesPageContent({ baseUrl = "/assessments/admin/competen
                                         <TableCell>
                                             <div className="flex flex-wrap items-center gap-1">
                                                 <ScopeBadge scope={role.scope ?? "GLOBAL"} />
-                                                <GlobalStatusBadge status={role.globalSubmissionStatus} />
+                                                <GlobalStatusBadge status={role.globalSubmissionStatus} notes={role.globalReviewNotes} />
                                             </div>
                                         </TableCell>
                                         <TableCell>

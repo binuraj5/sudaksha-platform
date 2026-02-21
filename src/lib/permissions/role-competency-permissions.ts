@@ -6,6 +6,7 @@ export type UserRole =
   | 'ADMIN' // Legacy/alias for TENANT_ADMIN
   | 'TENANT_ADMIN'
   | 'CLIENT_ADMIN'
+  | 'ORG_ADMIN'
   | 'DEPARTMENT_HEAD'
   | 'TEAM_LEADER'
   | 'INSTITUTION_ADMIN'
@@ -33,6 +34,7 @@ export function normalizeUserRole(role: string): UserRole {
   if (role === 'DEPT_HEAD') return 'DEPARTMENT_HEAD';
   if (role === 'TEAM_LEAD') return 'TEAM_LEADER';
   if (role === 'ADMIN') return 'TENANT_ADMIN';
+  if (role === 'ORG_ADMIN') return 'CLIENT_ADMIN'; // Treat ORG_ADMIN as CLIENT_ADMIN depending on auth system
   return role as UserRole;
 }
 
@@ -143,7 +145,7 @@ export interface RoleCompetencyPermissions {
 export function getRoleCompetencyPermissions(user: UserContext): RoleCompetencyPermissions {
   const r = normalizeUserRole(user.role as string);
   const isSuperAdmin = r === 'SUPER_ADMIN';
-  const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
+  const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN', 'CLIENT_ADMIN'].includes(r);
   const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(r);
   const isNarrowestScope = ['TEAM_LEADER', 'CLASS_TEACHER'].includes(r);
   const isInstitution = user.tenantType === 'INSTITUTION';
@@ -300,7 +302,7 @@ export function canUserModifyRole(
   // Dept scope: Dept head or above in same dept
   if (role.scope === 'DEPARTMENT') {
     const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(r);
-    const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
+    const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN', 'CLIENT_ADMIN'].includes(r);
     return (isTenantAdmin) ||
       (isDeptHead && role.departmentId === user.departmentId);
   }
@@ -309,7 +311,7 @@ export function canUserModifyRole(
   if (role.scope === 'TEAM') {
     return role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
-        'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
+        'TENANT_ADMIN', 'INSTITUTION_ADMIN', 'CLIENT_ADMIN'].includes(r);
   }
 
   // Class scope (Institution): Class Teacher for same class (teamId = class id), or above
@@ -317,7 +319,7 @@ export function canUserModifyRole(
     const isSameClass = user.classId != null && role.teamId === user.classId;
     return (r === 'CLASS_TEACHER' && isSameClass) || role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
-        'TENANT_ADMIN', 'INSTITUTION_ADMIN'].includes(r);
+        'TENANT_ADMIN', 'INSTITUTION_ADMIN', 'CLIENT_ADMIN'].includes(r);
   }
 
   return false;

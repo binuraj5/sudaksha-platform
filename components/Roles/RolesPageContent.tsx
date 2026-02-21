@@ -444,7 +444,10 @@ function RoleTableRow({
                 <div className="flex flex-col gap-1">
                     <span>{role.name}</span>
                     <span className="text-xs text-slate-400">{role.code}</span>
-                    <ScopeBadge scope={role.scope} />
+                    <div className="flex items-center gap-1 flex-wrap">
+                        <ScopeBadge scope={role.scope} />
+                        <GlobalStatusBadge status={role.globalSubmissionStatus} notes={role.globalReviewNotes} />
+                    </div>
                 </div>
             </TableCell>
             <TableCell>
@@ -489,7 +492,7 @@ function RoleTableRow({
                         )}
                         {role._canSubmitGlobal && permissions.canSubmitForGlobal && (
                             <DropdownMenuItem onClick={() => onSubmitGlobal(role)} className="text-blue-600">
-                                <Globe className="w-4 h-4 mr-2" /> Go Global
+                                <Globe className="w-4 h-4 mr-2" /> {role.globalSubmissionStatus ? "Resubmit Global" : "Go Global"}
                             </DropdownMenuItem>
                         )}
                         {isSuperAdmin && role.globalSubmissionStatus === "PENDING" && (
@@ -530,4 +533,15 @@ function ScopeBadge({ scope }: { scope: string }) {
             {config.label}
         </Badge>
     );
+}
+
+function GlobalStatusBadge({ status, notes }: { status: string | null | undefined, notes?: string | null }) {
+    if (!status || status === "APPROVED") return null;
+    if (status === "PENDING")
+        return <Badge className="ml-1 bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px]" title={notes || "Pending Review"}>Pending</Badge>;
+    if (status === "CHANGES_REQUESTED")
+        return <Badge className="ml-1 bg-orange-100 text-orange-700 hover:bg-orange-100 text-[10px]" title={notes || "Changes requested"}>Changes requested</Badge>;
+    if (status === "REJECTED")
+        return <Badge className="ml-1 bg-red-100 text-red-700 hover:bg-red-100 text-[10px]" title={notes || "Rejected"}>Rejected</Badge>;
+    return null;
 }

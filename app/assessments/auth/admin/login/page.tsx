@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Shield, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-export default function SuperAdminLoginPage() {
+function SuperAdminLoginContent() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const searchParams = useSearchParams();
@@ -94,5 +94,17 @@ export default function SuperAdminLoginPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function SuperAdminLoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
+            </div>
+        }>
+            <SuperAdminLoginContent />
+        </Suspense>
     );
 }

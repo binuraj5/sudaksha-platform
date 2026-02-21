@@ -17,11 +17,26 @@ export async function POST(request: Request) {
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        const userId = (session.user as { id?: string }).id;
-        if (!userId) {
-            return NextResponse.json({ error: "Invalid session: missing user id" }, { status: 401 });
+
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+
+        const { getRoleCompetencyPermissions } = await import("@/lib/permissions/role-competency-permissions");
+        const permissions = getRoleCompetencyPermissions(userContext);
+
+        if (!permissions.canCreate) {
+            return NextResponse.json({ error: "You do not have permission to create assessment models" }, { status: 403 });
         }
 
+        const userId = user.id;
         const body = await request.json();
         const { roleId, targetLevel, name, description, competencyWeights, tenantId } = body;
 

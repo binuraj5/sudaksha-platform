@@ -81,6 +81,12 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
             toast.error("No competency selected. Please select a competency from the sidebar.");
             return;
         }
+        if (count === 0) {
+            setQuestions([]);
+            setStep("preview");
+            toast.success("Generated 0 questions");
+            return;
+        }
         setGenerating(true);
         try {
             const payload = { count, difficulty, questionTypes: selectedTypes, additionalContext };
@@ -192,7 +198,7 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                                     </div>
                                     <Input
                                         type="range"
-                                        min="1"
+                                        min="0"
                                         max="20"
                                         step="1"
                                         value={count}
@@ -208,11 +214,10 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                                             <div
                                                 key={lvl}
                                                 onClick={() => setDifficulty(lvl as any)}
-                                                className={`py-2.5 rounded-lg border text-center cursor-pointer transition-all text-xs font-medium ${
-                                                    difficulty === lvl
+                                                className={`py-2.5 rounded-lg border text-center cursor-pointer transition-all text-xs font-medium ${difficulty === lvl
                                                         ? "bg-primary text-primary-foreground border-primary"
                                                         : "bg-card border-border text-muted-foreground hover:border-muted-foreground/30"
-                                                }`}
+                                                    }`}
                                             >
                                                 {lvl}
                                             </div>
@@ -238,11 +243,10 @@ export const AIGenerateQuestions: React.FC<AIGenerateProps> = ({
                                         <div
                                             key={t.id}
                                             onClick={() => toggleType(t.id as any)}
-                                            className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center gap-3 ${
-                                                selectedTypes.includes(t.id as any)
+                                            className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center gap-3 ${selectedTypes.includes(t.id as any)
                                                     ? "border-primary bg-primary/5"
                                                     : "border-border bg-card hover:border-muted-foreground/30"
-                                            }`}
+                                                }`}
                                         >
                                             <Checkbox checked={selectedTypes.includes(t.id as any)} />
                                             <span className="text-xs font-medium text-foreground">{t.label}</span>

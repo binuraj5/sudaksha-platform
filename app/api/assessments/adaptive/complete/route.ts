@@ -1,67 +1,75 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getApiSession } from "@/lib/get-session";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { AdaptiveEngine } from "@/lib/assessment/adaptive-engine";
-import type { AdaptiveConfig } from "@/components/assessments/AdaptiveConfigForm";
+import { getApiSession } from "@/lib/get-session";
 
-/**
- * POST /api/assessments/adaptive/complete
- * Marks AdaptiveSession COMPLETED and returns final score (M9-5: linear 7.5/10 = 75/100).
- */
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
     try {
         const session = await getApiSession();
-        if (!session?.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
         const { sessionId } = body;
+
         if (!sessionId) {
-            return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
+            return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
         }
 
         const adaptiveSession = await prisma.adaptiveSession.findUnique({
             where: { id: sessionId },
+            include: { questions: { where: { isCorrect: { not: null } } } }
         });
+
         if (!adaptiveSession) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 });
         }
 
-        const config = adaptiveSession.config as unknown as AdaptiveConfig;
-        const engine = new AdaptiveEngine({
-            sessionId: adaptiveSession.id,
-            currentAbility: Number(adaptiveSession.currentAbility),
-            questionsAsked: adaptiveSession.questionsAsked,
-            questionsCorrect: adaptiveSession.questionsCorrect,
-            config,
-        });
+        const questions = adaptiveSession.questions;
+        if (questions.length === 0) {
+            return NextResponse.json({ error: "No questions answered yet" }, { status: 400 });
+        }
 
-        const { percentage, ability, accuracy } = engine.calculateFinalScore();
+        const totalDifficulty = questions.reduce((sum: number, q: any) => sum + Number(q.difficulty), 0);
+        let weightedScore = 0;
+        let totalCorrect = 0;
 
-        await prisma.adaptiveSession.update({
+        for (const q of questions) {
+            if (q.isCorrect) {
+                weightedScore += Number(q.difficulty);
+                totalCorrect++;
+            }
+        }
+
+        const finalScore = totalDifficulty > 0 ? (weightedScore / totalDifficulty) * 100 : 0;
+        const abilityEstimate = Number(adaptiveSession.currentAbility);
+
+        const updatedSession = await prisma.adaptiveSession.update({
             where: { id: sessionId },
             data: {
                 status: "COMPLETED",
                 completedAt: new Date(),
-                finalScore: percentage,
-                abilityEstimate: ability,
-            },
+                questionsAsked: questions.length,
+                questionsCorrect: totalCorrect,
+                finalScore,
+                abilityEstimate,
+            }
         });
 
+        // Optional: you can sync this to MemberAssessment or UserAssessmentComponent
+        // depending on your tracking table's structure. For now, the AdaptiveSession itself holds the results.
+
         return NextResponse.json({
-            sessionId,
-            finalScore: percentage,
-            abilityEstimate: ability,
-            accuracy,
-            questionsAsked: adaptiveSession.questionsAsked,
-            questionsCorrect: adaptiveSession.questionsCorrect,
+            success: true,
+            session: updatedSession,
+            metrics: {
+                percentage: parseFloat(finalScore.toFixed(2)),
+                questionsAsked: questions.length,
+                correctAnswers: totalCorrect,
+                finalAbility: abilityEstimate
+            }
         });
-    } catch (error) {
-        console.error("Adaptive complete error:", error);
-        return NextResponse.json(
-            { error: "Failed to complete adaptive assessment" },
-            { status: 500 }
-        );
+
+    } catch (e: any) {
+        console.error("Adaptive Complete Error:", e);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTenantLabels } from "@/hooks/useTenantLabels";
@@ -174,7 +174,15 @@ export function CreateProjectDialog({ clientId, defaultOpen, redirectBase }: { c
                             <div className="flex flex-wrap gap-2 mt-1">
                                 {formData.departmentIds.map(id => {
                                     const d = departments.find(x => x.id === id);
-                                    return d ? <span key={id} className="bg-indigo-100 text-indigo-700 px-2 py-1 text-xs rounded-full">{d.name}</span> : null
+                                    return d ? (
+                                        <div key={id} className="flex items-center gap-1 bg-indigo-100 text-indigo-700 px-2 py-1 text-xs rounded-full">
+                                            <span>{d.name}</span>
+                                            <X
+                                                className="w-3 h-3 cursor-pointer hover:text-indigo-900"
+                                                onClick={() => setFormData({ ...formData, departmentIds: formData.departmentIds.filter(did => did !== id) })}
+                                            />
+                                        </div>
+                                    ) : null;
                                 })}
                             </div>
                         </div>

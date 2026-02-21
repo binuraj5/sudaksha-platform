@@ -23,8 +23,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { IndicatorPreview } from "@/components/assessments/IndicatorPreview";
+import { AssessmentTypeSelector } from "@/components/assessments/AssessmentTypeSelector";
 
-type Step = 1 | 2 | 3;
+type Step = 0 | 1 | 2 | 3;
 
 interface RoleData {
     id: string;
@@ -54,7 +55,7 @@ interface Props {
 
 export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
     const router = useRouter();
-    const [step, setStep] = useState<Step>(1);
+    const [step, setStep] = useState<Step>(0);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
@@ -208,9 +209,9 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                 }),
             });
             if (res.ok) {
+                const model = await res.json();
                 toast.success("Assessment created successfully");
-                router.push(`/assessments/org/${slug}/assessments`);
-                router.refresh();
+                router.push(`/assessments/org/${slug}/assessments/${model.id}/questions`);
             } else {
                 const err = await res.json().catch(() => ({}));
                 toast.error(err.details || err.error || "Failed to create assessment");
@@ -245,10 +246,10 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                     <div key={s.num} className="flex items-center">
                         <div
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${step === s.num
-                                    ? "bg-primary text-primary-foreground"
-                                    : step > s.num
-                                        ? "bg-primary/10 text-primary"
-                                        : "bg-muted text-muted-foreground"
+                                ? "bg-primary text-primary-foreground"
+                                : step > s.num
+                                    ? "bg-primary/10 text-primary"
+                                    : "bg-muted text-muted-foreground"
                                 }`}
                         >
                             {step > s.num ? <Check className="w-4 h-4" /> : s.num}
@@ -262,6 +263,19 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                     </div>
                 ))}
             </div>
+
+            {/* Step 0: Type Selector */}
+            {step === 0 && (
+                <AssessmentTypeSelector
+                    userRole="ORG_USER"
+                    orgSlug={slug}
+                    onSelect={(type) => {
+                        if (type === 'role') setStep(1);
+                        if (type === 'competency') router.push(`/assessments/org/${slug}/assessments/competency-builder`);
+                        if (type === 'component') router.push(`/assessments/org/${slug}/assessments/component-builder`);
+                    }}
+                />
+            )}
 
             {/* Step 1: Role & Level */}
             {step === 1 && (
@@ -302,8 +316,8 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                                         key={level}
                                         onClick={() => setTargetLevel(level)}
                                         className={`p-3 rounded-lg border text-center cursor-pointer transition-all ${targetLevel === level
-                                                ? "bg-primary border-primary text-primary-foreground"
-                                                : "hover:border-primary/50"
+                                            ? "bg-primary border-primary text-primary-foreground"
+                                            : "hover:border-primary/50"
                                             }`}
                                     >
                                         <p className="text-xs font-medium">

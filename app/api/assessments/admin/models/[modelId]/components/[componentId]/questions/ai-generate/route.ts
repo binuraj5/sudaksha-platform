@@ -17,9 +17,7 @@ export async function POST(
         const session = await getApiSession();
         const { modelId, componentId } = await params;
 
-        const u = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-        if (!session?.user || !isAdmin) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

@@ -15,10 +15,26 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const role = user.role;
+        const orgUnitFilter: any = {};
+
+        if (role === "DEPARTMENT_HEAD" || role === "DEPT_HEAD_INST") {
+            orgUnitFilter.OR = [
+                { assignmentLevel: "PROJECT" },
+                { departmentId: user.departmentId }
+            ];
+        } else if (role === "TEAM_LEADER" || role === "CLASS_TEACHER" || role === "MEMBER") {
+            orgUnitFilter.OR = [
+                { assignmentLevel: "PROJECT" },
+                { assignedBy: user.id }
+            ];
+        }
+
         const assignment = await prisma.projectAssessmentModel.findFirst({
             where: {
                 id: assignmentId,
-                projectId: projectId
+                projectId: projectId,
+                ...orgUnitFilter
             },
             include: {
                 model: {

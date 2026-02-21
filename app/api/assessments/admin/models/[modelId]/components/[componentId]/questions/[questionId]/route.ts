@@ -9,11 +9,11 @@ import { canEditModelComponents } from "@/lib/assessments/model-edit-permission"
  */
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: Promise<{ modelId: string; componentId: string; questionId: string }>}
+    { params }: { params: Promise<{ modelId: string; componentId: string; questionId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -52,11 +52,11 @@ export async function PATCH(
  */
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: Promise<{ modelId: string; componentId: string; questionId: string }>}
+    { params }: { params: Promise<{ modelId: string; componentId: string; questionId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         const { modelId, questionId: qId } = await params;

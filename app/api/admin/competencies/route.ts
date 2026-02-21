@@ -52,7 +52,7 @@ export async function GET(req: Request) {
                 teamId: c.teamId ?? undefined,
                 createdByUserId: c.createdByUserId ?? undefined,
             }),
-            _canSubmitGlobal: c.scope !== "GLOBAL" && !c.globalSubmissionStatus,
+            _canSubmitGlobal: c.scope !== "GLOBAL" && (!c.globalSubmissionStatus || c.globalSubmissionStatus === 'CHANGES_REQUESTED' || c.globalSubmissionStatus === 'REJECTED'),
         }));
 
         return NextResponse.json({ competencies: annotated, permissions });
@@ -117,7 +117,7 @@ export async function POST(request: Request) {
             ...competency,
             _canEdit: true,
             _canDelete: true,
-            _canSubmitGlobal: competency.scope !== "GLOBAL" && !competency.globalSubmissionStatus,
+            _canSubmitGlobal: competency.scope !== "GLOBAL" && (!competency.globalSubmissionStatus || competency.globalSubmissionStatus === 'CHANGES_REQUESTED' || competency.globalSubmissionStatus === 'REJECTED'),
         };
         return NextResponse.json(compWithPerms, { status: 201 });
     } catch (error) {

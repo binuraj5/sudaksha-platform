@@ -34,9 +34,9 @@ export async function POST(request: Request) {
         const body = await request.json();
         let { roleId, targetLevel, name, components, competencyWeights } = body;
 
-        if (!roleId || !targetLevel || !name || !Array.isArray(components) || components.length === 0) {
+        if (!targetLevel || !name || !Array.isArray(components) || components.length === 0) {
             return NextResponse.json(
-                { error: "Missing required fields: roleId, targetLevel, name, components" },
+                { error: "Missing required fields: targetLevel, name, components" },
                 { status: 400 }
             );
         }
@@ -47,17 +47,20 @@ export async function POST(request: Request) {
 
         const tenantId = userContext.tenantId ?? null;
 
-        const role = await prisma.role.findUnique({
-            where: { id: roleId },
-            include: {
-                competencies: {
-                    include: { competency: true },
+        let role = null;
+        if (roleId) {
+            role = await prisma.role.findUnique({
+                where: { id: roleId },
+                include: {
+                    competencies: {
+                        include: { competency: true },
+                    },
                 },
-            },
-        });
+            });
 
-        if (!role) {
-            return NextResponse.json({ error: "Role not found" }, { status: 404 });
+            if (!role) {
+                return NextResponse.json({ error: "Role not found" }, { status: 404 });
+            }
         }
 
         // Validate competencyWeights if provided (must sum to 100%)
@@ -94,10 +97,10 @@ export async function POST(request: Request) {
             const model = await tx.assessmentModel.create({
                 data: {
                     name: String(name).trim(),
-                    slug: nextCode.toLowerCase(),
-                    description: `Assessment built from ${role.name} via wizard.`,
-                    sourceType: "ROLE_BASED",
-                    roleId,
+                    slug: nextCode.toLowerCase() + "-" + Math.random().toString(36).substr(2, 4),
+                    description: role ? `Assessment built from ${role.name} via wizard.` : `Custom Competency Assessment built via wizard.`,
+                    sourceType: role ? "ROLE_BASED" : "COMPETENCY_BASED",
+                    roleId: roleId || null,
                     targetLevel: targetLevel as ProficiencyLevel,
                     tenantId,
                     createdBy: userContext.id,
@@ -108,7 +111,7 @@ export async function POST(request: Request) {
 
             let order = 0;
             for (const c of components as { competencyId: string; componentType: string }[]) {
-                const rc = role.competencies.find((x) => x.competencyId === c.competencyId);
+                const rc = role?.competencies.find((x: any) => x.competencyId === c.competencyId);
                 const rawWeight =
                     competencyWeights?.[c.competencyId] ??
                     (rc ? (rc.weight <= 1 && rc.weight > 0 ? rc.weight * 100 : rc.weight) : 100);

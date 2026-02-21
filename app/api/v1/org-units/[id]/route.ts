@@ -84,7 +84,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const userRole = (session as any).user?.role;
 
-    if (!isSuperAdmin && userRole !== 'TENANT_ADMIN' && userRole !== 'MANAGER') {
+    if (!isSuperAdmin && !['TENANT_ADMIN', 'CLIENT_ADMIN', 'ORG_ADMIN', 'MANAGER'].includes(userRole)) {
         return ErrorResponses.forbidden('Insufficient permissions');
     }
 
@@ -109,8 +109,8 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
                         ...(name && { name }),
                         ...(code && { code }),
                         ...(description !== undefined && { description }),
-                        ...(parentId !== undefined && { parentId }),
-                        ...(managerId !== undefined && { managerId }),
+                        ...(parentId !== undefined && { parentId: parentId === "" ? null : parentId }),
+                        ...(managerId !== undefined && { managerId: managerId === "" ? null : managerId }),
                         ...(type && { type }),
                     },
                     include: {
@@ -147,7 +147,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const userRole = (session as any).user?.role;
 
-    if (!isSuperAdmin && userRole !== 'TENANT_ADMIN') {
+    if (!isSuperAdmin && !['TENANT_ADMIN', 'CLIENT_ADMIN', 'ORG_ADMIN'].includes(userRole)) {
         return ErrorResponses.forbidden('Only tenant admins can delete organization units');
     }
 

@@ -1,18 +1,28 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildAssessmentVisibilityFilter, getRoleCompetencyPermissions } from "@/lib/permissions/role-competency-permissions";
 
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ modelId: string }>}
+    { params }: { params: Promise<{ modelId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        const user = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" || user?.userType === "SUPER_ADMIN";
-        if (!session?.user || !isAdmin) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
         const { modelId } = await params;
         const include = {
             role: true,
@@ -26,8 +36,12 @@ export async function GET(
                 orderBy: { order: 'asc' as const }
             }
         };
+
+        const visibilityFilter = buildAssessmentVisibilityFilter(userContext);
+        const whereClause: any = { id: modelId, isActive: true, ...visibilityFilter };
+
         let model = await prisma.assessmentModel.findFirst({
-            where: { id: modelId, isActive: true },
+            where: whereClause,
             include
         });
         // Fallback: model may exist but isActive=false (e.g. just created, or edge case)
@@ -50,20 +64,56 @@ export async function GET(
 
 export async function PATCH(
     request: Request,
-    { params }: { params: Promise<{ modelId: string }>}
+    { params }: { params: Promise<{ modelId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        if (!session) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+        const permissions = getRoleCompetencyPermissions(userContext);
 
         const body = await request.json();
         const { name, description, status, passingScore, maxAttempts, randomizeQuestions, showResultsImmediately } = body;
 
-        const { modelId: modelIdPatch } = await params;
+        const { modelId } = await params;
+
+        const existingModel = await prisma.assessmentModel.findUnique({
+            where: { id: modelId },
+            select: { id: true, status: true, createdBy: true, tenantId: true, clientId: true }
+        });
+
+        if (!existingModel) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+
+        // Authorization check
+        const isCreator = existingModel.createdBy === user.id;
+        const isSameTenant = (existingModel.tenantId === userContext.tenantId) || (existingModel.clientId === userContext.tenantId);
+
+        if (!permissions.canEditGlobal) {
+            if (!(isCreator && permissions.canEditOwn) && !(isSameTenant && permissions.canEditOrg)) {
+                return NextResponse.json({ error: "You don't have permission to edit this model" }, { status: 403 });
+            }
+        }
+
+        if (existingModel.status === "PUBLISHED" && status !== "ARCHIVED") {
+            return NextResponse.json({ error: "Cannot edit a published model without unpublishing first" }, { status: 400 });
+        }
+
         const model = await prisma.assessmentModel.update({
-            where: { id: modelIdPatch },
+            where: { id: modelId },
             data: {
                 name,
                 description,
@@ -84,44 +134,52 @@ export async function PATCH(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: Promise<{ modelId: string }>}
+    { params }: { params: Promise<{ modelId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        if (!session) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const user = session.user as { role?: string; userType?: string; tenantId?: string; clientId?: string };
-        const isSuperAdmin = user.role === "SUPER_ADMIN" || user.userType === "SUPER_ADMIN";
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+        const permissions = getRoleCompetencyPermissions(userContext);
 
-        const { modelId: modelIdDel } = await params;
+        const { modelId } = await params;
         const model = await prisma.assessmentModel.findUnique({
-            where: { id: modelIdDel },
-            select: { id: true, tenantId: true, clientId: true }
+            where: { id: modelId },
+            select: { id: true, tenantId: true, clientId: true, createdBy: true, status: true }
         });
 
         if (!model) {
             return NextResponse.json({ error: "Model not found" }, { status: 404 });
         }
 
-        // SuperAdmin can delete everything; other admins can only delete models in their down-line
-        if (!isSuperAdmin) {
-            const userTenantId = user.tenantId || user.clientId;
-            const inScope =
-                (model.tenantId && model.tenantId === userTenantId) ||
-                (model.clientId && model.clientId === user.clientId);
-            if (!inScope) {
-                return NextResponse.json(
-                    { error: "You can only delete assessment models within your organization hierarchy" },
-                    { status: 403 }
-                );
+        if (model.status === "PUBLISHED" || model.status === "ARCHIVED") {
+            return NextResponse.json({ error: "Cannot delete a published or archived model" }, { status: 400 });
+        }
+
+        const isCreator = model.createdBy === user.id;
+        const isSameTenant = (model.tenantId === userContext.tenantId) || (model.clientId === userContext.tenantId);
+
+        if (!permissions.canDeleteGlobal) {
+            if (!(isCreator && permissions.canDeleteOwn) && !(isSameTenant && permissions.canDeleteOrg)) {
+                return NextResponse.json({ error: "You don't have permission to delete this model" }, { status: 403 });
             }
         }
 
         // Soft delete: update isActive and status
         await prisma.assessmentModel.update({
-            where: { id: modelIdDel },
+            where: { id: modelId },
             data: {
                 isActive: false,
                 status: "ARCHIVED"

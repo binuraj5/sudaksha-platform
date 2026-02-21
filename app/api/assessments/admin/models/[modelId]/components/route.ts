@@ -9,16 +9,35 @@ import { canEditModelComponents } from "@/lib/assessments/model-edit-permission"
  */
 export async function GET(
     req: NextRequest,
-    { params }: { params: Promise<{ modelId: string }>}
+    { params }: { params: Promise<{ modelId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        const user = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" || user?.userType === "SUPER_ADMIN";
-        if (!session?.user || !isAdmin) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        const user = session.user as any;
+        const userTenantId = user.tenantId || user.clientId;
+        const isSuperAdmin = user.role === "SUPER_ADMIN" || user.userType === "SUPER_ADMIN";
+
         const { modelId } = await params;
+        const model = await prisma.assessmentModel.findUnique({
+            where: { id: modelId },
+            select: { id: true, tenantId: true, clientId: true }
+        });
+
+        if (!model) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+
+        if (!isSuperAdmin) {
+            const isSameTenant = (model.tenantId === userTenantId) || (model.clientId === userTenantId);
+            if (!isSameTenant && user.role !== "MEMBER") { // MBMERS might be viewing assigned components elsewhere, but for Admin UI this is correct.
+                return NextResponse.json({ error: "Outside organization hierarchy" }, { status: 403 });
+            }
+        }
+
         const components = await prisma.assessmentModelComponent.findMany({
             where: { modelId },
             include: {
@@ -50,13 +69,11 @@ export async function GET(
  */
 export async function POST(
     req: NextRequest,
-    { params }: { params: Promise<{ modelId: string }>}
+    { params }: { params: Promise<{ modelId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        const user = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" || user?.userType === "SUPER_ADMIN";
-        if (!session?.user || !isAdmin) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

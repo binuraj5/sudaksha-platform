@@ -9,13 +9,35 @@ import { canEditModelComponents } from "@/lib/assessments/model-edit-permission"
  */
 export async function GET(
     req: NextRequest,
-    { params }: { params: Promise<{ modelId: string; componentId: string }>}
+    { params }: { params: Promise<{ modelId: string; componentId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        const user = session.user as any;
+        const userTenantId = user.tenantId || user.clientId;
+        const isSuperAdmin = user.role === "SUPER_ADMIN" || user.userType === "SUPER_ADMIN";
+
+        const { modelId } = await params;
+        const model = await prisma.assessmentModel.findUnique({
+            where: { id: modelId },
+            select: { id: true, tenantId: true, clientId: true }
+        });
+
+        if (!model) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+
+        if (!isSuperAdmin) {
+            const isSameTenant = (model.tenantId === userTenantId) || (model.clientId === userTenantId);
+            if (!isSameTenant && user.role !== "MEMBER") {
+                return NextResponse.json({ error: "Outside organization hierarchy" }, { status: 403 });
+            }
+        }
+
         const { componentId } = await params;
         const questions = await prisma.componentQuestion.findMany({
             where: { componentId },
@@ -35,11 +57,11 @@ export async function GET(
  */
 export async function POST(
     req: NextRequest,
-    { params }: { params: Promise<{ modelId: string; componentId: string }>}
+    { params }: { params: Promise<{ modelId: string; componentId: string }> }
 ) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

@@ -16,8 +16,28 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const role = user.role;
+        const orgUnitFilter: any = {};
+
+        if (role === "DEPARTMENT_HEAD" || role === "DEPT_HEAD_INST") {
+            // Dept Head can see PROJECT level and their own DEPARTMENT level
+            orgUnitFilter.OR = [
+                { assignmentLevel: "PROJECT" },
+                { departmentId: user.departmentId }
+            ];
+        } else if (role === "TEAM_LEADER" || role === "CLASS_TEACHER" || role === "MEMBER") {
+            // Team Leader/Member sees PROJECT and their specific INDIVIDUAL/TEAM assignments (simplified here to just PROJECT and self-assigned for now)
+            orgUnitFilter.OR = [
+                { assignmentLevel: "PROJECT" },
+                { assignedBy: user.id }
+            ];
+        }
+
         const assignments = await prisma.projectAssessmentModel.findMany({
-            where: { projectId },
+            where: {
+                projectId,
+                ...orgUnitFilter
+            },
             include: {
                 model: {
                     select: { name: true, durationMinutes: true }
@@ -57,6 +77,18 @@ export async function POST(
 
         if (!modelId || !assignmentLevel) {
             return NextResponse.json({ error: "Model ID and Assignment Level are required" }, { status: 400 });
+        }
+
+        const role = user.role;
+
+        // Scope Enforcement
+        if (assignmentLevel === "DEPARTMENT") {
+            if (role === "TEAM_LEADER" || role === "CLASS_TEACHER" || role === "MEMBER") {
+                return NextResponse.json({ error: "Team Leaders and Members cannot assign at the Department level" }, { status: 403 });
+            }
+            if ((role === "DEPARTMENT_HEAD" || role === "DEPT_HEAD_INST") && user.departmentId !== departmentId) {
+                return NextResponse.json({ error: "You can only assign assessments to your own department" }, { status: 403 });
+            }
         }
 
         // 1. Create the Project-level assignment record

@@ -58,30 +58,36 @@ interface QuestionFormProps {
     indicators: Indicator[];
     onSave: (data: any) => void;
     onCancel: () => void;
+    initialData?: any;
 }
 
 export const QuestionForm: React.FC<QuestionFormProps> = ({
     componentId,
     indicators,
     onSave,
-    onCancel
+    onCancel,
+    initialData
 }) => {
-    const [type, setType] = useState<QuestionType>("MULTIPLE_CHOICE");
-    const [options, setOptions] = useState([
-        { text: "", isCorrect: true, order: 0 },
-        { text: "", isCorrect: false, order: 1 }
-    ]);
-    const [selectedIndicatorIds, setSelectedIndicatorIds] = useState<string[]>([]);
+    const [type, setType] = useState<QuestionType>(initialData?.questionType || "MULTIPLE_CHOICE");
+    const [options, setOptions] = useState<{ text: string; isCorrect: boolean; order: number }[]>(
+        initialData?.options || [
+            { text: "", isCorrect: true, order: 0 },
+            { text: "", isCorrect: false, order: 1 }
+        ]
+    );
+    const [selectedIndicatorIds, setSelectedIndicatorIds] = useState<string[]>(
+        initialData?.linkedIndicators || []
+    );
 
     const { register, watch, handleSubmit, formState: { errors }, setValue } = useForm({
         resolver: zodResolver(questionSchema),
         defaultValues: {
-            questionText: "",
-            questionType: "MULTIPLE_CHOICE" as QuestionType,
-            points: 2,
-            timeLimit: 120,
-            explanation: "",
-            correctAnswer: ""
+            questionText: initialData?.questionText || "",
+            questionType: initialData?.questionType || ("MULTIPLE_CHOICE" as QuestionType),
+            points: initialData?.points || 2,
+            timeLimit: initialData?.timeLimit || 120,
+            explanation: initialData?.explanation || "",
+            correctAnswer: initialData?.correctAnswer || ""
         }
     });
 
@@ -174,7 +180,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                                 placeholder="Type your question here..."
                                 className="min-h-[120px] rounded-lg border border-border p-4 text-foreground focus:ring-primary/20"
                             />
-                            {errors.questionText && <p className="text-red-500 text-xs font-bold">{errors.questionText.message}</p>}
+                            {errors.questionText && <p className="text-red-500 text-xs font-bold">{errors.questionText.message as string}</p>}
                         </div>
                     </div>
 
@@ -295,9 +301,8 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                                     <div
                                         key={ind.id}
                                         onClick={() => toggleIndicator(ind.id)}
-                                        className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 ${
-                                            selectedIndicatorIds.includes(ind.id) ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
-                                        }`}
+                                        className={`p-3 rounded-lg border cursor-pointer transition-all flex items-start gap-3 ${selectedIndicatorIds.includes(ind.id) ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
+                                            }`}
                                     >
                                         <Checkbox checked={selectedIndicatorIds.includes(ind.id)} className="mt-0.5" />
                                         <div className="flex-1 min-w-0">

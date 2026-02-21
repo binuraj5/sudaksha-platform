@@ -84,7 +84,7 @@ export async function POST(
     const session = await getApiSession();
     const { clientId } = await params;
 
-    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'DEPT_HEAD'];
+    const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'CLIENT_ADMIN', 'ORG_ADMIN', 'DEPARTMENT_HEAD', 'DEPT_HEAD'];
     if (!session || !allowedRoles.includes(session.user.role as string)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

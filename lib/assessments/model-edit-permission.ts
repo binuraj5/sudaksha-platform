@@ -10,7 +10,7 @@
 
 import type { Session } from "next-auth";
 
-const EDIT_ROLES = ["SUPER_ADMIN", "ADMIN", "TENANT_ADMIN", "DEPT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"];
+const EDIT_ROLES = ["SUPER_ADMIN", "ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN", "ORG_ADMIN", "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"];
 const READ_ONLY_ROLES = ["EMPLOYEE", "STUDENT", "INDIVIDUAL", "ASSESSOR", "MANAGER"];
 
 export type ModelWithStatus = { id: string; status: string; tenantId?: string | null; clientId?: string | null };

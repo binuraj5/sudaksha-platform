@@ -151,6 +151,7 @@ export function LibraryBrowser({
                         onValueChange={(v) =>
                             setFilters((f) => ({ ...f, targetLevel: v }))
                         }
+                        disabled={!!targetLevel}
                     >
                         <SelectTrigger className="w-[130px]">
                             <SelectValue placeholder="Level" />
@@ -168,6 +169,7 @@ export function LibraryBrowser({
                         onValueChange={(v) =>
                             setFilters((f) => ({ ...f, componentType: v }))
                         }
+                        disabled={!!componentType}
                     >
                         <SelectTrigger className="w-[140px]">
                             <SelectValue placeholder="Type" />

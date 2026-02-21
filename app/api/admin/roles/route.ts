@@ -48,7 +48,7 @@ export async function GET(req: Request) {
                 competencies: { select: { id: true } },
                 tenant: { select: { id: true, name: true } },
                 _count: {
-                    select: { 
+                    select: {
                         competencies: true,
                         assessmentModels: true
                     }
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
             ...role,
             _canEdit: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
             _canDelete: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
-            _canSubmitGlobal: role.scope !== 'GLOBAL' && !role.globalSubmissionStatus,
+            _canSubmitGlobal: role.scope !== 'GLOBAL' && (!role.globalSubmissionStatus || role.globalSubmissionStatus === 'CHANGES_REQUESTED' || role.globalSubmissionStatus === 'REJECTED'),
             _isOwned: role.tenantId === user.tenantId,
         }));
 
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
                 competencies: { select: { id: true } },
                 tenant: { select: { id: true, name: true } },
                 _count: {
-                    select: { 
+                    select: {
                         competencies: true,
                         assessmentModels: true
                     }
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
             ...role,
             _canEdit: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
             _canDelete: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
-            _canSubmitGlobal: role.scope !== 'GLOBAL' && !role.globalSubmissionStatus,
+            _canSubmitGlobal: role.scope !== 'GLOBAL' && (!role.globalSubmissionStatus || role.globalSubmissionStatus === 'CHANGES_REQUESTED' || role.globalSubmissionStatus === 'REJECTED'),
             _isOwned: role.tenantId === user.tenantId,
         };
 

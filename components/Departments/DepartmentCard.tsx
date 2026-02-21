@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { useTenantLabels } from "@/hooks/useTenantLabels";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import React from "react";
+import { EditDepartmentDialog } from "./EditDepartmentDialog";
 
 interface Department {
     id: string;
@@ -32,6 +34,7 @@ export function DepartmentCard({ dept, clientId, basePath }: { dept: Department;
     const linkBase = basePath ?? `/assessments/clients/${clientId}`;
     const labels = useTenantLabels();
     const router = useRouter();
+    const [editOpen, setEditOpen] = React.useState(false);
     return (
         <Card className={`hover:shadow-md transition-all ${!dept.isActive ? 'opacity-60 bg-gray-50' : ''}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -54,7 +57,10 @@ export function DepartmentCard({ dept, clientId, basePath }: { dept: Department;
                         <DropdownMenuItem asChild>
                             <Link href={`${linkBase}/departments/${dept.id}`}>View Details</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Edit {labels.orgUnit}</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(e) => {
+                            e.preventDefault();
+                            setEditOpen(true);
+                        }}>Edit {labels.orgUnit}</DropdownMenuItem>
                         <DropdownMenuItem
                             className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
                             onSelect={async (e) => {
@@ -120,6 +126,12 @@ export function DepartmentCard({ dept, clientId, basePath }: { dept: Department;
                     <Link href={`${linkBase}/departments/${dept.id}`}>Manage</Link>
                 </Button>
             </CardFooter>
+            <EditDepartmentDialog
+                clientId={clientId}
+                department={dept as any}
+                open={editOpen}
+                onOpenChange={setEditOpen}
+            />
         </Card>
     );
 }

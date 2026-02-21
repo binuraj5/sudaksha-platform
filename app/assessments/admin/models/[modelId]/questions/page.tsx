@@ -37,6 +37,7 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
     const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
     const [mode, setMode] = useState<"list" | "manual" | "bulk" | "ai">("list");
     const [questions, setQuestions] = useState<any[]>([]);
+    const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
     const [batchCounts, setBatchCounts] = useState<Record<string, number>>({});
     const [batchGenerating, setBatchGenerating] = useState(false);
     const [unpublishing, setUnpublishing] = useState(false);
@@ -97,21 +98,28 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
         setMode("list");
     };
 
-    const handleSaveQuestion = async (data: any) => {
+    const handleSaveQuestion = async (data: any, isEditContext: boolean = !!editingQuestion) => {
         try {
-            const res = await fetch(`/api/assessments/admin/models/${modelId}/components/${selectedComponentId}/questions`, {
-                method: "POST",
+            const url = isEditContext
+                ? `/api/assessments/admin/models/${modelId}/components/${selectedComponentId}/questions/${editingQuestion.id}`
+                : `/api/assessments/admin/models/${modelId}/components/${selectedComponentId}/questions`;
+
+            const method = isEditContext ? "PATCH" : "POST";
+
+            const res = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
             });
 
             if (res.ok) {
-                toast.success("Question added successfully!");
+                toast.success(`Question ${isEditContext ? 'updated' : 'added'} successfully!`);
                 fetchQuestions(selectedComponentId!);
                 setMode("list");
+                setEditingQuestion(null);
             } else {
                 const err = await res.json();
-                toast.error(err.error || "Failed to add question");
+                toast.error(err.error || `Failed to ${isEditContext ? 'update' : 'add'} question`);
             }
         } catch (error) {
             toast.error("An error occurred");
@@ -192,7 +200,8 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
         try {
             for (let i = 0; i < model.components.length; i++) {
                 const comp = model.components[i];
-                const count = Math.min(20, Math.max(1, batchCounts[comp.id] ?? 5));
+                const count = Math.min(20, Math.max(0, batchCounts[comp.id] ?? 5));
+                if (count === 0) continue;
                 let res = await fetch(getAiGenerateUrl(comp.id), {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -317,11 +326,11 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
 
             {/* Info banner - simplified, matches admin card style */}
             {!isPublished && (
-            <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                    <span className="font-medium text-foreground">What to do:</span> Select a competency on the left, then use <span className="font-medium text-foreground">Questions</span> to view & manage, <span className="font-medium text-foreground">Manual</span> to add one, <span className="font-medium text-foreground">Bulk</span> to upload, or <span className="font-medium text-foreground">AI</span> to generate.
-                </p>
-            </div>
+                <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                        <span className="font-medium text-foreground">What to do:</span> Select a competency on the left, then use <span className="font-medium text-foreground">Questions</span> to view & manage, <span className="font-medium text-foreground">Manual</span> to add one, <span className="font-medium text-foreground">Bulk</span> to upload, or <span className="font-medium text-foreground">AI</span> to generate.
+                    </p>
+                </div>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -344,44 +353,42 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                                     </Link>
                                 </div>
                             ) : (
-                            <div className="space-y-1">
-                                {(model?.components ?? []).map((comp: any) => (
-                                    <div
-                                        key={comp.id}
-                                        onClick={() => handleComponentChange(comp.id)}
-                                        className={`p-3 rounded-lg border transition-all cursor-pointer group flex items-start justify-between ${
-                                            selectedComponentId === comp.id
-                                                ? "bg-primary/10 border-primary/30 text-foreground"
-                                                : "bg-card border-border hover:bg-muted/50 hover:border-muted-foreground/20"
-                                        }`}
-                                    >
-                                        <div className="space-y-1 min-w-0 flex-1">
-                                            <h3 className="text-sm font-medium truncate">
-                                                {comp.competency?.name ?? comp.id}
-                                            </h3>
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <Badge variant="outline" className="text-[10px] font-medium px-1.5 py-0">
-                                                    {comp.componentType ?? "MCQ"}
-                                                </Badge>
-                                                {(() => {
-                                                    const qCount = comp._count?.questions ?? comp.questions?.length ?? 0;
-                                                    const isSpecialized = ["VOICE", "VIDEO", "CODE", "ADAPTIVE_AI", "ADAPTIVE_QUESTIONNAIRE", "PANEL"].includes(comp.componentType);
-                                                    if (isSpecialized) {
-                                                        return <span className="text-xs text-muted-foreground">{qCount > 0 ? `${qCount} Q` : "Configured"}</span>;
-                                                    }
-                                                    return <Badge variant="secondary" className="text-xs font-medium">{qCount} Q</Badge>;
-                                                })()}
-                                                <span className="text-xs text-muted-foreground">
-                                                    {comp.weight}%
-                                                </span>
+                                <div className="space-y-1">
+                                    {(model?.components ?? []).map((comp: any) => (
+                                        <div
+                                            key={comp.id}
+                                            onClick={() => handleComponentChange(comp.id)}
+                                            className={`p-3 rounded-lg border transition-all cursor-pointer group flex items-start justify-between ${selectedComponentId === comp.id
+                                                    ? "bg-primary/10 border-primary/30 text-foreground"
+                                                    : "bg-card border-border hover:bg-muted/50 hover:border-muted-foreground/20"
+                                                }`}
+                                        >
+                                            <div className="space-y-1 min-w-0 flex-1">
+                                                <h3 className="text-sm font-medium truncate">
+                                                    {comp.competency?.name ?? comp.id}
+                                                </h3>
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <Badge variant="outline" className="text-[10px] font-medium px-1.5 py-0">
+                                                        {comp.componentType ?? "MCQ"}
+                                                    </Badge>
+                                                    {(() => {
+                                                        const qCount = comp._count?.questions ?? comp.questions?.length ?? 0;
+                                                        const isSpecialized = ["VOICE", "VIDEO", "CODE", "ADAPTIVE_AI", "ADAPTIVE_QUESTIONNAIRE", "PANEL"].includes(comp.componentType);
+                                                        if (isSpecialized) {
+                                                            return <span className="text-xs text-muted-foreground">{qCount > 0 ? `${qCount} Q` : "Configured"}</span>;
+                                                        }
+                                                        return <Badge variant="secondary" className="text-xs font-medium">{qCount} Q</Badge>;
+                                                    })()}
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {comp.weight}%
+                                                    </span>
+                                                </div>
                                             </div>
+                                            <ChevronRight className={`w-4 h-4 shrink-0 mt-0.5 ${selectedComponentId === comp.id ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                                }`} />
                                         </div>
-                                        <ChevronRight className={`w-4 h-4 shrink-0 mt-0.5 ${
-                                            selectedComponentId === comp.id ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                                        }`} />
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -425,9 +432,9 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                                                 <Search className="w-4 h-4" />
                                             </Button>
                                             {!isPublished && (
-                                            <Button size="sm" className="h-9 bg-navy-700 hover:bg-navy-600 gap-1" onClick={() => setMode("manual")}>
-                                                <Plus className="w-4 h-4" /> Add
-                                            </Button>
+                                                <Button size="sm" className="h-9 bg-navy-700 hover:bg-navy-600 gap-1" onClick={() => { setEditingQuestion(null); setMode("manual"); }}>
+                                                    <Plus className="w-4 h-4" /> Add
+                                                </Button>
                                             )}
                                         </div>
                                     )}
@@ -451,12 +458,13 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                                             questions={questions}
                                             indicators={indicators}
                                             onEdit={(q) => {
-                                                toast.info("Edit functionality coming soon. Currently focused on build flow.");
+                                                setEditingQuestion(q);
+                                                setMode("manual");
                                             }}
                                             onDelete={handleDeleteQuestion}
                                             onDuplicate={(q) => {
                                                 const { id, ...rest } = q;
-                                                handleSaveQuestion(rest);
+                                                handleSaveQuestion(rest, false);
                                             }}
                                             readOnly={isPublished}
                                         />
@@ -467,10 +475,15 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                                     {selectedComponentId ? (
                                         <div className="rounded-lg border border-border bg-card p-4">
                                             <QuestionForm
+                                                key={editingQuestion?.id || "new"}
                                                 componentId={selectedComponentId}
                                                 indicators={indicators}
                                                 onSave={handleSaveQuestion}
-                                                onCancel={() => setMode("list")}
+                                                onCancel={() => {
+                                                    setEditingQuestion(null);
+                                                    setMode("list");
+                                                }}
+                                                initialData={editingQuestion}
                                             />
                                         </div>
                                     ) : (
@@ -520,10 +533,10 @@ export default function QuestionsPage({ params }: { params: Promise<{ modelId: s
                                                             <Label className="text-xs text-muted-foreground">Count</Label>
                                                             <Input
                                                                 type="number"
-                                                                min={1}
+                                                                min={0}
                                                                 max={20}
                                                                 value={batchCounts[comp.id] ?? 5}
-                                                                onChange={(e) => setBatchCounts(prev => ({ ...prev, [comp.id]: Math.min(20, Math.max(1, parseInt(e.target.value) || 1)) }))}
+                                                                onChange={(e) => setBatchCounts(prev => ({ ...prev, [comp.id]: Math.min(20, Math.max(0, parseInt(e.target.value) || 0)) }))}
                                                                 className="w-16 h-8 text-center text-sm"
                                                             />
                                                         </div>

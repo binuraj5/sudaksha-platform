@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { bumpVersion } from "@/lib/assessments/model-edit-permission";
+import { getRoleCompetencyPermissions } from "@/lib/permissions/role-competency-permissions";
 
 /**
  * POST /api/assessments/admin/models/[modelId]/publish
@@ -15,9 +16,21 @@ export async function POST(
 ) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+        const permissions = getRoleCompetencyPermissions(userContext);
 
         const { modelId } = await params;
         const body = await req.json();
@@ -60,8 +73,15 @@ export async function POST(
             );
         }
 
+        const isCreator = model.createdBy === user.id;
+        const isSameTenant = (model.tenantId === userContext.tenantId) || (model.clientId === userContext.tenantId);
+
         if (visibility === "GLOBAL") {
-            if (session.user.role !== "SUPER_ADMIN") {
+            if (!permissions.canSubmitForGlobal && !permissions.canEditGlobal) {
+                return NextResponse.json({ error: "You don't have permission to submit models for global approval" }, { status: 403 });
+            }
+
+            if (!permissions.canEditGlobal) {
                 await prisma.globalPublishRequest.create({
                     data: {
                         entityType: "MODEL",
@@ -106,6 +126,12 @@ export async function POST(
                 message: "Model published globally",
                 version: nextVersion
             });
+        }
+
+        if (visibility === "ORGANIZATION") {
+            if (!permissions.canPublishToOrg || !isSameTenant) {
+                return NextResponse.json({ error: "You don't have permission to publish to the organization" }, { status: 403 });
+            }
         }
 
         const nextVersion = bumpVersion(model.version || "1.0.0");

@@ -28,8 +28,9 @@ import { ModelCompetencySelector } from "@/components/assessments/ModelCompetenc
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { STUDENT_LEVEL_TOOLTIP } from "@/lib/assessment-student-restrictions";
 import { useRoleCompetencyPermissions } from "@/hooks/useRoleCompetencyPermissions";
+import { AssessmentTypeSelector } from "@/components/assessments/AssessmentTypeSelector";
 
-type Step = 1 | 2 | 3;
+type Step = 0 | 1 | 2 | 3;
 
 interface RoleData {
     id: string;
@@ -56,7 +57,7 @@ export default function CreateAssessmentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const permissions = useRoleCompetencyPermissions();
-    const [step, setStep] = useState<Step>(1);
+    const [step, setStep] = useState<Step>(0);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
@@ -129,6 +130,7 @@ export default function CreateAssessmentPage() {
         if (urlRoleName) setName(`${decodeURIComponent(urlRoleName)} - ${urlLevel} Assessment`);
         fetchRoleCompetencies(urlRoleId);
         if (isWizardEntry) setStep(2);
+        else setStep(1); // Resume at step 1 if URL params say role was picked
     }, [urlRoleId, urlLevel, urlRoleName, isWizardEntry, fetchRoleCompetencies]);
 
     useEffect(() => {
@@ -274,6 +276,17 @@ export default function CreateAssessmentPage() {
                     </div>
                 ))}
             </div>
+
+            {step === 0 && (
+                <AssessmentTypeSelector
+                    userRole="SUPER_ADMIN"
+                    onSelect={(type) => {
+                        if (type === 'role') setStep(1);
+                        if (type === 'competency') router.push("/assessments/admin/models/competency-builder");
+                        if (type === 'component') router.push("/assessments/admin/models/component-builder");
+                    }}
+                />
+            )}
 
             {step === 1 && (
                 <Card>
