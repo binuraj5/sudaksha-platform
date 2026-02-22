@@ -1,0 +1,522 @@
+﻿
+> sudaksha-nws@1.0.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+node.exe : ΓÜá The "middleware" file convention is deprecated. 
+Please use "proxy" instead. Learn more: 
+https://nextjs.org/docs/messages/middleware-to-proxy
+At C:\Program Files\nodejs\npm.ps1:29 char:3
++   & $NODE_EXE $NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ΓÜá The "middle...lew 
+   are-to-proxy:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 59s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+≡ƒöù Attempting to connect to database...
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+≡ƒöù Attempting to connect to database...
+Γ£à Database connected successfully
+  Generating static pages using 7 workers (0/230) ...
+  Generating static pages using 7 workers (57/230) 
+  Generating static pages using 7 workers (114/230) 
+  Generating static pages using 7 workers (172/230) 
+Γ£ô Generating static pages using 7 workers (230/230) in 3.9s
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ Γùï /about
+Γö£ Γùï /admin
+Γö£ Γùï /admin/activity
+Γö£ Γùï /admin/courses
+Γö£ ╞Æ /admin/courses/[id]
+Γö£ Γùï /admin/courses/ai-generate
+Γö£ Γùï /admin/courses/new
+Γö£ Γùï /admin/dashboard
+Γö£ Γùï /admin/enrollments
+Γö£ Γùï /admin/login
+Γö£ ╞Æ /admin/trainers
+Γö£ Γùï /admin/trainers/add
+Γö£ ╞Æ /admin/trainers/edit/[id]
+Γö£ ╞Æ /api/admin/analytics
+Γö£ ╞Æ /api/admin/approvals
+Γö£ ╞Æ /api/admin/approvals/[id]
+Γö£ ╞Æ /api/admin/assessment-components
+Γö£ ╞Æ /api/admin/assessment-components/[id]
+Γö£ ╞Æ /api/admin/assessment-components/[id]/questions
+Γö£ ╞Æ /api/admin/assessment-components/[id]/questions/[questionId]
+Γö£ ╞Æ /api/admin/assessment-components/[id]/questions/ai-generate
+Γö£ ╞Æ /api/admin/assessment-components/[id]/questions/bulk-upload
+Γö£ ╞Æ /api/admin/assessment-components/[id]/runtime-config
+Γö£ ╞Æ /api/admin/assessment-models
+Γö£ ╞Æ /api/admin/assessment-models/[id]
+Γö£ ╞Æ /api/admin/assessment-models/[id]/components
+Γö£ ╞Æ /api/admin/assessment-models/[id]/components/[componentId]
+Γö£ ╞Æ /api/admin/assessment-models/[id]/reorder
+Γö£ ╞Æ /api/admin/assessments
+Γö£ ╞Æ /api/admin/assessments/[id]
+Γö£ ╞Æ /api/admin/assessments/stats
+Γö£ ╞Æ /api/admin/audit
+Γö£ ╞Æ /api/admin/batches
+Γö£ ╞Æ /api/admin/blog
+Γö£ ╞Æ /api/admin/blog/[id]
+Γö£ ╞Æ /api/admin/clients
+Γö£ ╞Æ /api/admin/clients/[clientId]
+Γö£ ╞Æ /api/admin/clients/[clientId]/gap-analysis
+Γö£ ╞Æ /api/admin/communication
+Γö£ ╞Æ /api/admin/competencies
+Γö£ ╞Æ /api/admin/competencies/[id]/approve-global
+Γö£ ╞Æ /api/admin/competencies/[id]/indicators
+Γö£ ╞Æ /api/admin/competencies/[id]/indicators/bulk-upload
+Γö£ ╞Æ /api/admin/competencies/[id]/submit-global
+Γö£ ╞Æ /api/admin/competencies/ai-generate
+Γö£ ╞Æ /api/admin/competencies/ai-generate-topics
+Γö£ ╞Æ /api/admin/competencies/bulk-upload
+Γö£ ╞Æ /api/admin/competencies/indicators/[id]
+Γö£ ╞Æ /api/admin/conflicts
+Γö£ ╞Æ /api/admin/courses
+Γö£ ╞Æ /api/admin/courses/[id]
+Γö£ ╞Æ /api/admin/dashboard
+Γö£ ╞Æ /api/admin/master-data
+Γö£ ╞Æ /api/admin/reports/generate
+Γö£ ╞Æ /api/admin/role-assignment-requests
+Γö£ ╞Æ /api/admin/role-assignment-requests/[id]/approve
+Γö£ ╞Æ /api/admin/role-assignment-requests/[id]/create-role
+Γö£ ╞Æ /api/admin/role-assignment-requests/[id]/reject
+Γö£ ╞Æ /api/admin/roles
+Γö£ ╞Æ /api/admin/roles/[id]
+Γö£ ╞Æ /api/admin/roles/[id]/approve-global
+Γö£ ╞Æ /api/admin/roles/[id]/competencies
+Γö£ ╞Æ /api/admin/roles/[id]/competencies/[mappingId]
+Γö£ ╞Æ /api/admin/roles/[id]/competencies/bulk
+Γö£ ╞Æ /api/admin/roles/[id]/generate-assessment
+Γö£ ╞Æ /api/admin/roles/[id]/submit-global
+Γö£ ╞Æ /api/admin/roles/search
+Γö£ ╞Æ /api/admin/seed/components
+Γö£ ╞Æ /api/admin/seed/models
+Γö£ ╞Æ /api/admin/seed/templates
+Γö£ ╞Æ /api/admin/settings
+Γö£ ╞Æ /api/admin/setup
+Γö£ ╞Æ /api/admin/test-db
+Γö£ ╞Æ /api/admin/trainers
+Γö£ ╞Æ /api/admin/usage-analytics/stats
+Γö£ ╞Æ /api/admin/users
+Γö£ ╞Æ /api/admin/users/bulk-upload
+Γö£ ╞Æ /api/admin/webinars
+Γö£ ╞Æ /api/admin/webinars/[id]
+Γö£ ╞Æ /api/ai/courses
+Γö£ ╞Æ /api/ai/interview/process
+Γö£ ╞Æ /api/ai/transcribe
+Γö£ ╞Æ /api/assessments/[id]/gap-analysis
+Γö£ ╞Æ /api/assessments/[id]/start
+Γö£ ╞Æ /api/assessments/adaptive/answer
+Γö£ ╞Æ /api/assessments/adaptive/complete
+Γö£ ╞Æ /api/assessments/adaptive/start
+Γö£ ╞Æ /api/assessments/admin/assign-by-email
+Γö£ ╞Æ /api/assessments/admin/components/[componentId]/questions/ai-generate
+Γö£ ╞Æ /api/assessments/admin/components/[componentId]/questions/bulk
+Γö£ ╞Æ /api/assessments/admin/components/[componentId]/questions/bulk-json
+Γö£ ╞Æ /api/assessments/admin/global-publish-requests
+Γö£ ╞Æ /api/assessments/admin/global-publish-requests/[id]/review
+Γö£ ╞Æ /api/assessments/admin/indicators/preview
+Γö£ ╞Æ /api/assessments/admin/model-components
+Γö£ ╞Æ /api/assessments/admin/models
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/available-competencies
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/components
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/components/[componentId]
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/components/[componentId]/questions
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/components/[componentId]/questions/[questionId]
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/components/[componentId]/questions/ai-generate
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/components/[componentId]/use-library
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/publish
+Γö£ ╞Æ /api/assessments/admin/models/[modelId]/unpublish
+Γö£ ╞Æ /api/assessments/admin/models/from-role
+Γö£ ╞Æ /api/assessments/admin/models/from-wizard
+Γö£ ╞Æ /api/assessments/admin/questions/[questionId]/regenerate
+Γö£ ╞Æ /api/assessments/code/run
+Γö£ ╞Æ /api/assessments/code/submit
+Γö£ ╞Æ /api/assessments/library
+Γö£ ╞Æ /api/assessments/library/[id]
+Γö£ ╞Æ /api/assessments/panel-interviews/[id]/evaluate
+Γö£ ╞Æ /api/assessments/panels
+Γö£ ╞Æ /api/assessments/panels/[panelId]
+Γö£ ╞Æ /api/assessments/panels/[panelId]/interviews
+Γö£ ╞Æ /api/assessments/panels/[panelId]/interviews/[interviewId]
+Γö£ ╞Æ /api/assessments/panels/[panelId]/interviews/[interviewId]/evaluate
+Γö£ ╞Æ /api/assessments/panels/[panelId]/members
+Γö£ ╞Æ /api/assessments/panels/schedule
+Γö£ ╞Æ /api/assessments/runner/[id]/component/[componentId]/complete
+Γö£ ╞Æ /api/assessments/runner/[id]/component/[componentId]/questions
+Γö£ ╞Æ /api/assessments/runner/[id]/component/[componentId]/start
+Γö£ ╞Æ /api/assessments/runner/response
+Γö£ ╞Æ /api/assessments/runtime/generate-next-question
+Γö£ ╞Æ /api/auth/[...nextauth]
+Γö£ ╞Æ /api/auth/b2c/register
+Γö£ ╞Æ /api/auth/init-super-admin
+Γö£ ╞Æ /api/auth/login
+Γö£ ╞Æ /api/auth/login-debug
+Γö£ ╞Æ /api/auth/logout
+Γö£ ╞Æ /api/auth/register
+Γö£ ╞Æ /api/auth/register-client
+Γö£ ╞Æ /api/auth/register-individual
+Γö£ ╞Æ /api/auth/reset-password
+Γö£ ╞Æ /api/billing/subscription/activate
+Γö£ ╞Æ /api/blog
+Γö£ ╞Æ /api/blog/[slug]
+Γö£ ╞Æ /api/blog/latest
+Γö£ ╞Æ /api/career/plan/generate
+Γö£ ╞Æ /api/career/roles
+Γö£ ╞Æ /api/clients/[clientId]/assessments/assign
+Γö£ ╞Æ /api/clients/[clientId]/available-models
+Γö£ ╞Æ /api/clients/[clientId]/competencies
+Γö£ ╞Æ /api/clients/[clientId]/curriculum
+Γö£ ╞Æ /api/clients/[clientId]/curriculum/[nodeId]
+Γö£ ╞Æ /api/clients/[clientId]/dashboard/gap-analysis
+Γö£ ╞Æ /api/clients/[clientId]/dashboard/stats
+Γö£ ╞Æ /api/clients/[clientId]/departments
+Γö£ ╞Æ /api/clients/[clientId]/departments/[deptId]
+Γö£ ╞Æ /api/clients/[clientId]/departments/bulk
+Γö£ ╞Æ /api/clients/[clientId]/employees
+Γö£ ╞Æ /api/clients/[clientId]/employees/[employeeId]
+Γö£ ╞Æ /api/clients/[clientId]/employees/[employeeId]/assign
+Γö£ ╞Æ /api/clients/[clientId]/employees/bulk-upload
+Γö£ ╞Æ /api/clients/[clientId]/hierarchy
+Γö£ ╞Æ /api/clients/[clientId]/me-context
+Γö£ ╞Æ /api/clients/[clientId]/projects
+Γö£ ╞Æ /api/clients/[clientId]/projects/[projectId]
+Γö£ ╞Æ /api/clients/[clientId]/projects/[projectId]/assignments
+Γö£ ╞Æ /api/clients/[clientId]/projects/[projectId]/assignments/[assignmentId]
+Γö£ ╞Æ /api/clients/[clientId]/projects/[projectId]/departments
+Γö£ ╞Æ /api/clients/[clientId]/reports/generate
+Γö£ ╞Æ /api/clients/[clientId]/reports/templates
+Γö£ ╞Æ /api/clients/[clientId]/roles
+Γö£ ╞Æ /api/clients/[clientId]/roles/[roleId]
+Γö£ ╞Æ /api/clients/[clientId]/roles/[roleId]/competencies
+Γö£ ╞Æ /api/clients/[clientId]/roles/[roleId]/submit
+Γö£ ╞Æ /api/clients/[clientId]/roles/bulk-upload
+Γö£ ╞Æ /api/clients/[clientId]/roles/my-requests
+Γö£ ╞Æ /api/clients/[clientId]/roles/request
+Γö£ ╞Æ /api/clients/[clientId]/settings
+Γö£ ╞Æ /api/clients/[clientId]/settings/logo
+Γö£ ╞Æ /api/clients/[clientId]/surveys
+Γö£ ╞Æ /api/clients/[clientId]/surveys/[surveyId]
+Γö£ ╞Æ /api/clients/[clientId]/surveys/[surveyId]/assign
+Γö£ ╞Æ /api/clients/[clientId]/surveys/[surveyId]/export
+Γö£ ╞Æ /api/clients/[clientId]/surveys/[surveyId]/questions
+Γö£ ╞Æ /api/clients/[clientId]/surveys/[surveyId]/results
+Γö£ ╞Æ /api/clients/[clientId]/teams
+Γö£ ╞Æ /api/clients/[clientId]/teams/[teamId]
+Γö£ ╞Æ /api/clients/[clientId]/teams/[teamId]/members
+Γö£ ╞Æ /api/clients/[clientId]/teams/[teamId]/members/[memberId]
+Γö£ ╞Æ /api/clients/[clientId]/tenant
+Γö£ ╞Æ /api/competencies
+Γö£ ╞Æ /api/contact
+Γö£ ╞Æ /api/courses
+Γö£ ╞Æ /api/courses/[id]
+Γö£ ╞Æ /api/courses/featured
+Γö£ ╞Æ /api/debug/connection
+Γö£ ╞Æ /api/debug/courses
+Γö£ ╞Æ /api/debug/create-default-trainer
+Γö£ ╞Æ /api/entities/[entityType]
+Γö£ ╞Æ /api/entities/[entityType]/[id]
+Γö£ ╞Æ /api/filters
+Γö£ ╞Æ /api/finishing-school
+Γö£ ╞Æ /api/forms/submit
+Γö£ ╞Æ /api/individuals/assessments/browse
+Γö£ ╞Æ /api/individuals/assessments/start
+Γö£ ╞Æ /api/individuals/profile/mode
+Γö£ ╞Æ /api/invite/[token]
+Γö£ ╞Æ /api/member/gap-analysis
+Γö£ ╞Æ /api/onboarding/complete
+Γö£ ╞Æ /api/onboarding/roles
+Γö£ ╞Æ /api/org/[slug]/assessments/assign-unit
+Γö£ ╞Æ /api/org/[slug]/classes
+Γö£ ╞Æ /api/org/[slug]/classes/[classId]
+Γö£ ╞Æ /api/org/[slug]/classes/[classId]/members
+Γö£ ╞Æ /api/org/[slug]/classes/bulk
+Γö£ ╞Æ /api/org/[slug]/courses
+Γö£ ╞Æ /api/org/[slug]/courses/[courseId]
+Γö£ ╞Æ /api/org/[slug]/courses/bulk
+Γö£ ╞Æ /api/org/[slug]/departments/[deptId]/classes
+Γö£ ╞Æ /api/org/[slug]/departments/[deptId]/members
+Γö£ ╞Æ /api/org/[slug]/departments/[deptId]/teams
+Γö£ ╞Æ /api/org/[slug]/members/bulk-upload
+Γö£ ╞Æ /api/org/[slug]/tenant
+Γö£ ╞Æ /api/profile
+Γö£ ╞Æ /api/profile/role-request
+Γö£ ╞Æ /api/profile/role-request-options
+Γö£ ╞Æ /api/questions/ai-generate
+Γö£ ╞Æ /api/recommendations/assessment
+Γö£ ╞Æ /api/register
+Γö£ ╞Æ /api/reviews/featured
+Γö£ ╞Æ /api/stats
+Γö£ ╞Æ /api/surveys
+Γö£ ╞Æ /api/trainers
+Γö£ ╞Æ /api/v1/activities
+Γö£ ╞Æ /api/v1/activities/[id]
+Γö£ ╞Æ /api/v1/activities/[id]/members
+Γö£ ╞Æ /api/v1/members
+Γö£ ╞Æ /api/v1/members/[id]
+Γö£ ╞Æ /api/v1/org-units
+Γö£ ╞Æ /api/v1/org-units/[id]
+Γö£ ╞Æ /api/v1/tenants
+Γö£ ╞Æ /api/v1/tenants/[id]
+Γö£ ╞Æ /api/video/analyze
+Γö£ ╞Æ /api/voice/evaluate
+Γö£ ╞Æ /api/voice/respond
+Γö£ ╞Æ /api/voice/start-interview
+Γö£ ╞Æ /api/voice/transcribe
+Γö£ ╞Æ /api/webinars
+Γö£ ╞Æ /api/webinars/[id]/register
+Γö£ ╞Æ /assessments
+Γö£ Γùï /assessments/about
+Γö£ ╞Æ /assessments/admin
+Γö£ ╞Æ /assessments/admin/approvals
+Γö£ ╞Æ /assessments/admin/companies
+Γö£ ╞Æ /assessments/admin/competencies
+Γö£ ╞Æ /assessments/admin/competencies/[id]
+Γö£ ╞Æ /assessments/admin/competencies/create
+Γö£ ╞Æ /assessments/admin/components
+Γö£ ╞Æ /assessments/admin/components/[id]
+Γö£ ╞Æ /assessments/admin/components/[id]/questions
+Γö£ ╞Æ /assessments/admin/components/create
+Γö£ ╞Æ /assessments/admin/components/library/[id]
+Γö£ ╞Æ /assessments/admin/components/library/[id]/questions
+Γö£ ╞Æ /assessments/admin/components/library/new
+Γö£ ╞Æ /assessments/admin/dashboard
+Γö£ ╞Æ /assessments/admin/institutions
+Γö£ ╞Æ /assessments/admin/institutions/[id]
+Γö£ ╞Æ /assessments/admin/models
+Γö£ ╞Æ /assessments/admin/models/[modelId]
+Γö£ ╞Æ /assessments/admin/models/[modelId]/builder
+Γö£ ╞Æ /assessments/admin/models/[modelId]/questions
+Γö£ ╞Æ /assessments/admin/models/build
+Γö£ ╞Æ /assessments/admin/models/competency-builder
+Γö£ ╞Æ /assessments/admin/models/component-builder
+Γö£ ╞Æ /assessments/admin/models/create
+Γö£ ╞Æ /assessments/admin/reports
+Γö£ ╞Æ /assessments/admin/roles
+Γö£ ╞Æ /assessments/admin/roles/[id]
+Γö£ ╞Æ /assessments/admin/roles/create
+Γö£ ╞Æ /assessments/admin/settings
+Γö£ ╞Æ /assessments/admin/surveys/analytics/[id]
+Γö£ ╞Æ /assessments/admin/surveys/new
+Γö£ ╞Æ /assessments/admin/templates
+Γö£ ╞Æ /assessments/admin/tenants
+Γö£ ╞Æ /assessments/admin/tenants/[id]
+Γö£ ╞Æ /assessments/admin/tools/ai-generator
+Γö£ ╞Æ /assessments/admin/users
+Γö£ Γùï /assessments/auth/admin/login
+Γö£ Γùï /assessments/calendar
+Γö£ ╞Æ /assessments/career
+Γö£ Γùï /assessments/career-paths
+Γö£ Γùï /assessments/careers
+Γö£ Γùï /assessments/certification
+Γö£ Γùï /assessments/checkout
+Γö£ ╞Æ /assessments/clients/[clientId]
+Γö£ ╞Æ /assessments/clients/[clientId]/analytics
+Γö£ ╞Æ /assessments/clients/[clientId]/assessments
+Γö£ ╞Æ /assessments/clients/[clientId]/assessments/[modelId]/builder
+Γö£ ╞Æ /assessments/clients/[clientId]/assessments/[modelId]/questions
+Γö£ ╞Æ /assessments/clients/[clientId]/assessments/assign
+Γö£ ╞Æ /assessments/clients/[clientId]/assessments/new
+Γö£ ╞Æ /assessments/clients/[clientId]/career
+Γö£ ╞Æ /assessments/clients/[clientId]/competencies
+Γö£ ╞Æ /assessments/clients/[clientId]/curriculum
+Γö£ ╞Æ /assessments/clients/[clientId]/dashboard
+Γö£ ╞Æ /assessments/clients/[clientId]/departments
+Γö£ ╞Æ /assessments/clients/[clientId]/departments/[deptId]
+Γö£ ╞Æ /assessments/clients/[clientId]/departments/[deptId]/settings
+Γö£ ╞Æ /assessments/clients/[clientId]/employees
+Γö£ ╞Æ /assessments/clients/[clientId]/employees/[employeeId]
+Γö£ ╞Æ /assessments/clients/[clientId]/employees/new
+Γö£ ╞Æ /assessments/clients/[clientId]/hierarchy
+Γö£ ╞Æ /assessments/clients/[clientId]/models
+Γö£ ╞Æ /assessments/clients/[clientId]/my-department
+Γö£ ╞Æ /assessments/clients/[clientId]/my-team
+Γö£ ╞Æ /assessments/clients/[clientId]/profile
+Γö£ ╞Æ /assessments/clients/[clientId]/projects
+Γö£ ╞Æ /assessments/clients/[clientId]/projects/[projectId]
+Γö£ ╞Æ /assessments/clients/[clientId]/projects/[projectId]/assignments/[assignmentId]
+Γö£ ╞Æ /assessments/clients/[clientId]/projects/[projectId]/assignments/[assignmentId]/users/[userId]
+Γö£ ╞Æ /assessments/clients/[clientId]/projects/new
+Γö£ ╞Æ /assessments/clients/[clientId]/reports
+Γö£ ╞Æ /assessments/clients/[clientId]/roles
+Γö£ ╞Æ /assessments/clients/[clientId]/roles/my-requests
+Γö£ ╞Æ /assessments/clients/[clientId]/roles/request
+Γö£ ╞Æ /assessments/clients/[clientId]/settings
+Γö£ ╞Æ /assessments/clients/[clientId]/surveys
+Γö£ ╞Æ /assessments/clients/[clientId]/surveys/[surveyId]/edit
+Γö£ ╞Æ /assessments/clients/[clientId]/surveys/[surveyId]/results
+Γö£ ╞Æ /assessments/clients/[clientId]/teams
+Γö£ ╞Æ /assessments/clients/[clientId]/teams/[teamId]
+Γö£ ╞Æ /assessments/clients/[clientId]/users
+Γö£ ╞Æ /assessments/code/[challengeId]
+Γö£ Γùï /assessments/consult
+Γö£ Γùï /assessments/contact
+Γö£ ╞Æ /assessments/curriculum
+Γö£ ╞Æ /assessments/dashboard
+Γö£ Γùï /assessments/enterprise-solutions
+Γö£ Γùï /assessments/features
+Γö£ Γùï /assessments/forgot-password
+Γö£ ╞Æ /assessments/hierarchy
+Γö£ ╞Æ /assessments/individuals/browse
+Γö£ ╞Æ /assessments/individuals/career
+Γö£ ╞Æ /assessments/individuals/dashboard
+Γö£ ╞Æ /assessments/individuals/my-assessments
+Γö£ ╞Æ /assessments/individuals/onboarding
+Γö£ ╞Æ /assessments/individuals/profile
+Γö£ ╞Æ /assessments/individuals/results
+Γö£ ╞Æ /assessments/interview/[id]
+Γö£ Γùï /assessments/login
+Γö£ Γùï /assessments/login-debug-view
+Γö£ ╞Æ /assessments/my-job
+Γö£ ╞Æ /assessments/my/dashboard
+Γö£ Γùï /assessments/onboarding
+Γö£ ╞Æ /assessments/org/[slug]/assessments
+Γö£ ╞Æ /assessments/org/[slug]/assessments/[modelId]/builder
+Γö£ ╞Æ /assessments/org/[slug]/assessments/[modelId]/questions
+Γö£ ╞Æ /assessments/org/[slug]/assessments/build
+Γö£ ╞Æ /assessments/org/[slug]/assessments/competency-builder
+Γö£ ╞Æ /assessments/org/[slug]/assessments/component-builder
+Γö£ ╞Æ /assessments/org/[slug]/assessments/create
+Γö£ ╞Æ /assessments/org/[slug]/career
+Γö£ ╞Æ /assessments/org/[slug]/classes
+Γö£ ╞Æ /assessments/org/[slug]/classes/[classId]
+Γö£ ╞Æ /assessments/org/[slug]/competencies
+Γö£ ╞Æ /assessments/org/[slug]/competencies/[id]
+Γö£ ╞Æ /assessments/org/[slug]/courses
+Γö£ ╞Æ /assessments/org/[slug]/courses/[courseId]
+Γö£ ╞Æ /assessments/org/[slug]/curriculum
+Γö£ ╞Æ /assessments/org/[slug]/dashboard
+Γö£ ╞Æ /assessments/org/[slug]/departments
+Γö£ ╞Æ /assessments/org/[slug]/departments/[deptId]
+Γö£ ╞Æ /assessments/org/[slug]/employees
+Γö£ ╞Æ /assessments/org/[slug]/employees/new
+Γö£ ╞Æ /assessments/org/[slug]/faculty
+Γö£ ╞Æ /assessments/org/[slug]/faculty/[facultyId]
+Γö£ ╞Æ /assessments/org/[slug]/faculty/new
+Γö£ ╞Æ /assessments/org/[slug]/hierarchy
+Γö£ ╞Æ /assessments/org/[slug]/models
+Γö£ ╞Æ /assessments/org/[slug]/models/[modelId]
+Γö£ ╞Æ /assessments/org/[slug]/profile
+Γö£ ╞Æ /assessments/org/[slug]/program-curriculum
+Γö£ ╞Æ /assessments/org/[slug]/projects
+Γö£ ╞Æ /assessments/org/[slug]/projects/[id]
+Γö£ ╞Æ /assessments/org/[slug]/projects/new
+Γö£ ╞Æ /assessments/org/[slug]/reports
+Γö£ ╞Æ /assessments/org/[slug]/results
+Γö£ ╞Æ /assessments/org/[slug]/results/[id]
+Γö£ ╞Æ /assessments/org/[slug]/roles
+Γö£ ╞Æ /assessments/org/[slug]/roles/[id]
+Γö£ ╞Æ /assessments/org/[slug]/roles/create
+Γö£ ╞Æ /assessments/org/[slug]/settings
+Γö£ ╞Æ /assessments/org/[slug]/surveys
+Γö£ ╞Æ /assessments/org/[slug]/teams
+Γö£ ╞Æ /assessments/org/[slug]/teams/[id]
+Γö£ Γùï /assessments/placement-support
+Γö£ Γùï /assessments/pricing
+Γö£ ╞Æ /assessments/profile
+Γö£ Γùï /assessments/register
+Γö£ Γùï /assessments/register-individual
+Γö£ ╞Æ /assessments/results
+Γö£ ╞Æ /assessments/results/[id]
+Γö£ Γùï /assessments/skill-assessment
+Γö£ ╞Æ /assessments/surveys/take/[id]
+Γö£ ╞Æ /assessments/take/[id]
+Γö£ Γùï /auth/b2c/signup
+Γö£ Γùï /auth/client/register
+Γö£ Γùï /blog
+Γö£ Γùï /calendar
+Γö£ Γùï /career-paths
+Γö£ ╞Æ /career/pulse
+Γö£ Γùï /careers
+Γö£ Γùï /certification
+Γö£ ╞Æ /clients/[clientId]/[[...path]]
+Γö£ Γùï /consult
+Γö£ Γùï /contact
+Γö£ Γùï /corporate-training
+Γö£ Γùï /corporates
+Γö£ Γùï /corporates/domestic
+Γö£ Γùï /corporates/international
+Γö£ Γùï /courses
+Γö£ ╞Æ /courses/[slug]
+Γö£ Γùï /courses/category/functional
+Γö£ Γùï /courses/category/it
+Γö£ Γùï /courses/category/non-it
+Γö£ Γùï /courses/category/personal
+Γö£ Γùï /courses/domain/ai-ml
+Γö£ Γùï /courses/domain/cloud-devops
+Γö£ Γùï /courses/domain/cybersecurity
+Γö£ Γùï /courses/domain/data-analytics
+Γö£ Γùï /courses/domain/software-development
+Γö£ Γùï /courses/level/career-switch
+Γö£ Γùï /courses/level/freshers
+Γö£ Γùï /courses/level/junior
+Γö£ Γùï /courses/level/mid
+Γö£ Γùï /courses/level/senior
+Γö£ Γùï /custom-programs
+Γö£ Γùï /debug
+Γö£ Γùï /demo
+Γö£ Γùï /enterprise-solutions
+Γö£ Γùï /faq
+Γö£ Γùï /for-corporates
+Γö£ Γùï /for-individuals
+Γö£ Γùï /for-individuals/freshers
+Γö£ Γùï /for-institutions
+Γö£ Γùï /individuals
+Γö£ ╞Æ /individuals/catalog
+Γö£ ╞Æ /individuals/dashboard
+Γö£ Γùï /institutions
+Γö£ Γùï /placement-support
+Γö£ Γùï /platform
+Γö£ Γùï /privacy-policy
+Γö£ Γùï /resources
+Γö£ Γùï /sitemap
+Γö£ Γùï /skill-assessment
+Γö£ Γùï /success-stories
+Γö£ ╞Æ /surveys/take/[id]
+Γö£ Γùï /terms-of-service
+Γö£ Γùï /test-overlay
+Γö£ Γùï /webinars
+Γöö Γùï /why-sudaksha
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
