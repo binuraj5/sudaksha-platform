@@ -47,6 +47,12 @@ export async function createAssessmentFromComponents(data: {
     const session = await getApiSession();
     if (!session) return { error: "Unauthorized" };
 
+    // Fallback: use session tenant if clientId not explicitly provided
+    const user = session.user as any;
+    const resolvedClientId = data.clientId || user.clientId || user.tenantId || null;
+    // Normalize empty strings to null to avoid FK constraint violations
+    const safeClientId = resolvedClientId && resolvedClientId.trim() !== "" ? resolvedClientId : null;
+
     try {
         const hash = Math.random().toString(36).substr(2, 6).toLowerCase();
         const slug = `${data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${hash}`;
@@ -62,8 +68,8 @@ export async function createAssessmentFromComponents(data: {
                     sourceType: 'CUSTOM',
                     status: 'DRAFT',
                     visibility: 'PRIVATE',
-                    tenantId: data.clientId,
-                    clientId: data.clientId,
+                    tenantId: safeClientId,
+                    clientId: safeClientId,
                     createdBy: session.user.id,
                     targetLevel: (data.targetLevel || "MIDDLE") as ProficiencyLevel,
                     isActive: true,
