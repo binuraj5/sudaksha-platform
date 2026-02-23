@@ -21,7 +21,7 @@ export async function getAccessibleCompetencies(tenantId?: string) {
     try {
         const whereClause = buildCompetencyVisibilityFilter(userCtx);
         const data = await prisma.competency.findMany({
-            where: whereClause,
+            where: whereClause as any,
             include: {
                 indicators: {
                     select: { id: true, level: true, text: true, type: true }
