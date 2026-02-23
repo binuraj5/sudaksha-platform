@@ -1,29 +1,12 @@
 import '@/src/styles/globals.css'
 import type { Metadata } from 'next'
-import { Inter, Montserrat, Lato } from 'next/font/google'
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  variable: '--font-montserrat',
-  display: 'swap',
-})
-
-const lato = Lato({
-  weight: ['100', '300', '400', '700', '900'],
-  subsets: ['latin'],
-  variable: '--font-lato',
-  display: 'swap',
-})
-
-const inter = Inter({ subsets: ['latin'] })
-
 import { Providers } from '../components/providers'
 import { ThemeProvider } from '../contexts/theme-context'
 import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
   title: 'Sudaksha - Bridging Academic Output & Industry Demand | IT Training & Placement',
-  description: 'Transform your career with Sudaksha\'s outcome-driven training programs. 85%+ placement rate, 6 LPA+ starting salaries. Finishing school for freshers, upskilling for professionals.',
+  description: "Transform your career with Sudaksha's outcome-driven training programs. 85%+ placement rate, 6 LPA+ starting salaries. Finishing school for freshers, upskilling for professionals.",
 }
 
 export default function RootLayout({
@@ -35,9 +18,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Fonts loaded at browser runtime — avoids build-time Google Fonts network fetch */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Lato:wght@100;300;400;700;900&family=Montserrat:wght@100..900&display=swap"
+        />
       </head>
       <body
-        className={`${lato.className} ${lato.variable} ${montserrat.variable} min-h-screen bg-background text-foreground overflow-x-hidden font-sans`}
+        className="min-h-screen bg-background text-foreground overflow-x-hidden font-sans"
         suppressHydrationWarning
       >
         <ThemeProvider>
