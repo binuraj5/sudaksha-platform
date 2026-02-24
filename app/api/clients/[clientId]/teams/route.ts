@@ -34,6 +34,23 @@ export async function GET(
             const managedUnit = (session.user as any).managedOrgUnitId;
             if (!managedUnit) return NextResponse.json({ error: "Team Lead without Unit" }, { status: 403 });
             whereClause.id = managedUnit;
+        } else if (!isAdmin) {
+            const userOrgUnitId = (session.user as any).orgUnitId;
+            if (userOrgUnitId) {
+                const userUnit = await prisma.organizationUnit.findUnique({
+                    where: { id: userOrgUnitId },
+                    select: { type: true, parentId: true }
+                });
+                if (userUnit?.type === 'TEAM') {
+                    whereClause.id = userOrgUnitId;
+                } else if (userUnit?.type === 'DEPARTMENT') {
+                    whereClause.parentId = userOrgUnitId;
+                } else {
+                    return NextResponse.json({ error: "Access Denied" }, { status: 403 });
+                }
+            } else {
+                return NextResponse.json({ error: "Access Denied" }, { status: 403 });
+            }
         }
 
         if (deptId && !isDeptHead && isAdmin) {

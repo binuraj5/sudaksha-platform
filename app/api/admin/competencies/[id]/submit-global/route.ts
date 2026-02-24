@@ -15,9 +15,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         if (!competency) return NextResponse.json({ error: "Competency not found" }, { status: 404 });
         if (competency.tenantId !== user.tenantId && user.role !== "SUPER_ADMIN")
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        if (competency.scope === "GLOBAL")
+        if ((competency as any).scope === "GLOBAL")
             return NextResponse.json({ error: "Competency is already global" }, { status: 400 });
-        if (competency.globalSubmissionStatus === "PENDING")
+        if ((competency as any).globalSubmissionStatus === "PENDING")
             return NextResponse.json({ error: "Already pending global review" }, { status: 400 });
         if (!competency.tenantId)
             return NextResponse.json({ error: "Competency has no tenant" }, { status: 400 });
@@ -29,9 +29,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
                     globalSubmissionStatus: "PENDING",
                     globalSubmittedBy: user.id,
                     globalSubmittedAt: new Date(),
-                },
+                } as any,
             }),
-            prisma.globalApprovalRequest.create({
+            (prisma as any).globalApprovalRequest.create({
                 data: {
                     entityType: "COMPETENCY",
                     entityId: competencyId,

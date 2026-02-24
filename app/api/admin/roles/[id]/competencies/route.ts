@@ -64,7 +64,7 @@ export async function POST(
         if (!isSuperAdmin) {
             const canModify = canUserModifyRole(
                 { id: u.id, role: userRole, tenantId: u.tenantId || "", tenantType: "CORPORATE", departmentId: u.departmentId, teamId: u.teamId, classId: u.classId },
-                { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }
+                { scope: (role as any).scope, tenantId: role.tenantId ?? undefined, departmentId: (role as any).departmentId ?? undefined, teamId: (role as any).teamId ?? undefined, createdByUserId: (role as any).createdByUserId ?? undefined }
             );
             if (!canModify) {
                 return NextResponse.json({ error: "You do not have permission to modify this role" }, { status: 403 });

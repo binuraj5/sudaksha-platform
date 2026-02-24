@@ -35,7 +35,7 @@ async function main() {
     const newCode = `${slugPrefix}-${shortName}${i + 1}`;
 
     const needsScopeUpdate =
-      role.scope !== "ORGANIZATION" || role.visibility !== "TENANT_SPECIFIC";
+      (role as any).scope !== "ORGANIZATION" || role.visibility !== "TENANT_SPECIFIC";
     const needsCodeUpdate = role.code !== newCode && role.code?.startsWith("CUST-");
 
     if (!needsScopeUpdate && !needsCodeUpdate) {
@@ -55,7 +55,7 @@ async function main() {
     await prisma.role.update({ where: { id: role.id }, data: data as any });
     updated++;
     console.log(
-      `  [FIXED] "${role.name}" | ${role.code} -> ${data.code || role.code} | scope: ${role.scope} -> ${data.scope || role.scope} | tenant: ${role.tenant?.name}`
+      `  [FIXED] "${role.name}" | ${role.code} -> ${data.code || role.code} | scope: ${(role as any).scope} -> ${data.scope || (role as any).scope} | tenant: ${role.tenant?.name}`
     );
   }
 
@@ -67,7 +67,7 @@ async function main() {
       tenantId: null,
       scope: "GLOBAL",
       visibility: { not: "UNIVERSAL" },
-    },
+    } as any,
     data: { visibility: "UNIVERSAL" },
   });
 
@@ -79,7 +79,7 @@ async function main() {
   console.log("\nVerifying global roles:");
   for (const r of globalRoles) {
     console.log(
-      `  "${r.name}" | code: ${r.code} | scope: ${r.scope} | visibility: ${r.visibility} | tenantId: ${r.tenantId}`
+      `  "${r.name}" | code: ${r.code} | scope: ${(r as any).scope} | visibility: ${r.visibility} | tenantId: ${r.tenantId}`
     );
   }
 }

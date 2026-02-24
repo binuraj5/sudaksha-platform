@@ -232,7 +232,7 @@ export async function POST(
                         createdByUserId: u.id as string,
                         createdBy: u.id as string,
                         allowedLevels,
-                    }
+                    } as any
                 });
 
                 if (!isSuperAdmin) {

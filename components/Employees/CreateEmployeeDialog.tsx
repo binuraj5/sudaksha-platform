@@ -33,7 +33,8 @@ export function CreateEmployeeDialog({ clientId, defaultOpen, redirectBase }: { 
         orgUnitId: "",
         designation: "",
         reportingToId: "",
-        role: "ASSESSOR"
+        role: "ASSESSOR",
+        memberCode: ""
     });
 
     const router = useRouter();
@@ -70,7 +71,7 @@ export function CreateEmployeeDialog({ clientId, defaultOpen, redirectBase }: { 
                 if (defaultOpen) router.push(redirectBase ? `${redirectBase}/employees` : `/assessments/clients/${clientId}/employees`);
                 setFormData({
                     firstName: "", lastName: "", email: "", phone: "",
-                    orgUnitId: "", designation: "", reportingToId: "", role: "ASSESSOR"
+                    orgUnitId: "", designation: "", reportingToId: "", role: "ASSESSOR", memberCode: ""
                 });
                 setStep(1);
                 router.refresh();
@@ -111,9 +112,15 @@ export function CreateEmployeeDialog({ clientId, defaultOpen, redirectBase }: { 
                                     <Input value={formData.lastName} onChange={e => handleChange('lastName', e.target.value)} />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Email <span className="text-red-500">*</span></Label>
-                                <Input type="email" value={formData.email} onChange={e => handleChange('email', e.target.value)} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Email <span className="text-red-500">*</span></Label>
+                                    <Input type="email" value={formData.email} onChange={e => handleChange('email', e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>{labels.memberCode}</Label>
+                                    <Input value={formData.memberCode} onChange={e => handleChange('memberCode', e.target.value)} placeholder={`Optional`} />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>Phone</Label>

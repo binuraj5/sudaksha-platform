@@ -129,7 +129,7 @@ export async function POST(
 
     try {
         const body = await req.json();
-        const { firstName, lastName, email, phone, designation, orgUnitId, reportingToId, enrollmentNumber, type: bodyType, role: bodyRole, facultyType: bodyFacultyType } = body;
+        const { firstName, lastName, email, phone, designation, orgUnitId, reportingToId, enrollmentNumber, type: bodyType, role: bodyRole, facultyType: bodyFacultyType, memberCode } = body;
 
         const tenantInfo = await prisma.tenant.findUnique({
             where: { id: clientId },
@@ -172,18 +172,26 @@ export async function POST(
         const existing = await prisma.member.findUnique({ where: { email } });
         if (existing) return NextResponse.json({ error: "Email already exists" }, { status: 400 });
 
-        if (memberType === 'STUDENT' && enrollmentNumber) {
-            const dupEnrollment = await prisma.member.findFirst({
-                where: { tenantId: clientId, enrollmentNumber },
+        // Check Unique for ID
+        const inputCode = memberCode || enrollmentNumber;
+        if (inputCode) {
+            const dupCode = await prisma.member.findFirst({
+                where: {
+                    tenantId: clientId,
+                    OR: [
+                        { enrollmentNumber: inputCode },
+                        { employeeId: inputCode }
+                    ]
+                }
             });
-            if (dupEnrollment) {
-                return NextResponse.json({ error: `Enrollment number ${enrollmentNumber} already exists` }, { status: 400 });
+            if (dupCode) {
+                return NextResponse.json({ error: `ID ${inputCode} already exists in this tenant` }, { status: 400 });
             }
         }
 
         const randomCode = memberType === 'STUDENT'
-            ? (enrollmentNumber || `STU${Math.floor(1000 + Math.random() * 9000)}`)
-            : `EMP${Math.floor(1000 + Math.random() * 9000)}`;
+            ? (inputCode || `STU${Math.floor(1000 + Math.random() * 9000)}`)
+            : (inputCode || `EMP${Math.floor(1000 + Math.random() * 9000)}`);
 
         const tempPassword = Math.random().toString(36).slice(-8);
         const hashedPassword = await hash(tempPassword, 10);
@@ -207,7 +215,8 @@ export async function POST(
                 designation,
                 memberCode: randomCode,
                 ...(memberType === 'EMPLOYEE' && facultyTypeVal && { facultyType: facultyTypeVal }),
-                ...(memberType === 'STUDENT' && { enrollmentNumber: enrollmentNumber || randomCode }),
+                ...(memberType === 'STUDENT' && { enrollmentNumber: inputCode || randomCode }),
+                ...(memberType === 'EMPLOYEE' && { employeeId: inputCode || randomCode }),
                 password: hashedPassword,
                 orgUnitId: targetOrgUnitId || null,
                 reportingToId: reportingToId || null,

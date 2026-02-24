@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Target, Briefcase, ChevronRight, BrainCircuit, Loader2, Globe, Building, Users, UserCheck } from "lucide-react";
+import { Search, Target, Briefcase, ChevronRight, BrainCircuit, Loader2, Globe, Building, Users, UserCheck, AlertCircle, XCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -50,15 +50,42 @@ function ScopeBadge({ scope }: { scope: string }) {
     );
 }
 
-function GlobalStatusBadge({ status, notes }: { status: string | null | undefined, notes?: string | null }) {
+function GlobalStatusBadge({ status }: { status: string | null | undefined }) {
     if (!status || status === "APPROVED") return null;
     if (status === "PENDING")
-        return <Badge className="ml-1 bg-amber-100 text-amber-700 text-[10px]" title={notes || "Pending Review"}>Pending</Badge>;
-    if (status === "CHANGES_REQUESTED")
-        return <Badge className="ml-1 bg-orange-100 text-orange-700 text-[10px]" title={notes || "Changes requested"}>Changes requested</Badge>;
-    if (status === "REJECTED")
-        return <Badge className="ml-1 bg-red-100 text-red-700 text-[10px]" title={notes || "Rejected"}>Rejected</Badge>;
+        return <Badge className="ml-1 bg-amber-100 text-amber-700 text-[10px]">⏳ Pending Review</Badge>;
+    // REJECTED and CHANGES_REQUESTED handled inline via RejectionAlert
     return null;
+}
+
+function RejectionAlertComp({ entity, onResubmit, canResubmit }: {
+    entity: any;
+    onResubmit?: (entity: any) => void;
+    canResubmit: boolean;
+}) {
+    const status = entity.globalSubmissionStatus;
+    const reason = entity.globalRejectionReason;
+    if (status !== "REJECTED" && status !== "CHANGES_REQUESTED") return null;
+    const isRejected = status === "REJECTED";
+    return (
+        <div className={`mt-1.5 flex flex-col gap-1 rounded-md border px-3 py-2 text-xs ${isRejected ? "border-red-200 bg-red-50 text-red-800" : "border-orange-200 bg-orange-50 text-orange-800"
+            }`}>
+            <div className="flex items-center gap-1.5 font-semibold">
+                {isRejected ? <XCircle className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                {isRejected ? "Rejected by Super Admin" : "Changes Requested"}
+            </div>
+            {reason && <p className="text-[11px] leading-snug opacity-80">&ldquo;{reason}&rdquo;</p>}
+            {onResubmit && (entity._canSubmitGlobal || entity._canEdit) && canResubmit && (
+                <button
+                    onClick={() => onResubmit(entity)}
+                    className={`mt-0.5 inline-flex items-center gap-1 self-start rounded px-2 py-0.5 text-[11px] font-semibold hover:opacity-80 ${isRejected ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
+                        }`}
+                >
+                    <RefreshCw className="w-3 h-3" /> Resubmit
+                </button>
+            )}
+        </div>
+    );
 }
 
 /**
@@ -107,6 +134,17 @@ export function CompetenciesPageContent({ baseUrl = "/assessments/admin/competen
             console.error("Failed to fetch data:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleResubmitComp = async (comp: any) => {
+        try {
+            const res = await fetch(`/api/admin/competencies/${comp.id}/submit-global`, { method: "POST" });
+            if (!res.ok) throw new Error("Failed to resubmit");
+            toast.success("Competency resubmitted for global review");
+            fetchData();
+        } catch {
+            toast.error("Failed to resubmit competency");
         }
     };
 
@@ -245,7 +283,12 @@ export function CompetenciesPageContent({ baseUrl = "/assessments/admin/competen
                                         <TableCell>
                                             <div className="flex flex-wrap items-center gap-1">
                                                 <ScopeBadge scope={comp.scope ?? "GLOBAL"} />
-                                                <GlobalStatusBadge status={comp.globalSubmissionStatus} notes={comp.globalReviewNotes} />
+                                                <GlobalStatusBadge status={comp.globalSubmissionStatus} />
+                                                <RejectionAlertComp
+                                                    entity={comp}
+                                                    onResubmit={handleResubmitComp}
+                                                    canResubmit={permissions.canSubmitForGlobal}
+                                                />
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -358,7 +401,7 @@ export function CompetenciesPageContent({ baseUrl = "/assessments/admin/competen
                                         <TableCell>
                                             <div className="flex flex-wrap items-center gap-1">
                                                 <ScopeBadge scope={role.scope ?? "GLOBAL"} />
-                                                <GlobalStatusBadge status={role.globalSubmissionStatus} notes={role.globalReviewNotes} />
+                                                <GlobalStatusBadge status={role.globalSubmissionStatus} />
                                             </div>
                                         </TableCell>
                                         <TableCell>

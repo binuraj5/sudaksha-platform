@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
         // We expect `careerFormData` as a JSON object, or specific fields
         // For the wizard, we mainly update `careerFormData` section by section
 
-        const { careerFormData, currentRoleId, aspirationalRoleId, bio, phone, metadata, studentInfo, professionalInfo } = body;
+        const { careerFormData, currentRoleId, aspirationalRoleId, bio, phone, metadata, studentInfo, professionalInfo, previousRoles, selfAssignedCompetencies } = body;
 
         const updateData: any = {};
         if (careerFormData !== undefined && typeof careerFormData === "object") {
@@ -66,6 +66,8 @@ export async function PATCH(req: NextRequest) {
         if (aspirationalRoleId !== undefined) updateData.aspirationalRoleId = aspirationalRoleId;
         if (bio !== undefined) updateData.bio = bio;
         if (phone !== undefined) updateData.phone = phone;
+        if (previousRoles !== undefined) updateData.previousRoles = previousRoles;
+        if (selfAssignedCompetencies !== undefined) updateData.selfAssignedCompetencies = selfAssignedCompetencies;
 
         // M15 B2C: Support student/professional metadata for INDIVIDUAL users
         if (metadata !== undefined || studentInfo !== undefined || professionalInfo !== undefined) {

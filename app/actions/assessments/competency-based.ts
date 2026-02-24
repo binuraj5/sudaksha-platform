@@ -31,7 +31,7 @@ export async function getAccessibleCompetencies(tenantId?: string) {
             orderBy: [
                 { scope: 'asc' },
                 { name: 'asc' }
-            ]
+            ] as any
         });
 
         // Stringify BigInt / Decimal if there are any issues, otherwise return directly.

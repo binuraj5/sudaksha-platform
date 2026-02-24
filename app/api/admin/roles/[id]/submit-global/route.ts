@@ -27,11 +27,11 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (role.scope === "GLOBAL") {
+    if ((role as any).scope === "GLOBAL") {
       return NextResponse.json({ error: "Role is already global" }, { status: 400 });
     }
 
-    if (role.globalSubmissionStatus === "PENDING") {
+    if ((role as any).globalSubmissionStatus === "PENDING") {
       return NextResponse.json({ error: "Already pending global review" }, { status: 400 });
     }
 
@@ -48,9 +48,9 @@ export async function POST(
           globalSubmissionStatus: "PENDING",
           globalSubmittedBy: user.id,
           globalSubmittedAt: new Date(),
-        },
+        } as any,
       }),
-      prisma.globalApprovalRequest.create({
+      (prisma as any).globalApprovalRequest.create({
         data: {
           entityType: "ROLE",
           entityId: roleId,

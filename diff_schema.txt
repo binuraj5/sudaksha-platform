@@ -1,0 +1,24 @@
+﻿diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index ac4fa7a..073a9d4 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -1288,8 +1288,8 @@ model Member {
+   currentRoleId            String?
+   previousRoles            Json?
+   selfAssignedCompetencies Json?
+-  enrollmentNumber         String?                 @unique
+-  employeeId               String?                 @unique
++  enrollmentNumber         String?
++  employeeId               String?
+   hasGraduated             Boolean                 @default(false)
+   graduationDate           DateTime?               @db.Date
+   facultyType              String?
+@@ -1320,6 +1320,8 @@ model Member {
+   roleAssignmentRequests   RoleAssignmentRequest[]
+   surveyResponses          SurveyResponse[]
+ 
++  @@unique([tenantId, enrollmentNumber])
++  @@unique([tenantId, employeeId])
+   @@index([tenantId])
+   @@index([type])
+   @@index([role])

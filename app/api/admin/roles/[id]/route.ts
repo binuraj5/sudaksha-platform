@@ -89,7 +89,7 @@ export async function PATCH(
         if (user) {
             const canModify = canUserModifyRole(
                 { id: user.id, role: user.role, tenantId: user.tenantId || "", tenantType: "CORPORATE", departmentId: user.departmentId, teamId: user.teamId, classId: user.classId },
-                { scope: existingRole.scope as any, tenantId: existingRole.tenantId ?? undefined, departmentId: existingRole.departmentId ?? undefined, teamId: existingRole.teamId ?? undefined, createdByUserId: existingRole.createdByUserId ?? undefined }
+                { scope: (existingRole as any).scope, tenantId: existingRole.tenantId ?? undefined, departmentId: (existingRole as any).departmentId ?? undefined, teamId: (existingRole as any).teamId ?? undefined, createdByUserId: (existingRole as any).createdByUserId ?? undefined }
             );
             if (!canModify) {
                 return NextResponse.json({ error: "You do not have permission to edit this role" }, { status: 403 });
@@ -150,7 +150,7 @@ export async function DELETE(
         if (user) {
             const canModify = canUserModifyRole(
                 { id: user.id, role: user.role, tenantId: user.tenantId || "", tenantType: "CORPORATE", departmentId: user.departmentId, teamId: user.teamId, classId: user.classId },
-                { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }
+                { scope: (role as any).scope, tenantId: role.tenantId ?? undefined, departmentId: (role as any).departmentId ?? undefined, teamId: (role as any).teamId ?? undefined, createdByUserId: (role as any).createdByUserId ?? undefined }
             );
             if (!canModify) {
                 return NextResponse.json({ error: "You do not have permission to delete this role" }, { status: 403 });

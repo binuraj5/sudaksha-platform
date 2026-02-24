@@ -62,9 +62,9 @@ export async function GET(req: Request) {
         // Add permission flags to each role
         const rolesWithPermissions = roles.map(role => ({
             ...role,
-            _canEdit: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
-            _canDelete: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
-            _canSubmitGlobal: role.scope !== 'GLOBAL' && (!role.globalSubmissionStatus || role.globalSubmissionStatus === 'CHANGES_REQUESTED' || role.globalSubmissionStatus === 'REJECTED'),
+            _canEdit: canUserModifyRole(userContext, { scope: (role as any).scope, tenantId: role.tenantId ?? undefined, departmentId: (role as any).departmentId ?? undefined, teamId: (role as any).teamId ?? undefined, createdByUserId: (role as any).createdByUserId ?? undefined }),
+            _canDelete: canUserModifyRole(userContext, { scope: (role as any).scope, tenantId: role.tenantId ?? undefined, departmentId: (role as any).departmentId ?? undefined, teamId: (role as any).teamId ?? undefined, createdByUserId: (role as any).createdByUserId ?? undefined }),
+            _canSubmitGlobal: (role as any).scope !== 'GLOBAL' && (!(role as any).globalSubmissionStatus || (role as any).globalSubmissionStatus === 'CHANGES_REQUESTED' || (role as any).globalSubmissionStatus === 'REJECTED'),
             _isOwned: role.tenantId === user.tenantId,
         }));
 
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
                 teamId: teamId ?? undefined,
                 createdByUserId: user.id,
                 ...(permissions.isInstitution && { allowedLevels: body.allowedLevels ?? ['JUNIOR'] }),
-            },
+            } as any,
             include: {
                 competencies: { select: { id: true } },
                 tenant: { select: { id: true, name: true } },
@@ -145,11 +145,32 @@ export async function POST(request: Request) {
         // Add permission flags to response
         const roleWithPermissions = {
             ...role,
-            _canEdit: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
-            _canDelete: canUserModifyRole(userContext, { scope: role.scope as any, tenantId: role.tenantId ?? undefined, departmentId: role.departmentId ?? undefined, teamId: role.teamId ?? undefined, createdByUserId: role.createdByUserId ?? undefined }),
-            _canSubmitGlobal: role.scope !== 'GLOBAL' && (!role.globalSubmissionStatus || role.globalSubmissionStatus === 'CHANGES_REQUESTED' || role.globalSubmissionStatus === 'REJECTED'),
+            _canEdit: canUserModifyRole(userContext, { scope: (role as any).scope, tenantId: role.tenantId ?? undefined, departmentId: (role as any).departmentId ?? undefined, teamId: (role as any).teamId ?? undefined, createdByUserId: (role as any).createdByUserId ?? undefined }),
+            _canDelete: canUserModifyRole(userContext, { scope: (role as any).scope, tenantId: role.tenantId ?? undefined, departmentId: (role as any).departmentId ?? undefined, teamId: (role as any).teamId ?? undefined, createdByUserId: (role as any).createdByUserId ?? undefined }),
+            _canSubmitGlobal: (role as any).scope !== 'GLOBAL' && (!(role as any).globalSubmissionStatus || (role as any).globalSubmissionStatus === 'CHANGES_REQUESTED' || (role as any).globalSubmissionStatus === 'REJECTED'),
             _isOwned: role.tenantId === user.tenantId,
         };
+
+        // Auto-spawn ApprovalRequest for non-global, non-super-admin creations (Polymorphic Workflow)
+        const normalizedRole = userContext.role?.toUpperCase();
+        const isGlobalAdmin = normalizedRole === 'SUPER_ADMIN';
+        if (!isGlobalAdmin && scope !== 'GLOBAL' && user.tenantId) {
+            try {
+                await prisma.approvalRequest.create({
+                    data: {
+                        tenantId: user.tenantId,
+                        type: 'ROLE' as any,
+                        entityId: role.id,
+                        status: 'PENDING' as any,
+                        requesterId: user.id,
+                        modificationNotes: `New role "${role.name}" submitted for organization approval.`,
+                    },
+                });
+            } catch (e) {
+                console.warn('Failed to create ApprovalRequest for new role:', e);
+                // Non-fatal: role is still created successfully
+            }
+        }
 
         return NextResponse.json(roleWithPermissions, { status: 201 });
     } catch (error) {

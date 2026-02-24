@@ -62,11 +62,11 @@ export async function POST(
                     classId: u.classId,
                 },
                 {
-                    scope: role.scope as any,
+                    scope: (role as any).scope,
                     tenantId: role.tenantId ?? undefined,
-                    departmentId: role.departmentId ?? undefined,
-                    teamId: role.teamId ?? undefined,
-                    createdByUserId: role.createdByUserId ?? undefined,
+                    departmentId: (role as any).departmentId ?? undefined,
+                    teamId: (role as any).teamId ?? undefined,
+                    createdByUserId: (role as any).createdByUserId ?? undefined,
                 }
             );
             if (!canModify) {
@@ -112,7 +112,7 @@ export async function POST(
                     where: {
                         name: { equals: item.name, mode: "insensitive" },
                         ...(isSuperAdmin ? {} : { OR: [{ tenantId }, { tenantId: null, scope: "GLOBAL" }] }),
-                    },
+                    } as any,
                 });
 
                 let competencyCreated = false;
@@ -125,7 +125,7 @@ export async function POST(
                             scope: competencyScope as any,
                             tenantId: isSuperAdmin ? null : tenantId,
                             createdByUserId: u.id,
-                        },
+                        } as any,
                     });
                     competencyCreated = true;
 

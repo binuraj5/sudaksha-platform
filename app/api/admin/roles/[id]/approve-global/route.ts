@@ -27,7 +27,7 @@ export async function POST(
     if (!existing) {
       return NextResponse.json({ error: "Role not found" }, { status: 404 });
     }
-    if (existing.globalSubmissionStatus !== "PENDING") {
+    if ((existing as any).globalSubmissionStatus !== "PENDING") {
       return NextResponse.json({ error: "Role is not pending review" }, { status: 400 });
     }
 
@@ -44,24 +44,24 @@ export async function POST(
         where: { id: roleId },
         data:
           decision === "APPROVE"
-            ? {
-                scope: "GLOBAL",
-                tenantId: null,
-                departmentId: null,
-                teamId: null,
-                globalSubmissionStatus: "APPROVED",
-                globalApprovedBy: reviewerId,
-                globalApprovedAt: new Date(),
-                globalRejectionReason: null,
-              }
-            : {
-                globalSubmissionStatus: statusValue,
-                globalApprovedBy: reviewerId,
-                globalApprovedAt: new Date(),
-                globalRejectionReason: notes || null,
-              },
+            ? ({
+              scope: "GLOBAL",
+              tenantId: null,
+              departmentId: null,
+              teamId: null,
+              globalSubmissionStatus: "APPROVED",
+              globalApprovedBy: reviewerId,
+              globalApprovedAt: new Date(),
+              globalRejectionReason: null,
+            } as any)
+            : ({
+              globalSubmissionStatus: statusValue,
+              globalApprovedBy: reviewerId,
+              globalApprovedAt: new Date(),
+              globalRejectionReason: notes || null,
+            } as any),
       }),
-      prisma.globalApprovalRequest.updateMany({
+      (prisma as any).globalApprovalRequest.updateMany({
         where: {
           entityType: "ROLE",
           entityId: roleId,

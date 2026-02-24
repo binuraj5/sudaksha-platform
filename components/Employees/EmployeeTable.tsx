@@ -40,6 +40,7 @@ export function EmployeeTable({ employees, clientId, basePath }: { employees: an
                 <TableHeader>
                     <TableRow className="bg-gray-50">
                         <TableHead>{labels.member}</TableHead>
+                        <TableHead>{labels.memberCode}</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>{labels.orgUnit}</TableHead>
                         <TableHead>Status</TableHead>
@@ -61,6 +62,11 @@ export function EmployeeTable({ employees, clientId, basePath }: { employees: an
                                         <div className="text-xs text-gray-500">{emp.email}</div>
                                     </div>
                                 </div>
+                            </TableCell>
+                            <TableCell>
+                                <span className="text-sm font-medium text-gray-700">
+                                    {emp.employeeId || emp.enrollmentNumber || '-'}
+                                </span>
                             </TableCell>
                             <TableCell>
                                 <div className="text-sm">{emp.designation || 'Staff'}</div>
@@ -106,7 +112,7 @@ export function EmployeeTable({ employees, clientId, basePath }: { employees: an
                     ))}
                     {employees.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                            <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                                 No {labels.memberPlural.toLowerCase()} found.
                             </TableCell>
                         </TableRow>

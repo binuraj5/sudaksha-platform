@@ -29,12 +29,29 @@ export async function GET(
         };
 
         const isDeptHead = session.user.role === 'DEPARTMENT_HEAD' || session.user.role === 'DEPT_HEAD';
+        const isTeamLead = session.user.role === 'TEAM_LEAD';
+
         if (isDeptHead) {
             const managedUnitId = (session.user as any).managedOrgUnitId;
             if (managedUnitId) {
                 whereClause.id = managedUnitId;
             } else {
                 return NextResponse.json({ error: "No managed department assigned" }, { status: 403 });
+            }
+        } else if (isTeamLead) {
+            const managedUnitId = (session.user as any).managedOrgUnitId;
+            if (managedUnitId) {
+                const team = await prisma.organizationUnit.findUnique({
+                    where: { id: managedUnitId },
+                    select: { parentId: true }
+                });
+                if (team?.parentId) {
+                    whereClause.id = team.parentId;
+                } else {
+                    return NextResponse.json({ error: "Team is not assigned to a department" }, { status: 403 });
+                }
+            } else {
+                return NextResponse.json({ error: "No managed team assigned" }, { status: 403 });
             }
         }
 

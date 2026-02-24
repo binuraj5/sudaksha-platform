@@ -1,0 +1,39 @@
+﻿On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   app/api/admin/roles/route.ts
+	modified:   app/api/clients/[clientId]/departments/route.ts
+	modified:   app/api/clients/[clientId]/employees/route.ts
+	modified:   app/api/clients/[clientId]/teams/route.ts
+	modified:   app/api/profile/route.ts
+	modified:   app/assessments/admin/approvals/page.tsx
+	modified:   app/assessments/individuals/career/page.tsx
+	modified:   components/Competencies/CompetenciesPageContent.tsx
+	modified:   components/Employees/CreateEmployeeDialog.tsx
+	modified:   components/Employees/EmployeeTable.tsx
+	modified:   components/Roles/RolesPageContent.tsx
+	modified:   errors.txt
+	modified:   lib/navigation-config.ts
+	modified:   next-env.d.ts
+	modified:   prisma/schema.prisma
+	modified:   tsconfig.tsbuildinfo
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	FSD/ANTIGRAVITY_ONBOARDING_GUIDE_v1.md
+	FSD/SUDAKSHA_ENHANCEMENT_ROADMAP_PHASE_A.md
+	FSD/SYSTEMATIC_STABILIZATION_ROADMAP_v1.md
+	app/api/approvals/
+	app/assessments/individuals/career/competencies/
+	app/assessments/individuals/career/previous-roles/
+	components/Approvals/
+	components/Career/OrgHierarchyView.tsx
+	prisma/migrations/20260223075835_modify_employee_enrollment_ids_to_tenant_scoped/
+	status.txt
+	test_prisma.js
+	test_prisma.ts
+
+no changes added to commit (use "git add" and/or "git commit -a")

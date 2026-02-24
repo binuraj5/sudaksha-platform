@@ -28,31 +28,31 @@ export async function GET(req: Request) {
         const where = buildCompetencyVisibilityFilter(userContext);
 
         const competencies = await prisma.competency.findMany({
-            where,
+            where: where as any,
             include: {
                 _count: { select: { indicators: true, roleLinks: true } },
             },
-            orderBy: [{ scope: "asc" }, { name: "asc" }],
+            orderBy: [{ scope: "asc" } as any, { name: "asc" }],
         });
 
         const permissions = getRoleCompetencyPermissions(userContext);
         const annotated = competencies.map((c) => ({
             ...c,
             _canEdit: canUserModifyRole(userContext, {
-                scope: c.scope as any,
+                scope: (c as any).scope,
                 tenantId: c.tenantId ?? undefined,
-                departmentId: c.departmentId ?? undefined,
-                teamId: c.teamId ?? undefined,
-                createdByUserId: c.createdByUserId ?? undefined,
+                departmentId: (c as any).departmentId ?? undefined,
+                teamId: (c as any).teamId ?? undefined,
+                createdByUserId: (c as any).createdByUserId ?? undefined,
             }),
             _canDelete: canUserModifyRole(userContext, {
-                scope: c.scope as any,
+                scope: (c as any).scope,
                 tenantId: c.tenantId ?? undefined,
-                departmentId: c.departmentId ?? undefined,
-                teamId: c.teamId ?? undefined,
-                createdByUserId: c.createdByUserId ?? undefined,
+                departmentId: (c as any).departmentId ?? undefined,
+                teamId: (c as any).teamId ?? undefined,
+                createdByUserId: (c as any).createdByUserId ?? undefined,
             }),
-            _canSubmitGlobal: c.scope !== "GLOBAL" && (!c.globalSubmissionStatus || c.globalSubmissionStatus === 'CHANGES_REQUESTED' || c.globalSubmissionStatus === 'REJECTED'),
+            _canSubmitGlobal: (c as any).scope !== "GLOBAL" && (!(c as any).globalSubmissionStatus || (c as any).globalSubmissionStatus === 'CHANGES_REQUESTED' || (c as any).globalSubmissionStatus === 'REJECTED'),
         }));
 
         return NextResponse.json({ competencies: annotated, permissions });
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
                 teamId: teamId ?? undefined,
                 createdByUserId: user.id,
                 allowedLevels,
-            },
+            } as any,
             include: {
                 _count: { select: { indicators: true, roleLinks: true } },
             },
@@ -117,7 +117,7 @@ export async function POST(request: Request) {
             ...competency,
             _canEdit: true,
             _canDelete: true,
-            _canSubmitGlobal: competency.scope !== "GLOBAL" && (!competency.globalSubmissionStatus || competency.globalSubmissionStatus === 'CHANGES_REQUESTED' || competency.globalSubmissionStatus === 'REJECTED'),
+            _canSubmitGlobal: (competency as any).scope !== "GLOBAL" && (!(competency as any).globalSubmissionStatus || (competency as any).globalSubmissionStatus === 'CHANGES_REQUESTED' || (competency as any).globalSubmissionStatus === 'REJECTED'),
         };
         return NextResponse.json(compWithPerms, { status: 201 });
     } catch (error) {
