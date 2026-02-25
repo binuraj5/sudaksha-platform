@@ -19,8 +19,22 @@ export default async function OrgAssessmentsPage({
     const tenant = await prisma.tenant.findUnique({ where: { slug } });
     if (!tenant) notFound();
 
-    const role = (session.user as any).role;
-    const isAdmin = ADMIN_ROLES.includes(role);
+    const sessionRole = (session.user as any).role;
+    const userType = (session.user as any).userType;
+
+    // Fast check via session
+    let isAdmin = ADMIN_ROLES.includes(sessionRole) || userType === "SUPER_ADMIN" || userType === "TENANT_ADMIN";
+
+    // Deep check via DB — in case session role is stale or missing
+    if (!isAdmin) {
+        const member = await prisma.member.findUnique({
+            where: { email: session.user.email! },
+            include: { managedUnits: { select: { id: true } } },
+        });
+        if (member && (ADMIN_ROLES.includes(member.role) || member.managedUnits.length > 0)) {
+            isAdmin = true;
+        }
+    }
 
     if (isAdmin) {
         return (

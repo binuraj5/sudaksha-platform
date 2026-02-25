@@ -10,8 +10,26 @@ import { resolveCreatedByUserId } from "@/lib/resolve-created-by";
 export async function GET(req: NextRequest) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+
+        const { getRoleCompetencyPermissions } = await import("@/lib/permissions/role-competency-permissions");
+        const permissions = getRoleCompetencyPermissions(userContext);
+
+        if (!permissions.canView) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
         }
 
         const { searchParams } = new URL(req.url);
@@ -22,10 +40,9 @@ export async function GET(req: NextRequest) {
         const search = searchParams.get("search");
         const category = searchParams.get("category");
 
-        const user = session.user as { id?: string; role?: string; userType?: string; tenantId?: string };
         const userId = user.id;
         const tenantId = user.tenantId ?? undefined;
-        const isSuperAdmin = user.role === "SUPER_ADMIN" || user.userType === "SUPER_ADMIN";
+        const isSuperAdmin = permissions.canEditGlobal;
 
         // Super admins see all library components; others see GLOBAL + ORG + own PRIVATE
         const andClauses: Record<string, unknown>[] = [];
@@ -83,8 +100,26 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const session = await getApiSession();
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+
+        const { getRoleCompetencyPermissions } = await import("@/lib/permissions/role-competency-permissions");
+        const permissions = getRoleCompetencyPermissions(userContext);
+
+        if (!permissions.canCreate) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
         }
 
         const body = await req.json();

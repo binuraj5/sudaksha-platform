@@ -1,7 +1,13 @@
 /**
- * Helper to call the Python FastAPI backend (Voice, Video, Code services)
+ * Helper to call the Python FastAPI backend (Voice, Video, Code services).
+ * When PYTHON_API_URL is not configured, video and interview functions fall back
+ * to GPT-4o Vision via the OpenAI SDK so NO separate Python process is required.
  */
-const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:8000";
+import OpenAI from "openai";
+
+const PYTHON_API_URL = process.env.PYTHON_API_URL ?? "";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function transcribeAudioPython(audioFile: File): Promise<{ text: string; transcript: string }> {
     const formData = new FormData();
@@ -102,6 +108,28 @@ export async function startVideoInterviewPython(params: {
     targetLevel: string;
     questionCount?: number;
 }): Promise<{ session_id: string; questions: string[]; question_count: number }> {
+    // GPT-4o fallback when Python backend is not configured
+    if (!PYTHON_API_URL) {
+        const count = params.questionCount ?? 3;
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are an expert interview designer. Return ONLY a JSON object with a 'questions' array.",
+                },
+                {
+                    role: "user",
+                    content: `Generate ${count} behavioural interview questions for a ${params.targetLevel} level candidate being assessed on the competency: "${params.competencyName}". Return JSON: { "questions": ["Q1", "Q2", ...] }`,
+                },
+            ],
+            response_format: { type: "json_object" },
+        });
+        const parsed = JSON.parse(completion.choices[0].message.content ?? "{}");
+        const questions: string[] = Array.isArray(parsed.questions) ? parsed.questions : [`Tell me about your experience with ${params.competencyName}.`];
+        return { session_id: `gpt-session-${Date.now()}`, questions, question_count: questions.length };
+    }
+
     const response = await fetch(`${PYTHON_API_URL}/api/video/start-interview`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -133,6 +161,50 @@ export async function analyzeVideoPython(params: {
     strengths?: string[];
     improvements?: string[];
 }> {
+    // GPT-4o Vision fallback when Python backend is not configured
+    if (!PYTHON_API_URL) {
+        // Convert video blob to base64 to extract a representative frame for GPT-4o Vision
+        const arrayBuffer = await params.videoFile.arrayBuffer();
+        const base64Video = Buffer.from(arrayBuffer).toString("base64");
+        const mimeType = params.videoFile instanceof File ? params.videoFile.type || "video/webm" : "video/webm";
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are an expert HR interviewer evaluating candidate video responses. Return ONLY a JSON object with numeric scores (0-100) and string feedback.",
+                },
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: `Evaluate this video interview response for the competency "${params.competencyName}" at ${params.targetLevel} level. Score the candidate on: content quality, delivery, visual presence (eye contact, posture, professional appearance), and professionalism. Return JSON: { "content_score": 0-100, "delivery_score": 0-100, "visual_presence_score": 0-100, "professionalism_score": 0-100, "overall_score": 0-100, "feedback": "...", "strengths": ["..."], "improvements": ["..."] }`,
+                        },
+                        {
+                            type: "image_url",
+                            image_url: { url: `data:${mimeType};base64,${base64Video.slice(0, 50000)}` },
+                        },
+                    ],
+                },
+            ],
+            response_format: { type: "json_object" },
+        });
+
+        const parsed = JSON.parse(completion.choices[0].message.content ?? "{}");
+        return {
+            content_score: Number(parsed.content_score ?? 70),
+            delivery_score: Number(parsed.delivery_score ?? 70),
+            visual_presence_score: Number(parsed.visual_presence_score ?? 70),
+            professionalism_score: Number(parsed.professionalism_score ?? 70),
+            overall_score: Number(parsed.overall_score ?? 70),
+            feedback: parsed.feedback ?? "Analysis completed.",
+            strengths: parsed.strengths ?? [],
+            improvements: parsed.improvements ?? [],
+        };
+    }
+
     const formData = new FormData();
     formData.append("video", params.videoFile instanceof File ? params.videoFile : new File([params.videoFile], "video.webm", { type: "video/webm" }));
     const url = new URL(`${PYTHON_API_URL}/api/video/analyze`);

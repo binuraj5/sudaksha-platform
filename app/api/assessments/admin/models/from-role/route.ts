@@ -68,6 +68,11 @@ export async function POST(request: Request) {
 
         // 2. Generate unique code
         const lastModel = await prisma.assessmentModel.findFirst({
+            where: {
+                code: {
+                    startsWith: "ASM",
+                },
+            },
             orderBy: { createdAt: 'desc' },
             select: { code: true }
         });

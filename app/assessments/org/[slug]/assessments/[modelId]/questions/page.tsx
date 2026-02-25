@@ -154,13 +154,13 @@ export default function ClientAssessmentQuestionsPage() {
         <div className="max-w-7xl mx-auto py-12 px-4 space-y-12">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <Button variant="ghost" size="sm" asChild className="mb-2">
+                    <Button variant="ghost" size="sm" asChild className="mb-2 -ml-3 text-muted-foreground">
                         <Link href={`/assessments/org/${slug}/assessments`}>
                             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Assessments
                         </Link>
                     </Button>
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tight italic">{model?.name}</h1>
-                    <p className="text-gray-500 font-medium">Add questions to each competency component.</p>
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight italic">{model?.name}</h1>
+                    <p className="text-gray-500 font-medium text-sm mt-1">Add questions to each competency component.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <Button variant="outline" asChild>
@@ -176,23 +176,23 @@ export default function ClientAssessmentQuestionsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="lg:col-span-1 space-y-4">
-                    <Label className="text-xs font-black uppercase tracking-widest text-slate-400 px-2">Competencies</Label>
-                    <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Competencies</Label>
+                    <div className="space-y-1.5">
                         {(model?.components || []).map((comp: any) => (
                             <div key={comp.id} onClick={() => handleComponentChange(comp.id)}
-                                className={`p-4 rounded-3xl border-2 transition-all cursor-pointer flex items-start justify-between ${selectedComponentId === comp.id ? "bg-indigo-600 border-indigo-600 text-white shadow-xl shadow-indigo-100" : "bg-white border-slate-100 hover:border-indigo-200"}`}>
-                                <div className="space-y-1">
-                                    <h3 className={`text-sm font-black italic ${selectedComponentId === comp.id ? "text-white" : "text-slate-800"}`}>{comp.competency?.name}</h3>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="secondary" className={`text-[9px] font-bold ${selectedComponentId === comp.id ? "bg-indigo-400 text-white border-none" : "bg-slate-50 text-slate-400"}`}>
-                                            {comp.questions?.length || 0} Questions
-                                        </Badge>
-                                        <Badge variant="outline" className={`text-[9px] font-bold ${selectedComponentId === comp.id ? "text-indigo-200 border-indigo-400" : "text-slate-400 border-slate-100"}`}>
-                                            Weight: {comp.weight}%
-                                        </Badge>
-                                    </div>
+                                className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-start gap-2 ${selectedComponentId === comp.id ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100/50" : "bg-white border-slate-100 hover:border-indigo-200"}`}>
+                                <div className="flex w-full items-start justify-between">
+                                    <h3 className={`text-[13px] font-bold pr-2 leading-snug ${selectedComponentId === comp.id ? "text-white" : "text-slate-800"}`}>{comp.competency?.name}</h3>
+                                    <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${selectedComponentId === comp.id ? "translate-x-0.5" : "text-slate-200"}`} />
                                 </div>
-                                <ChevronRight className={`w-5 h-5 ${selectedComponentId === comp.id ? "translate-x-1" : "text-slate-200"}`} />
+                                <div className="flex items-center gap-2 mt-auto">
+                                    <Badge variant="secondary" className={`text-[9px] px-1.5 py-0 font-bold ${selectedComponentId === comp.id ? "bg-indigo-500 hover:bg-indigo-500 text-white border-none" : "bg-slate-50 text-slate-500"}`}>
+                                        {comp.questions?.length || 0} Questions
+                                    </Badge>
+                                    <Badge variant="outline" className={`text-[9px] px-1.5 py-0 font-bold ${selectedComponentId === comp.id ? "text-indigo-100 border-indigo-400" : "text-slate-400 border-slate-200"}`}>
+                                        Wt: {comp.weight}%
+                                    </Badge>
+                                </div>
                             </div>
                         ))}
                     </div>

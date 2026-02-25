@@ -147,9 +147,9 @@ export function LibraryBrowser({
                         />
                     </div>
                     <Select
-                        value={filters.targetLevel}
+                        value={filters.targetLevel || "ALL"}
                         onValueChange={(v) =>
-                            setFilters((f) => ({ ...f, targetLevel: v }))
+                            setFilters((f) => ({ ...f, targetLevel: v === "ALL" ? "" : v }))
                         }
                         disabled={!!targetLevel}
                     >
@@ -157,7 +157,7 @@ export function LibraryBrowser({
                             <SelectValue placeholder="Level" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Levels</SelectItem>
+                            <SelectItem value="ALL">All Levels</SelectItem>
                             <SelectItem value="JUNIOR">Junior</SelectItem>
                             <SelectItem value="MIDDLE">Middle</SelectItem>
                             <SelectItem value="SENIOR">Senior</SelectItem>
@@ -165,9 +165,9 @@ export function LibraryBrowser({
                         </SelectContent>
                     </Select>
                     <Select
-                        value={filters.componentType}
+                        value={filters.componentType || "ALL"}
                         onValueChange={(v) =>
-                            setFilters((f) => ({ ...f, componentType: v }))
+                            setFilters((f) => ({ ...f, componentType: v === "ALL" ? "" : v }))
                         }
                         disabled={!!componentType}
                     >
@@ -175,7 +175,7 @@ export function LibraryBrowser({
                             <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Types</SelectItem>
+                            <SelectItem value="ALL">All Types</SelectItem>
                             <SelectItem value="MCQ">MCQ</SelectItem>
                             <SelectItem value="SHORT_ANSWER">Short Answer</SelectItem>
                             <SelectItem value="ESSAY">Essay</SelectItem>

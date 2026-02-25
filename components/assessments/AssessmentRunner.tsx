@@ -224,11 +224,12 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
                     videoConfig: data.videoConfig,
                     videoQuestionId: data.videoQuestionId,
                 }),
-                ...(data.useAdaptiveInterview && data.adaptiveAssessmentId && data.adaptiveComponentId && data.adaptiveQuestionId && {
+                ...(data.useAdaptiveInterview && data.adaptiveAssessmentId && data.adaptiveComponentId && {
                     useAdaptiveInterview: true,
                     adaptiveAssessmentId: data.adaptiveAssessmentId,
                     adaptiveComponentId: data.adaptiveComponentId,
-                    adaptiveQuestionId: data.adaptiveQuestionId,
+                    // May be null/undefined for pure Adaptive AI components — AdaptiveRunner handles gracefully
+                    adaptiveQuestionId: data.adaptiveQuestionId ?? "adaptive-placeholder",
                     adaptiveCompetencyId: data.adaptiveCompetencyId ?? "",
                     adaptiveTargetLevel: data.adaptiveTargetLevel ?? "JUNIOR",
                 }),
@@ -475,7 +476,7 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
         }
 
         // Adaptive AI: runtime questions, difficulty adaptation (M9-5)
-        if (runnerState?.useAdaptiveInterview && runnerState?.adaptiveAssessmentId && runnerState?.adaptiveComponentId && runnerState?.adaptiveQuestionId) {
+        if (runnerState?.useAdaptiveInterview && runnerState?.adaptiveAssessmentId && runnerState?.adaptiveComponentId) {
             return (
                 <div className="min-h-[80vh] flex flex-col">
                     <div className="bg-white border-b px-8 py-4 flex justify-between items-center sticky top-0 z-20">
@@ -498,7 +499,7 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
                             userComponentId={runnerState.userComponentId}
                             assessmentId={runnerState.adaptiveAssessmentId}
                             componentId={runnerState.adaptiveComponentId}
-                            questionId={runnerState.adaptiveQuestionId}
+                            questionId={runnerState.adaptiveQuestionId ?? ""}
                             sectionName={sectionName}
                             competencyId={runnerState.adaptiveCompetencyId}
                             targetLevel={runnerState.adaptiveTargetLevel}

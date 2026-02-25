@@ -24,6 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { IndicatorPreview } from "@/components/assessments/IndicatorPreview";
 import { AssessmentTypeSelector } from "@/components/assessments/AssessmentTypeSelector";
+import { LevelSelector, type ProficiencyLevelStr } from "@/components/assessments/LevelSelector";
 
 type Step = 0 | 1 | 2 | 3;
 
@@ -310,23 +311,11 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
 
                         <div>
                             <Label>Proficiency level</Label>
-                            <div className="grid grid-cols-4 gap-2 mt-1.5">
-                                {(["JUNIOR", "MIDDLE", "SENIOR", "EXPERT"] as const).map((level) => (
-                                    <div
-                                        key={level}
-                                        onClick={() => setTargetLevel(level)}
-                                        className={`p-3 rounded-lg border text-center cursor-pointer transition-all ${targetLevel === level
-                                            ? "bg-primary border-primary text-primary-foreground"
-                                            : "hover:border-primary/50"
-                                            }`}
-                                    >
-                                        <p className="text-xs font-medium">
-                                            {level === "MIDDLE" ? "Mid" : level}
-                                        </p>
-                                        <Target className="w-4 h-4 mx-auto mt-1 opacity-70" />
-                                    </div>
-                                ))}
-                            </div>
+                            <LevelSelector
+                                value={targetLevel as ProficiencyLevelStr}
+                                onChange={(level) => setTargetLevel(level)}
+                                className="mt-1.5"
+                            />
                         </div>
 
                         <div className="flex gap-2 pt-2">

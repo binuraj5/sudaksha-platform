@@ -110,6 +110,11 @@ export async function POST(request: Request) {
 
         // Generate unique code ASM001, ASM002...
         const lastModel = await prisma.assessmentModel.findFirst({
+            where: {
+                code: {
+                    startsWith: "ASM"
+                }
+            },
             orderBy: { createdAt: 'desc' },
             select: { code: true }
         });
@@ -117,7 +122,9 @@ export async function POST(request: Request) {
         let nextCode = "ASM001";
         if (lastModel && lastModel.code.startsWith("ASM")) {
             const lastNum = parseInt(lastModel.code.substring(3));
-            nextCode = `ASM${String(lastNum + 1).padStart(3, '0')}`;
+            if (!Number.isNaN(lastNum) && lastNum >= 0) {
+                nextCode = `ASM${String(lastNum + 1).padStart(3, '0')}`;
+            }
         }
 
         const model = await prisma.assessmentModel.create({

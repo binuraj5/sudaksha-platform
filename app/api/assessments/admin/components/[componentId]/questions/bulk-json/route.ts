@@ -8,13 +8,29 @@ export async function POST(
 ) {
     try {
         const session = await getApiSession();
-        const { componentId } = await params;
-
-        const u = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-        if (!session || !isAdmin) {
+        if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+
+        const { getRoleCompetencyPermissions } = await import("@/lib/permissions/role-competency-permissions");
+        const permissions = getRoleCompetencyPermissions(userContext);
+
+        if (!permissions.canCreate && !permissions.canEditOrg) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+        }
+
+        const { componentId } = await params;
 
         const body = await request.json();
         const { questions } = body;
