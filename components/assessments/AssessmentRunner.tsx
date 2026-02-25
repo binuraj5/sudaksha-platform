@@ -56,6 +56,8 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
         adaptiveAssessmentId?: string;
         adaptiveComponentId?: string;
         adaptiveQuestionId?: string | null;
+        adaptiveCompetencyId?: string;
+        adaptiveTargetLevel?: string;
         usePanelInterview?: boolean;
         panelConfig?: { panelId: string; competencyName: string; targetLevel: string; durationMinutes: number };
         panelQuestionId?: string | null;
@@ -227,6 +229,8 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
                     adaptiveAssessmentId: data.adaptiveAssessmentId,
                     adaptiveComponentId: data.adaptiveComponentId,
                     adaptiveQuestionId: data.adaptiveQuestionId,
+                    adaptiveCompetencyId: data.adaptiveCompetencyId ?? "",
+                    adaptiveTargetLevel: data.adaptiveTargetLevel ?? "JUNIOR",
                 }),
                 ...(data.usePanelInterview && data.panelConfig && data.panelQuestionId && {
                     usePanelInterview: true,
@@ -496,6 +500,8 @@ export function AssessmentRunner({ userAssessment }: AssessmentRunnerProps) {
                             componentId={runnerState.adaptiveComponentId}
                             questionId={runnerState.adaptiveQuestionId}
                             sectionName={sectionName}
+                            competencyId={runnerState.adaptiveCompetencyId}
+                            targetLevel={runnerState.adaptiveTargetLevel}
                             onComplete={handleNextSection}
                         />
                     </div>

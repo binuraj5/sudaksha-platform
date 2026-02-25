@@ -10,7 +10,7 @@ export default async function IndividualLayout({
 }) {
     const session = await getApiSession();
 
-    if (!session || session.user.role !== 'INDIVIDUAL') {
+    if (!session) {
         redirect("/assessments/login");
     }
 

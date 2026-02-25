@@ -28,8 +28,44 @@ export default async function OrgProjectsPage({
     const clientId = tenant.id;
     const basePath = `/assessments/org/${slug}`;
 
+    const role = (session.user as any).role;
+    const managedOrgUnitId = (session.user as any).managedOrgUnitId;
+
+    const projectWhere: any = {
+        tenantId: clientId,
+        type: "PROJECT" as any,
+        status: { not: "ARCHIVED" as any }
+    };
+
+    if (role === "TENANT_ADMIN" || role === "SUPER_ADMIN") {
+        // no additional filter
+    } else if ((role === 'DEPARTMENT_HEAD' || role === 'DEPT_HEAD') && managedOrgUnitId) {
+        const childIds = await prisma.organizationUnit.findMany({
+            where: { parentId: managedOrgUnitId, tenantId: clientId },
+            select: { id: true }
+        });
+        const scopeIds = [managedOrgUnitId, ...childIds.map(c => c.id)];
+        projectWhere.orgUnits = {
+            some: {
+                orgUnitId: { in: scopeIds }
+            }
+        };
+    } else if (role === 'TEAM_LEAD' && managedOrgUnitId) {
+        projectWhere.orgUnits = {
+            some: {
+                orgUnitId: managedOrgUnitId
+            }
+        };
+    } else {
+        projectWhere.members = {
+            some: {
+                memberId: (session.user as any).id
+            }
+        };
+    }
+
     const projects = await prisma.activity.findMany({
-        where: { tenantId: clientId, type: "PROJECT", status: { not: "ARCHIVED" } },
+        where: projectWhere,
         include: {
             owner: { select: { id: true, name: true, avatar: true } },
             _count: { select: { members: true, assessments: true } },

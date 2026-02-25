@@ -97,6 +97,27 @@ export async function evaluateVoiceInterview(params: {
     return response.json();
 }
 
+export async function startVideoInterviewPython(params: {
+    competencyName: string;
+    targetLevel: string;
+    questionCount?: number;
+}): Promise<{ session_id: string; questions: string[]; question_count: number }> {
+    const response = await fetch(`${PYTHON_API_URL}/api/video/start-interview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            competency_name: params.competencyName,
+            target_level: params.targetLevel,
+            question_count: params.questionCount ?? 3,
+        }),
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error((err as { detail?: string }).detail || "Failed to start video interview");
+    }
+    return response.json();
+}
+
 export async function analyzeVideoPython(params: {
     videoFile: File | Blob;
     competencyName: string;
@@ -108,6 +129,9 @@ export async function analyzeVideoPython(params: {
     professionalism_score: number;
     overall_score: number;
     feedback: string;
+    transcript?: string;
+    strengths?: string[];
+    improvements?: string[];
 }> {
     const formData = new FormData();
     formData.append("video", params.videoFile instanceof File ? params.videoFile : new File([params.videoFile], "video.webm", { type: "video/webm" }));

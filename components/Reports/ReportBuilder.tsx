@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, ArrowRight, ArrowLeft, Loader2, FileText, BarChart } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { RecommendationCard } from "@/components/assessments/RecommendationCard";
 
 export function ReportBuilder({ clientId }: { clientId: string }) {
     const [open, setOpen] = useState(false);
@@ -18,6 +19,10 @@ export function ReportBuilder({ clientId }: { clientId: string }) {
 
     const [templates, setTemplates] = useState<any[]>([]);
     const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+
+    // Scenario for recommendations
+    const [scenario, setScenario] = useState("");
+    const [recommendations, setRecommendations] = useState<any[]>([]);
 
     // Form Data
     const [formData, setFormData] = useState({
@@ -28,6 +33,20 @@ export function ReportBuilder({ clientId }: { clientId: string }) {
     });
 
     const router = useRouter();
+
+    useEffect(() => {
+        if (!scenario || scenario.trim() === '') {
+            setRecommendations([]);
+            return;
+        }
+        const timeoutId = setTimeout(() => {
+            fetch(`/api/recommendations/report?scenario=${encodeURIComponent(scenario)}`)
+                .then(r => r.json())
+                .then(data => setRecommendations(data.recommendations || []))
+                .catch(() => setRecommendations([]));
+        }, 500);
+        return () => clearTimeout(timeoutId);
+    }, [scenario]);
 
     useEffect(() => {
         if (open) {
@@ -85,22 +104,58 @@ export function ReportBuilder({ clientId }: { clientId: string }) {
 
                 <div className="flex-1 overflow-y-auto py-4 px-1">
                     {step === 1 && (
-                        <div className="grid grid-cols-2 gap-4">
-                            {templates.map(t => (
-                                <div key={t.id} role="button" tabIndex={0} onClick={() => setSelectedTemplate(t.id)} onKeyDown={e => e.key === 'Enter' && setSelectedTemplate(t.id)}>
-                                <Card
-                                    className={`cursor-pointer transition-all hover:border-indigo-400 ${selectedTemplate === t.id ? 'border-2 border-indigo-600 bg-indigo-50' : ''}`}
-                                >
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            {t.type === 'EXCEL' ? <FileText className="h-5 w-5 text-green-600" /> : <BarChart className="h-5 w-5 text-blue-600" />}
-                                            <h3 className="font-bold text-sm">{t.name}</h3>
-                                        </div>
-                                        <p className="text-xs text-gray-500 line-clamp-2">{t.description}</p>
-                                    </CardContent>
-                                </Card>
+                        <div className="space-y-6">
+                            <div className="grid gap-2">
+                                <Label className="text-sm font-medium">Reporting Goal (Optional)</Label>
+                                <Input
+                                    placeholder="e.g., Identify struggling students, compare candidates..."
+                                    value={scenario}
+                                    onChange={e => setScenario(e.target.value)}
+                                />
+                            </div>
+
+                            {recommendations.length > 0 && (
+                                <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
+                                    <Label className="text-xs text-muted-foreground">Smart Suggestions</Label>
+                                    {recommendations.map(rec => (
+                                        <RecommendationCard
+                                            key={rec.id}
+                                            recommendation={rec}
+                                            onApply={(values) => {
+                                                if (values) {
+                                                    // Map values appropriately
+                                                    if (values.name) setFormData(prev => ({ ...prev, name: values.name as string }));
+                                                    // We mock the auto apply template if there is one that matches the name conceptually
+                                                    // (For now, we just proceed to step 2 with the name)
+                                                    toast.success("Applied intelligent recommendation");
+                                                }
+                                            }}
+                                            onDismiss={(id) => setRecommendations(prev => prev.filter(r => r.id !== id))}
+                                        />
+                                    ))}
                                 </div>
-                            ))}
+                            )}
+
+                            <div>
+                                <Label className="text-xs text-muted-foreground mb-2 block">Available Templates</Label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {templates.map(t => (
+                                        <div key={t.id} role="button" tabIndex={0} onClick={() => setSelectedTemplate(t.id)} onKeyDown={e => e.key === 'Enter' && setSelectedTemplate(t.id)}>
+                                            <Card
+                                                className={`cursor-pointer transition-all hover:border-indigo-400 ${selectedTemplate === t.id ? 'border-2 border-indigo-600 bg-indigo-50' : ''}`}
+                                            >
+                                                <CardContent className="p-4">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        {t.type === 'EXCEL' ? <FileText className="h-5 w-5 text-green-600" /> : <BarChart className="h-5 w-5 text-blue-600" />}
+                                                        <h3 className="font-bold text-sm">{t.name}</h3>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 line-clamp-2">{t.description}</p>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
 

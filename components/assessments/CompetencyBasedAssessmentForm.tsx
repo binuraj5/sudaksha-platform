@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,6 +17,10 @@ import { getAccessibleCompetencies, createCompetencyBasedAssessment } from "@/ap
 
 export function CompetencyBasedAssessmentForm({ basePath, clientId }: { basePath: string, clientId?: string }) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const initCompetencyId = searchParams?.get("competencyId");
+    const requesterId = searchParams?.get("requesterId");
+
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [targetLevel, setTargetLevel] = useState("MIDDLE");
@@ -29,6 +33,13 @@ export function CompetencyBasedAssessmentForm({ basePath, clientId }: { basePath
     const [weights, setWeights] = useState<Record<string, number>>({});
 
     useEffect(() => {
+        if (initCompetencyId) {
+            setSelectedIds(new Set([initCompetencyId]));
+            setWeights({ [initCompetencyId]: 100 });
+        }
+    }, [initCompetencyId]);
+
+    useEffect(() => {
         async function fetchInitial() {
             setLoading(true);
             const res = await getAccessibleCompetencies(clientId);
@@ -36,11 +47,19 @@ export function CompetencyBasedAssessmentForm({ basePath, clientId }: { basePath
                 toast.error(res.error);
             } else if (res.data) {
                 setCompetencies(res.data);
+
+                // If we have an auto-selected competency, populate the name
+                if (initCompetencyId) {
+                    const c = res.data.find((x: any) => x.id === initCompetencyId);
+                    if (c && !name) {
+                        setName(`${c.name} Assessment`);
+                    }
+                }
             }
             setLoading(false);
         }
         fetchInitial();
-    }, [clientId]);
+    }, [clientId, initCompetencyId, name]);
 
     const toggleCompetency = (compId: string) => {
         setSelectedIds((prev) => {
@@ -84,7 +103,11 @@ export function CompetencyBasedAssessmentForm({ basePath, clientId }: { basePath
 
             const compIds = Array.from(selectedIds).join(",");
             const parts = basePath.split("/create");
-            const buildUrl = `${parts[0]}/build?competencyIds=${compIds}&level=${targetLevel}`;
+            let buildUrl = `${parts[0]}/build?competencyIds=${compIds}&level=${targetLevel}&name=${encodeURIComponent(name)}`;
+
+            if (requesterId) {
+                buildUrl += `&requesterId=${requesterId}`;
+            }
 
             toast.success("Competencies prepared! Transitioning to Structural Builder...");
 

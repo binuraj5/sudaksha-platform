@@ -1,7 +1,10 @@
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { ModelsPageContent } from "@/components/assessments/ModelsPageContent";
+import { PersonalAssessmentsList } from "@/components/assessments/PersonalAssessmentsList";
 import { redirect, notFound } from "next/navigation";
+
+const ADMIN_ROLES = ["SUPER_ADMIN", "TENANT_ADMIN", "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD"];
 
 export default async function OrgAssessmentsPage({
     params,
@@ -11,16 +14,54 @@ export default async function OrgAssessmentsPage({
     const session = await getApiSession();
     const { slug } = await params;
 
-    if (!session) redirect("/assessments/login");
+    if (!session || !session.user) redirect("/assessments/login");
 
     const tenant = await prisma.tenant.findUnique({ where: { slug } });
     if (!tenant) notFound();
 
+    const role = (session.user as any).role;
+    const isAdmin = ADMIN_ROLES.includes(role);
+
+    if (isAdmin) {
+        return (
+            <div className="p-4 md:p-8">
+                <ModelsPageContent
+                    isAdmin={true}
+                    clientId={tenant.id}
+                    baseUrl={`/assessments/org/${slug}/assessments`}
+                />
+            </div>
+        );
+    }
+
+    // For non-admins, show their personal assessments
+    const memberAssessments = await (prisma as any).memberAssessment.findMany({
+        where: {
+            memberId: (session.user as any).id,
+            assessmentModel: {
+                tenantId: tenant.id
+            }
+        },
+        include: {
+            assessmentModel: {
+                include: {
+                    role: { select: { id: true, name: true } }
+                }
+            },
+        },
+        orderBy: {
+            updatedAt: 'desc'
+        }
+    });
+
     return (
-        <ModelsPageContent
-            isAdmin={false}
-            clientId={tenant.id}
-            baseUrl={`/assessments/org/${slug}/assessments`}
-        />
+        <div className="p-4 md:p-8">
+            <PersonalAssessmentsList
+                assessments={memberAssessments}
+                slug={slug}
+                userName={session.user.name || "User"}
+                tenantName={tenant.name}
+            />
+        </div>
     );
 }

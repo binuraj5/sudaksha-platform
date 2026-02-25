@@ -47,7 +47,7 @@ export function DashboardContent({ clientId, labels, basePath }: { clientId: str
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
                 <GapAnalysisChart data={gapData} />
                 <div className="space-y-6">
-                    <RecentActivity />
+                    <RecentActivity clientId={clientId} />
                     <QuickActions clientId={clientId} basePath={basePath} />
                 </div>
             </div>

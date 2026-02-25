@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { format } from "date-fns";
 import { CompetencyGapAnalysis } from "@/components/assessments/CompetencyGapAnalysis";
+import { AIResultCard } from "@/components/assessments/AIResultCard";
 
 export default async function IndividualResultPage({
     params,
@@ -39,7 +40,14 @@ export default async function IndividualResultPage({
             },
             componentResults: {
                 include: {
-                    component: { include: { competency: true } }
+                    component: { include: { competency: true } },
+                    questionResponses: {
+                        select: {
+                            responseData: true,
+                        },
+                        take: 1,
+                        orderBy: { createdAt: "desc" },
+                    },
                 }
             }
         }
@@ -66,7 +74,12 @@ export default async function IndividualResultPage({
                     include: {
                         componentResults: {
                             include: {
-                                component: { include: { competency: true } }
+                                component: { include: { competency: true } },
+                                questionResponses: {
+                                    select: { responseData: true },
+                                    take: 1,
+                                    orderBy: { createdAt: "desc" },
+                                },
                             }
                         }
                     }
@@ -181,30 +194,60 @@ export default async function IndividualResultPage({
                                 </CardContent>
                             </Card>
                         ) : (
-                        <div className="grid gap-4">
-                            {assessment.componentResults.map((res: { id: string; status: string; component: unknown; score?: number | null; percentage?: number | null }) => (
-                                <Card key={res.id} className="hover:border-red-100 transition-colors shadow-sm">
-                                    <CardContent className="p-4 flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-2 rounded-lg ${res.status === 'COMPLETED' ? 'bg-green-50' : 'bg-gray-50'}`}>
-                                                <CheckCircle2 className={`h-5 w-5 ${res.status === 'COMPLETED' ? 'text-green-600' : 'text-gray-300'}`} />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-sm text-gray-900">{(res.component as { competency?: { name?: string }; order?: number }).competency?.name ?? `Section ${((res.component as { order?: number }).order ?? 0) + 1}`}</h4>
-                                                <Badge variant="outline" className="text-[10px] uppercase border-none bg-gray-100 text-gray-500">
-                                                    {(res.component as { competency?: { name?: string } }).competency?.name ? "Competency" : "Section"}
-                                                </Badge>
-                                            </div>
-                                        </div>
+                            <div className="grid gap-4">
+                                {assessment.componentResults.map((res: {
+                                    id: string;
+                                    status: string;
+                                    component: { competency?: { name?: string } | null; order?: number; componentType?: string };
+                                    score?: number | null;
+                                    percentage?: number | null;
+                                    questionResponses?: { responseData: unknown }[];
+                                }) => {
+                                    // Check if this is an AI interview component
+                                    const componentType = res.component?.componentType ?? "";
+                                    const isAIComponent = ["VOICE", "VIDEO", "ADAPTIVE_AI", "ADAPTIVE_QUESTIONNAIRE"].includes(componentType);
+                                    const aiResponseData = res.questionResponses?.[0]?.responseData as Record<string, unknown> | null;
+                                    const hasAIResult = isAIComponent && aiResponseData && typeof aiResponseData === "object";
 
-                                        <div className="text-right">
-                                            <p className="text-lg font-black text-gray-900">{Math.round((res as { score?: number; percentage?: number }).percentage ?? (res as { score?: number }).score ?? 0)}%</p>
-                                            <p className="text-[10px] text-gray-400 uppercase tracking-widest">Score</p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
+                                    if (hasAIResult) {
+                                        return (
+                                            <div key={res.id} className="space-y-2">
+                                                <AIResultCard
+                                                    responseData={aiResponseData}
+                                                    componentType={componentType}
+                                                />
+                                            </div>
+                                        );
+                                    }
+
+                                    // Standard questionnaire card
+                                    return (
+                                        <Card key={res.id} className="hover:border-red-100 transition-colors shadow-sm">
+                                            <CardContent className="p-4 flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`p-2 rounded-lg ${res.status === 'COMPLETED' ? 'bg-green-50' : 'bg-gray-50'}`}>
+                                                        <CheckCircle2 className={`h-5 w-5 ${res.status === 'COMPLETED' ? 'text-green-600' : 'text-gray-300'}`} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-sm text-gray-900">
+                                                            {res.component?.competency?.name ?? `Section ${((res.component as { order?: number }).order ?? 0) + 1}`}
+                                                        </h4>
+                                                        <Badge variant="outline" className="text-[10px] uppercase border-none bg-gray-100 text-gray-500">
+                                                            {res.component?.competency?.name ? "Competency" : "Section"}
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-lg font-black text-gray-900">
+                                                        {Math.round((res as { score?: number; percentage?: number }).percentage ?? (res as { score?: number }).score ?? 0)}%
+                                                    </p>
+                                                    <p className="text-[10px] text-gray-400 uppercase tracking-widest">Score</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
                         )}
                     </div>
 

@@ -12,12 +12,12 @@ import { formatDate } from "@/lib/utils";
 export default async function IndividualResultsPage() {
     const session = await getApiSession();
 
-    if (!session || session.user.role !== "INDIVIDUAL") {
+    if (!session) {
         redirect("/assessments/login");
     }
 
     const member = await prisma.member.findFirst({
-        where: { email: session.user.email ?? "", type: "INDIVIDUAL" },
+        where: { email: session.user.email ?? "" },
         select: { id: true },
     });
 

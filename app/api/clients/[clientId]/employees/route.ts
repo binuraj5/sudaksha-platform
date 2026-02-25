@@ -75,7 +75,7 @@ export async function GET(
         if (simple) {
             const employees = await prisma.member.findMany({
                 where: { ...whereClause, isActive: true },
-                select: { id: true, name: true, email: true },
+                select: { id: true, name: true, email: true, employeeId: true, enrollmentNumber: true, memberCode: true },
                 orderBy: { name: 'asc' }
             });
             return NextResponse.json(employees);

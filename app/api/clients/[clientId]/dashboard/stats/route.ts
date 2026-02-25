@@ -2,6 +2,8 @@ import { getApiSession } from "@/lib/get-session";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ clientId: string }> }
@@ -46,17 +48,29 @@ export async function GET(
         // 1. Employee Stats
         const [totalEmployees, activeEmployees] = await Promise.all([
             prisma.member.count({ where: { ...memberWhere } }),
-            prisma.member.count({ where: { ...memberWhere, isActive: true } })
+            prisma.member.count({ where: { ...memberWhere, status: 'ACTIVE' } })
         ]);
 
         // 2. Department & Team Stats (scoped for M2/M3)
-        const departmentsCount = await prisma.organizationUnit.count({
-            where: { ...orgUnitWhere, type: 'DEPARTMENT' }
-        });
+        const [departments, teams] = await Promise.all([
+            prisma.organizationUnit.findMany({
+                where: { ...orgUnitWhere, type: 'DEPARTMENT' },
+                select: { id: true, name: true }
+            }),
+            prisma.organizationUnit.findMany({
+                where: { ...orgUnitWhere, type: 'TEAM' },
+                include: {
+                    _count: {
+                        select: { members: true }
+                    }
+                }
+            })
+        ]);
 
-        const teamsCount = await prisma.organizationUnit.count({
-            where: { ...orgUnitWhere, type: 'TEAM' }
-        });
+        const departmentsCount = departments.length;
+        const teamsCount = teams.length;
+        const totalTeamMembers = teams.reduce((acc, t) => acc + t._count.members, 0);
+        const avgTeamSize = teamsCount > 0 ? Math.round(totalTeamMembers / teamsCount) : 0;
 
         // 3. Project/Activity Stats
         const activeProjects = await prisma.activity.count({
@@ -78,7 +92,25 @@ export async function GET(
         const completedAssessments = assessments.find(a => a.status === 'COMPLETED')?._count || 0;
         const pendingAssessments = assessments.filter(a => a.status !== 'COMPLETED').reduce((acc, curr) => acc + curr._count, 0);
 
-        // 5. Avg Performance (scoped)
+        // 5. Performance by Department (scoped)
+        const performanceDetails = await Promise.all(
+            departments.slice(0, 5).map(async (dept) => {
+                const perf = await prisma.memberAssessment.aggregate({
+                    where: {
+                        member: { orgUnitId: dept.id },
+                        status: 'COMPLETED',
+                        overallScore: { not: null }
+                    },
+                    _avg: { overallScore: true }
+                });
+                return {
+                    name: dept.name,
+                    score: Math.round(perf._avg.overallScore || 0)
+                };
+            })
+        );
+
+        // 6. Overall Performance
         const performance = await prisma.memberAssessment.aggregate({
             where: {
                 member: memberWhere,
@@ -117,16 +149,16 @@ export async function GET(
             },
             teams: {
                 total: teamsCount,
-                avgSize: 0 // Simplification for now
+                avgSize: avgTeamSize
             },
             assessments: {
                 pending: pendingAssessments,
                 completed: completedAssessments,
-                avgScore: performance._avg.overallScore || 0
+                avgScore: Math.round(performance._avg.overallScore || 0)
             },
             performance: {
-                overall: performance._avg.overallScore || 0,
-                byDepartment: [] // To be implemented with complex group by if needed
+                overall: Math.round(performance._avg.overallScore || 0),
+                byDepartment: performanceDetails
             }
         });
 

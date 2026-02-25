@@ -23,7 +23,7 @@ export interface MemberForRestriction {
  */
 export function isStudentRestricted(member: MemberForRestriction): boolean {
   if (member.type !== 'STUDENT') return false;
-  // Fresh graduate (hasGraduated = true) is still restricted from Senior/Expert per FSD
+  if (member.hasGraduated) return false;
   return true;
 }
 

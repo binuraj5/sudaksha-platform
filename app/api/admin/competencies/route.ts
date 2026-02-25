@@ -119,6 +119,27 @@ export async function POST(request: Request) {
             _canDelete: true,
             _canSubmitGlobal: (competency as any).scope !== "GLOBAL" && (!(competency as any).globalSubmissionStatus || (competency as any).globalSubmissionStatus === 'CHANGES_REQUESTED' || (competency as any).globalSubmissionStatus === 'REJECTED'),
         };
+
+        // Auto-spawn ApprovalRequest for non-global, non-super-admin creations (Polymorphic Workflow)
+        const normalizedRole = userContext.role?.toUpperCase();
+        const isGlobalAdmin = normalizedRole === 'SUPER_ADMIN';
+        if (!isGlobalAdmin && scope !== 'GLOBAL' && user.tenantId) {
+            try {
+                await prisma.approvalRequest.create({
+                    data: {
+                        tenantId: user.tenantId,
+                        type: 'COMPETENCY' as any,
+                        entityId: competency.id,
+                        status: 'PENDING' as any,
+                        requesterId: user.id,
+                        modificationNotes: `New competency "${competency.name}" submitted for organization approval.`,
+                    },
+                });
+            } catch (e) {
+                console.warn('Failed to create ApprovalRequest for new competency:', e);
+            }
+        }
+
         return NextResponse.json(compWithPerms, { status: 201 });
     } catch (error) {
         console.error("Create competency error:", error);

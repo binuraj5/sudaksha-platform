@@ -1,0 +1,4 @@
+﻿app/assessments/org/[slug]/profile/page.tsx(2,39): error TS1261: Already included file name 'C:/Users/Administrator/Documents/GitHub/SudakshaNWS/components/profile/RestrictedProfileForm.tsx' differs from file name 'C:/Users/Administrator/Documents/GitHub/SudakshaNWS/components/Profile/RestrictedProfileForm.tsx' only in casing.
+  The file is in the program because:
+    Imported via "@/components/profile/RestrictedProfileForm" from file 'C:/Users/Administrator/Documents/GitHub/SudakshaNWS/app/assessments/org/[slug]/profile/page.tsx'
+    Matched by include pattern '**/*.tsx' in 'C:/Users/Administrator/Documents/GitHub/SudakshaNWS/tsconfig.json'

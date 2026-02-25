@@ -74,7 +74,8 @@ export async function POST(
         }
 
         const isCreator = model.createdBy === user.id;
-        const isSameTenant = (model.tenantId === userContext.tenantId) || (model.clientId === userContext.tenantId);
+        const isSuperAdmin = permissions.canEditGlobal;
+        const isSameTenant = isSuperAdmin || (model.tenantId === userContext.tenantId) || (model.clientId === userContext.tenantId);
 
         if (visibility === "GLOBAL") {
             if (!permissions.canSubmitForGlobal && !permissions.canEditGlobal) {
@@ -135,7 +136,7 @@ export async function POST(
         }
 
         const nextVersion = bumpVersion(model.version || "1.0.0");
-        await prisma.assessmentModel.update({
+        const updatedModel = await prisma.assessmentModel.update({
             where: { id: modelId },
             data: {
                 visibility,
@@ -144,6 +145,30 @@ export async function POST(
                 version: nextVersion
             }
         });
+
+        // Auto-assign to requester if applicable based on DRAFT metadata tracking
+        const meta = model.metadata as any;
+        if (meta?.autoAssignToMemberId) {
+            const memberId = meta.autoAssignToMemberId;
+            const existing = await prisma.memberAssessment.findFirst({
+                where: { memberId, assessmentModelId: modelId }
+            });
+            if (!existing) {
+                try {
+                    await prisma.memberAssessment.create({
+                        data: {
+                            memberId,
+                            assessmentModelId: modelId,
+                            assignmentType: 'SELF_SELECTED',
+                            assignedBy: session.user.id,
+                            status: 'NOT_STARTED' as any
+                        }
+                    });
+                } catch (e) {
+                    console.error("Failed to auto-assign model to requester:", e);
+                }
+            }
+        }
 
         return NextResponse.json({
             success: true,

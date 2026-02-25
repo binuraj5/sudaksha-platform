@@ -10,7 +10,7 @@ import Link from "next/link";
 export default async function IndividualsBrowsePage() {
     const session = await getApiSession();
 
-    if (!session || (session.user as any).role !== "INDIVIDUAL") {
+    if (!session) {
         redirect("/assessments/login");
     }
 

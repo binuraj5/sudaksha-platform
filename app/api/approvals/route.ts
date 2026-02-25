@@ -26,19 +26,18 @@ export async function GET() {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        // Scope the query based on the reviewer's authority level
-        const whereClause: any = { status: "PENDING" };
+        // Scope the query for both PENDING and APPROVED (for stage 2: build model)
+        const whereClause: any = {
+            status: { in: ["PENDING", "APPROVED"] }
+        };
 
         if (role === "SUPER_ADMIN") {
-            // Super admins see all pending requests
+            // Super admins see all
         } else if (role === "ADMIN" || role === "ORG_ADMIN" || role === "CLIENT_ADMIN") {
-            // Org-level admins see requests within their tenant
             whereClause.tenantId = user.tenantId;
         } else if ((role as string) === "DEPT_HEAD") {
-            // Dept heads see requests from their department (or tenant fallback)
             whereClause.tenantId = user.tenantId;
         } else if ((role as string) === "TEAM_LEAD") {
-            // Team leads see requests from their team members in the same tenant
             whereClause.tenantId = user.tenantId;
         }
 
@@ -47,35 +46,51 @@ export async function GET() {
             orderBy: { createdAt: "desc" },
         });
 
-        // Enrich with entity data for display
-        const enriched = await Promise.all(
-            requests.map(async (req) => {
-                let entityName = "Unknown";
-                let entityDescription = "";
-                try {
-                    if (req.type === "ROLE") {
-                        const entity = await prisma.role.findUnique({
-                            where: { id: req.entityId },
-                            select: { name: true, description: true, scope: true, overallLevel: true },
-                        });
-                        entityName = entity?.name ?? req.entityId;
-                        entityDescription = entity?.description ?? "";
-                    } else if (req.type === "COMPETENCY") {
-                        const entity = await prisma.competency.findUnique({
-                            where: { id: req.entityId },
-                            select: { name: true, description: true, category: true },
-                        });
-                        entityName = entity?.name ?? req.entityId;
-                        entityDescription = entity?.description ?? "";
+        // Enrich with entity data and filter out APPROVED requests that ALREADY have models
+        const enriched: any[] = [];
+        for (const req of requests) {
+            let entityName = "Unknown";
+            let entityDescription = "";
+            let needsAssessmentModel = false;
+
+            try {
+                if (req.type === "ROLE") {
+                    if (req.status === "APPROVED") continue; // We only want PENDING roles
+
+                    const entity = await prisma.role.findUnique({
+                        where: { id: req.entityId },
+                        select: { name: true, description: true },
+                    });
+                    entityName = entity?.name ?? req.entityId;
+                    entityDescription = entity?.description ?? "";
+                } else if (req.type === "COMPETENCY") {
+                    const entity = await prisma.competency.findUnique({
+                        where: { id: req.entityId },
+                        select: { name: true, description: true, assessmentModelComponents: { select: { id: true } } },
+                    });
+                    if (!entity) continue;
+
+                    entityName = entity.name;
+                    entityDescription = entity.description || "";
+
+                    // If it is APPROVED, check if it still needs a model
+                    if (req.status === "APPROVED") {
+                        const hasModels = entity.assessmentModelComponents.length > 0;
+                        if (hasModels) {
+                            continue; // It's approved and has a model, so it's fully complete. Do not show in queue.
+                        }
+                        needsAssessmentModel = true;
                     }
-                } catch { }
-                return {
-                    ...req,
-                    entityName,
-                    entityDescription,
-                };
-            })
-        );
+                }
+            } catch (e) { }
+
+            enriched.push({
+                ...req,
+                entityName,
+                entityDescription,
+                needsAssessmentModel
+            });
+        }
 
         return NextResponse.json({ requests: enriched });
     } catch (error) {

@@ -47,7 +47,7 @@ const BASE_NAV_ITEMS: NavigationItem[] = [
     { id: 'activities', icon: Briefcase, label: (t) => TENANT_LABELS[t]?.activityPlural || 'Projects', path: (base) => `${base}/projects`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'], tenantTypes: ['CORPORATE'] },
     { id: 'teams', icon: UsersIcon, label: (t) => getLabelsForTenant(t).subUnitPlural, path: (base) => `${base}/teams`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD'], tenantTypes: ['CORPORATE'] },
     { id: 'roles', icon: FileText, label: 'Roles', path: (base) => `${base}/roles`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
-    { id: 'approval-queue', icon: CheckCircle, label: 'Approval Queue', path: (base) => `${base}/approvals`, permission: '*', roles: ['TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD'] },
+    { id: 'approval-queue', icon: CheckCircle, label: 'Approval Queue', path: (base) => `${base}/approvals`, permission: '*', roles: ['TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEADER', 'CLASS_TEACHER'] },
     { id: 'competencies', icon: BrainCircuit, label: 'Role Matrix', path: (base) => `${base}/competencies`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD'] },
     { id: 'assessments', icon: FileText, label: 'Assessments', path: (base) => `${base}/assessments`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
     { id: 'reports', icon: BarChart, label: 'Reports', path: (base) => `${base}/reports`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
@@ -119,11 +119,11 @@ const SUPER_ADMIN_NAV_ITEMS: NavigationItem[] = [
 // M15 B2C: My Hierarchy is HIDDEN for INDIVIDUAL (no org)
 const ALL_PROFILE_ROLES = ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER', 'EMPLOYEE', 'STUDENT', 'INDIVIDUAL', 'ASSESSOR'];
 const ROLES_WITH_HIERARCHY = ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER', 'EMPLOYEE', 'STUDENT', 'ASSESSOR']; // Excludes INDIVIDUAL
-const basePathOrPortal = (base: string, portal: string, segment: string) => (base ? `${base}${segment}` : portal);
+const basePathOrPortal = (base: string, portal: string, segment: string) => portal;
 const MY_PAGE_NAV_ITEMS: NavigationItem[] = [
+    { id: 'my-projects', icon: Briefcase, label: 'My Dashboard', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/projects'), permission: '*', roles: ALL_PROFILE_ROLES },
     { id: 'my-details', icon: User, label: 'My Details', path: (base) => basePathOrPortal(base, '/assessments/individuals/profile', '/profile'), permission: '*', roles: ALL_PROFILE_ROLES },
     { id: 'my-hierarchy', icon: Users, label: 'My Hierarchy', path: (base) => basePathOrPortal(base, '/assessments/hierarchy', '/hierarchy'), permission: '*', roles: ROLES_WITH_HIERARCHY },
-    { id: 'my-projects', icon: Briefcase, label: (t) => t === 'SYSTEM' ? 'My Goals' : 'My Projects', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/projects'), permission: '*', roles: ALL_PROFILE_ROLES },
     {
         id: 'my-career',
         icon: Briefcase,
@@ -131,26 +131,14 @@ const MY_PAGE_NAV_ITEMS: NavigationItem[] = [
         path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'),
         permission: '*',
         roles: ALL_PROFILE_ROLES,
-        children: [
-            { id: 'my-current-role', icon: User, label: 'My Current Role', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-previous-roles', icon: User, label: 'My Previous Roles', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-aspirational-role', icon: User, label: 'My Aspirational Role', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
-            { id: 'my-competencies', icon: FileText, label: 'My Competencies', path: (base) => basePathOrPortal(base, '/assessments/individuals/career', '/career'), permission: '*', roles: ['*'] },
-        ]
     },
     {
         id: 'my-assessments',
         icon: FileText,
         label: 'My Assessments',
-        path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'),
+        path: (base) => basePathOrPortal(base, '/assessments/individuals/assessments', '/assessments'),
         permission: '*',
         roles: ALL_PROFILE_ROLES,
-        children: [
-            { id: 'take-assessment', icon: FileText, label: 'Take Assessment', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessments-role-wise', icon: FileText, label: 'My Assessments - Role-Wise', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessments-competency-wise', icon: FileText, label: 'My Assessments - Competency-Wise', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/assessments'), permission: '*', roles: ['*'] },
-            { id: 'assessment-scores', icon: BarChart, label: 'Assessment Scores', path: (base) => basePathOrPortal(base, '/assessments/individuals/results', '/results'), permission: '*', roles: ['*'] },
-        ]
     },
     { id: 'take-survey', icon: ClipboardList, label: 'Take Survey', path: (base) => basePathOrPortal(base, '/assessments/individuals/dashboard', '/surveys'), permission: '*', roles: ALL_PROFILE_ROLES },
     { id: 'my-curriculum', icon: BookOpen, label: 'My Curriculum', path: (base) => basePathOrPortal(base, '/assessments/curriculum', '/curriculum'), permission: '*', roles: ALL_PROFILE_ROLES, tenantTypes: ['INSTITUTION'] },
@@ -220,11 +208,13 @@ export function getNavigationConfig(
         });
     }
 
-    // My Profile section: Add for all roles except Institution Faculty.
-    // For switcher roles (Admin, Dept Head, Team Lead), Sidebar uses this when user selects "My Personal Page".
-    // For non-switcher roles (Employee, Student), this is shown as the main nav.
-    const isInstitutionFaculty = tenant?.type === 'INSTITUTION' && ['EMPLOYEE', 'ASSESSOR'].includes(user.role);
-    const showMyProfile = !isInstitutionFaculty;
+    // My Profile section: Add for all roles.
+    // However, for INSTITUTION facilitators (Dept Head, Class Teacher, Faculty), we restrict what they see
+    // to essentially just "My Details" and "My Hierarchy".
+    const isInstitutionFacilitator = tenant?.type === 'INSTITUTION' &&
+        ['DEPARTMENT_HEAD', 'DEPT_HEAD', 'CLASS_TEACHER', 'TEAM_LEAD', 'TENANT_ADMIN', 'EMPLOYEE'].includes(role);
+
+    const showMyProfile = true;
 
     if (showMyProfile) {
         const effectiveTenantType = tenant?.type ?? (user.role === 'INDIVIDUAL' ? 'SYSTEM' : null);
@@ -232,6 +222,14 @@ export function getNavigationConfig(
             .filter(item => item.roles.includes('*') || item.roles.includes(role))
             .filter(item => !item.tenantTypes || (tenant && item.tenantTypes.includes(tenant.type)))
             .filter(item => item.id !== 'my-hierarchy' || user.role !== 'INDIVIDUAL') // M15: Hide hierarchy for B2C
+            .filter(item => {
+                // If institution facilitator, hide learner-specific features
+                if (isInstitutionFacilitator) {
+                    const restrictedIds = ['my-career', 'my-projects', 'my-assessments', 'take-survey', 'my-curriculum'];
+                    if (restrictedIds.includes(item.id)) return false;
+                }
+                return true;
+            })
             .map(item => {
                 const path = typeof item.path === 'function' ? item.path(basePath) : item.path;
                 const label = typeof item.label === 'function' ? item.label(effectiveTenantType ?? 'CORPORATE') : item.label;
@@ -261,7 +259,7 @@ export function getNavigationConfig(
     }
 
     // Institution Faculty: My Personal Page not available; provide minimal Dashboard link
-    if (isInstitutionFaculty && tenant && basePath) {
+    if (isInstitutionFacilitator && tenant && basePath) {
         navigation.push({
             id: 'institution-faculty-dashboard',
             icon: Home,

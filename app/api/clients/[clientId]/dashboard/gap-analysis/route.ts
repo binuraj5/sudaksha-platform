@@ -2,6 +2,8 @@ import { getApiSession } from "@/lib/get-session";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ clientId: string }> }
@@ -13,16 +15,56 @@ export async function GET(
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userRole = (session.user as any).role;
+    const userClientId = (session.user as any).clientId || (session.user as any).tenantId;
+    const managedOrgUnitId = (session.user as any).managedOrgUnitId;
+
+    if (userRole !== 'SUPER_ADMIN' && userClientId !== clientId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     try {
-        // Fetch all component results for this tenant's members
-        // maximizing deep include is risky for performance, but necessary for gap analysis without raw SQL
-        const results = await prisma.userAssessmentComponent.findMany({
-            where: {
-                userAssessmentModel: {
-                    user: { clientId: clientId }
+        // Scoped access: Determine which members' assessments we can see
+        let scopedEmployeeIds: string[] | null = null;
+
+        if (((userRole === 'DEPARTMENT_HEAD' || userRole === 'DEPT_HEAD') || userRole === 'TEAM_LEAD') && managedOrgUnitId) {
+            let scopeIds = [managedOrgUnitId];
+            if (userRole !== 'TEAM_LEAD') {
+                const childUnits = await prisma.organizationUnit.findMany({
+                    where: { parentId: managedOrgUnitId, tenantId: clientId },
+                    select: { id: true }
+                });
+                scopeIds = [managedOrgUnitId, ...childUnits.map(u => u.id)];
+            }
+
+            const members = await prisma.member.findMany({
+                where: {
+                    tenantId: clientId,
+                    orgUnitId: { in: scopeIds },
+                    employeeId: { not: null }
                 },
-                status: 'COMPLETED'
+                select: { employeeId: true }
+            });
+            scopedEmployeeIds = members.map(m => m.employeeId!) as string[];
+        }
+
+        // Prepare filter for UserAssessmentComponent
+        const whereClause: any = {
+            userAssessmentModel: {
+                user: {
+                    clientId: clientId, // Filter by tenant
+                }
             },
+            status: 'COMPLETED'
+        };
+
+        if (scopedEmployeeIds) {
+            whereClause.userAssessmentModel.user.employeeId = { in: scopedEmployeeIds };
+        }
+
+        // Fetch completed component results
+        const results = await prisma.userAssessmentComponent.findMany({
+            where: whereClause,
             include: {
                 component: {
                     include: {
@@ -30,16 +72,15 @@ export async function GET(
                     }
                 }
             },
-            take: 1000 // Limit for strict performance safety
+            take: 1000
         });
 
         // Group by Competency
         const competencyMap = new Map<string, { total: number; count: number; name: string }>();
 
         results.forEach(res => {
-            const comp = (res as { component?: { competency?: { name?: string } } }).component;
-            const competencyName = comp?.competency?.name || "General";
-            const score = res.percentage || 0; // Assuming percentage is 0-100
+            const competencyName = (res as any).component?.competency?.name || "General";
+            const score = res.percentage || 0;
 
             if (!competencyMap.has(competencyName)) {
                 competencyMap.set(competencyName, { total: 0, count: 0, name: competencyName });
@@ -51,7 +92,7 @@ export async function GET(
 
         const gaps = Array.from(competencyMap.values()).map(c => {
             const currentLevel = c.total / c.count;
-            const targetLevel = 85; // Hardcoded organizational target for now
+            const targetLevel = 85; // Target
             const gapValue = targetLevel - currentLevel;
 
             let gapSeverity: 'HIGH' | 'MEDIUM' | 'LOW' = 'LOW';
@@ -63,11 +104,10 @@ export async function GET(
                 currentLevel: Math.round(currentLevel),
                 targetLevel: targetLevel,
                 gap: gapSeverity,
-                employeesAffected: c.count // rough proxy
+                employeesAffected: c.count
             };
         });
 
-        // Sort by gap size (desc) and take top 10
         const sortedGaps = gaps.sort((a, b) => (b.targetLevel - b.currentLevel) - (a.targetLevel - a.currentLevel)).slice(0, 10);
 
         return NextResponse.json(sortedGaps);

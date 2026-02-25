@@ -145,7 +145,7 @@ export async function POST(
                 if (existing) return 'ALREADY_EXISTS';
 
                 // Add member
-                return await prisma.activityMember.create({
+                const newMember = await prisma.activityMember.create({
                     data: {
                         activityId: id,
                         memberId,
@@ -162,6 +162,30 @@ export async function POST(
                         },
                     },
                 });
+
+                // --- Automatic Assessment Assignment Trigger ---
+                // If there are any ProjectAssessmentModel entries for this project, attach them to the new member.
+                const user = await prisma.user.findUnique({ where: { email: member.email } });
+                if (user) {
+                    const projectAssessments = await prisma.projectAssessmentModel.findMany({
+                        where: { projectId: id }
+                    });
+
+                    if (projectAssessments.length > 0) {
+                        const newAssignments = projectAssessments.map(pa => ({
+                            userId: user.id,
+                            projectAssignmentId: pa.id,
+                            status: 'DRAFT' as any
+                        }));
+
+                        await prisma.projectUserAssessment.createMany({
+                            data: newAssignments,
+                            skipDuplicates: true
+                        });
+                    }
+                }
+
+                return newMember;
             }
         );
 

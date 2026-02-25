@@ -19,6 +19,9 @@ export async function POST(
     try {
         const body = await req.json().catch(() => ({}));
         const rejectionReason = body.rejectionReason || body.reason || null;
+        if (!rejectionReason || rejectionReason.trim() === "") {
+            return NextResponse.json({ error: "Rejection reason is required" }, { status: 400 });
+        }
 
         const request = await prisma.roleAssignmentRequest.findUnique({
             where: { id },

@@ -3,17 +3,28 @@ import { prisma } from "@/lib/prisma";
 import { getApiSession } from "@/lib/get-session";
 import { ApprovalStatus } from "@prisma/client";
 import { notifyApprovalDecision } from "@/lib/notifications/approval-notifications";
+import { normalizeUserRole } from "@/lib/permissions/role-competency-permissions";
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: Promise<{ id: string }>}
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getApiSession();
 
-    const u = session?.user as { role?: string; userType?: string } | undefined;
-    const isSuperAdmin = u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-    if (!session?.user || !isSuperAdmin) {
+    const u = session?.user as { id?: string; role?: string; userType?: string; tenantId?: string; name?: string } | undefined;
+    if (!session?.user || !u?.role) {
         return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const role = normalizeUserRole(u.role);
+    const isSuperAdmin = role === "SUPER_ADMIN" || u.userType === "SUPER_ADMIN";
+
+    const isTenantAdmin = ["TENANT_ADMIN", "INSTITUTION_ADMIN", "CLIENT_ADMIN"].includes(role);
+    const isDeptHead = ["DEPARTMENT_HEAD", "DEPT_HEAD_INST"].includes(role);
+    const isTeamLead = ["TEAM_LEADER", "CLASS_TEACHER"].includes(role);
+
+    if (!isSuperAdmin && !isTenantAdmin && !isDeptHead && !isTeamLead) {
+        return new NextResponse("Unauthorized to perform reviews", { status: 403 });
     }
 
     const body = await req.json();
@@ -21,6 +32,10 @@ export async function POST(
 
     if (!decision || !["APPROVED", "REJECTED"].includes(decision)) {
         return new NextResponse("Invalid decision", { status: 400 });
+    }
+
+    if (decision === "REJECTED" && (!reason || reason.trim() === "")) {
+        return new NextResponse("Rejection reason is required", { status: 400 });
     }
 
     const { id } = await params;
@@ -38,6 +53,10 @@ export async function POST(
             return new NextResponse("Request already processed", { status: 400 });
         }
 
+        if (!isSuperAdmin && request.tenantId !== u.tenantId) {
+            return new NextResponse("Unauthorized to review this tenant's request", { status: 403 });
+        }
+
         // Atomic transaction to update both the request and the entity
         const result = await prisma.$transaction(async (tx) => {
             const updatedRequest = await tx.approvalRequest.update({
@@ -45,7 +64,7 @@ export async function POST(
                 data: {
                     status: decision as ApprovalStatus,
                     rejectionReason: decision === "REJECTED" ? reason : null,
-                    reviewerId: session.user!.id,
+                    reviewerId: u.id,
                     reviewedAt: new Date(),
                 },
             });
@@ -55,9 +74,9 @@ export async function POST(
                     await tx.role.update({
                         where: { id: request.entityId },
                         data: {
-                            ...request.modifiedData as any,
+                            ...(request.modifiedData ? (request.modifiedData as any) : {}),
                             status: "APPROVED",
-                            approvedBy: session.user!.name,
+                            approvedBy: u.name,
                             approvedAt: new Date(),
                         },
                     });
@@ -65,15 +84,28 @@ export async function POST(
                     await tx.competency.update({
                         where: { id: request.entityId },
                         data: {
-                            ...request.modifiedData as any,
+                            ...(request.modifiedData ? (request.modifiedData as any) : {}),
                             status: "APPROVED",
                         },
                     });
-
-                    // If modifiedData contains indicators, they should be updated too
-                    // Note: In a real scenario, this would need a more complex diff/sync 
-                    // for nested indicators. For now, we assume basic fields or a separate
-                    // indicator approval flow if they are complex.
+                }
+            } else if (decision === "REJECTED") {
+                if (request.type === "ROLE") {
+                    await tx.role.update({
+                        where: { id: request.entityId },
+                        data: {
+                            globalSubmissionStatus: "REJECTED",
+                            globalRejectionReason: reason,
+                        }
+                    });
+                } else if (request.type === "COMPETENCY") {
+                    await tx.competency.update({
+                        where: { id: request.entityId },
+                        data: {
+                            globalSubmissionStatus: "REJECTED",
+                            globalRejectionReason: reason,
+                        }
+                    });
                 }
             }
 

@@ -210,9 +210,9 @@ module.exports = {
         'rotate-slow': 'rotate-slow 20s linear infinite',
       },
       fontFamily: {
-        sans: ['var(--font-lato)', 'Lato', 'system-ui', 'sans-serif'],
-        display: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
-        body: ['var(--font-lato)', 'Lato', 'system-ui', 'sans-serif'],
+        sans: ['Arial', 'Verdana', 'Tahoma', '"Trebuchet MS"', 'sans-serif'],
+        display: ['Arial', 'Verdana', 'Tahoma', '"Trebuchet MS"', 'sans-serif'],
+        body: ['Arial', 'Verdana', 'Tahoma', '"Trebuchet MS"', 'sans-serif'],
       },
       fontSize: {
         'hero': ['3.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],

@@ -16,30 +16,22 @@ export async function POST(
 
     try {
         const body = await req.json();
-        const { employees } = body; // Array of validated objects
+        // Fallback for arrays (the frontend might send an array directly or an object with `{ employees }`)
+        const employees = Array.isArray(body) ? body : body.employees;
 
         if (!Array.isArray(employees) || employees.length === 0) {
             return NextResponse.json({ error: "No data provided" }, { status: 400 });
         }
 
-        // Optimization: Create Many?
-        // Validating uniqueness again is safe.
-        // Prisma createMany is fast but doesn't handle relations like self-relation reportingManager easily if referenced by Email in CSV.
-        // Assuming the client resolved Managers to IDs? Likely not if bulk upload.
-        // Strategy: 
-        // 1. Fetch all existing emails to filtering properties.
-        // 2. Insert valid ones. 
-        // 3. Handle Manager linking? If CSV has "Reporting Manager Email", we need a second pass.
-
-        // For MVP M1-5, I will assume basic fields first. Manager linking via Email is complex in single transaction.
-        // I will do it in loop or best effort.
-
         let successCount = 0;
         const errors = [];
 
-        // Pre-fetch organization units map
-        // const depts = await prisma.organizationUnit.findMany({ where: { tenantId: clientId } });
-        // Map Name/Code to ID... (Implied logic)
+        const tenantInfo = await prisma.tenant.findUnique({
+            where: { id: clientId },
+            select: { type: true },
+        });
+        const tenantType = (tenantInfo?.type as 'CORPORATE' | 'INSTITUTION') || 'CORPORATE';
+        const memberType = tenantType === 'INSTITUTION' ? 'STUDENT' : 'EMPLOYEE';
 
         for (const emp of employees) {
             try {
@@ -47,23 +39,38 @@ export async function POST(
                 const pwd = Math.random().toString(36).slice(-8);
                 const hashed = await hash(pwd, 10);
 
-                // Code
-                const randomCode = `EMP${Math.floor(1000 + Math.random() * 9000)}`;
+                // Determine ID code
+                let inputCode = emp.employeeId || emp.enrollmentNumber || emp.memberCode || emp.id;
+                if (!inputCode) {
+                    inputCode = memberType === 'STUDENT'
+                        ? `STU${Math.floor(1000 + Math.random() * 9000)}`
+                        : `EMP${Math.floor(1000 + Math.random() * 9000)}`;
+                }
+
+                // Parse name if firstName/lastName are missing
+                let fName = emp.firstName;
+                let lName = emp.lastName;
+                if (!fName && emp.name) {
+                    const parts = emp.name.split(' ');
+                    fName = parts[0];
+                    lName = parts.slice(1).join(' ');
+                }
 
                 await prisma.member.create({
                     data: {
                         tenantId: clientId,
-                        type: 'EMPLOYEE',
-                        firstName: emp.firstName,
-                        lastName: emp.lastName,
-                        name: `${emp.firstName} ${emp.lastName}`,
+                        type: memberType,
+                        role: memberType === 'STUDENT' ? 'ASSESSOR' : 'EMPLOYEE',
+                        firstName: fName || 'User',
+                        lastName: lName || '',
+                        name: emp.name || `${fName} ${lName}`.trim(),
                         email: emp.email,
                         phone: emp.phone,
                         designation: emp.designation,
-                        memberCode: emp.memberCode || randomCode, // Use provided or generated
+                        memberCode: inputCode,
+                        ...(memberType === 'STUDENT' ? { enrollmentNumber: inputCode } : { employeeId: inputCode }),
                         password: hashed,
                         isActive: true,
-                        // orgUnitId: emp.orgUnitId // mapped ?
                     }
                 });
                 successCount++;

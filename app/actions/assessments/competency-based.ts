@@ -29,7 +29,6 @@ export async function getAccessibleCompetencies(tenantId?: string) {
                 tenant: { select: { name: true } }
             },
             orderBy: [
-                { scope: 'asc' },
                 { name: 'asc' }
             ] as any
         });

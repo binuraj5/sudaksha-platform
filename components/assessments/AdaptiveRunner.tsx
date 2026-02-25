@@ -10,11 +10,16 @@ import { toast } from "sonner";
 
 interface AdaptiveRunnerProps {
     userComponentId: string;
+    /** memberAssessmentId or projectUserAssessmentId — passed as assessmentId from runner */
     assessmentId: string;
     componentId: string;
     questionId: string;
     sectionName: string;
     onComplete: () => void;
+    /** Optional: competencyId — read from component config at start time */
+    competencyId?: string;
+    /** Optional: targetLevel — read from component config at start time */
+    targetLevel?: string;
 }
 
 interface AdaptiveQuestion {
@@ -43,6 +48,8 @@ export function AdaptiveRunner({
     questionId,
     sectionName,
     onComplete,
+    competencyId,
+    targetLevel,
 }: AdaptiveRunnerProps) {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [currentQuestion, setCurrentQuestion] = useState<AdaptiveQuestion | null>(null);
@@ -50,16 +57,25 @@ export function AdaptiveRunner({
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [questionCount, setQuestionCount] = useState(0);
+    const [correctCount, setCorrectCount] = useState(0);
     const startTimeRef = useRef<number>(Date.now());
 
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
+                // The adaptive/start API expects: memberAssessmentId, componentId
+                // It resolves competency from the component's config/relation
                 const res = await fetch("/api/assessments/adaptive/start", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ assessmentId, componentId }),
+                    body: JSON.stringify({
+                        memberAssessmentId: assessmentId,
+                        componentId,
+                        competencyId: competencyId ?? "",
+                        targetLevel: targetLevel ?? "JUNIOR",
+                    }),
                 });
                 if (cancelled) return;
                 if (!res.ok) {
@@ -67,15 +83,17 @@ export function AdaptiveRunner({
                     throw new Error(data.error || "Failed to start adaptive section");
                 }
                 const data = await res.json();
-                setSessionId(data.sessionId);
-                const q = data.firstQuestion;
+                // API returns { session, question } OR { sessionId, firstQuestion } for compatibility
+                const session = data.session ?? data;
+                const q = data.question ?? data.firstQuestion;
+                setSessionId(session?.id ?? data.sessionId ?? null);
                 if (q) {
                     setCurrentQuestion({
                         id: q.id,
                         questionText: q.questionText,
                         questionType: q.questionType ?? "MULTIPLE_CHOICE",
                         options: parseOptions(q.options),
-                        difficulty: q.difficulty,
+                        difficulty: typeof q.difficulty === "number" ? q.difficulty : Number(q.difficulty ?? 5),
                     });
                 }
             } catch (e) {
@@ -88,7 +106,7 @@ export function AdaptiveRunner({
             }
         })();
         return () => { cancelled = true; };
-    }, [assessmentId, componentId]);
+    }, [assessmentId, componentId, competencyId, targetLevel]);
 
     const handleSubmit = async () => {
         if (!sessionId || !currentQuestion || selectedAnswer === null) {
@@ -114,25 +132,58 @@ export function AdaptiveRunner({
             }
             const data = await res.json();
 
-            if (data.shouldContinue && data.nextQuestion) {
-                const q = data.nextQuestion;
+            const isCorrect = data.isCorrect;
+            setQuestionCount((n) => n + 1);
+            if (isCorrect) setCorrectCount((n) => n + 1);
+
+            // API returns: { completed: bool, session, question, isCorrect }
+            // OR for completion: { completed: true, sessionId }
+            const isCompleted = data.completed === true;
+            const nextQuestion = data.question ?? data.nextQuestion ?? null;
+
+            if (!isCompleted && nextQuestion) {
+                // Continue with next question
+                const q = nextQuestion;
                 setCurrentQuestion({
                     id: q.id,
                     questionText: q.questionText,
                     questionType: q.questionType ?? "MULTIPLE_CHOICE",
                     options: parseOptions(q.options),
-                    difficulty: q.difficulty,
+                    difficulty: typeof q.difficulty === "number" ? q.difficulty : Number(q.difficulty ?? 5),
                 });
                 setSelectedAnswer(null);
                 startTimeRef.current = Date.now();
             } else {
-                const completeRes = await fetch("/api/assessments/adaptive/complete", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ sessionId }),
-                });
-                if (!completeRes.ok) throw new Error("Failed to complete");
-                const completeData = await completeRes.json();
+                // Session complete — fetch final scores then save response
+                let finalScore = 0;
+                let abilityEstimate = 0;
+                let accuracy = 0;
+                let questionsAsked = 0;
+                let questionsCorrect = 0;
+
+                try {
+                    const completeRes = await fetch("/api/assessments/adaptive/complete", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ sessionId }),
+                    });
+                    if (completeRes.ok) {
+                        const completeData = await completeRes.json();
+                        // API returns { success, session, metrics: { percentage, questionsAsked, correctAnswers, finalAbility } }
+                        const m = completeData.metrics ?? completeData;
+                        finalScore = m.percentage ?? m.finalScore ?? 0;
+                        abilityEstimate = m.finalAbility ?? m.abilityEstimate ?? 0;
+                        questionsAsked = m.questionsAsked ?? questionCount + 1;
+                        questionsCorrect = m.correctAnswers ?? m.questionsCorrect ?? correctCount + (isCorrect ? 1 : 0);
+                        accuracy = questionsAsked > 0 ? questionsCorrect / questionsAsked : 0;
+                    }
+                } catch {
+                    // Use local counts if complete API fails
+                    questionsAsked = questionCount + 1;
+                    questionsCorrect = correctCount + (isCorrect ? 1 : 0);
+                    accuracy = questionsAsked > 0 ? questionsCorrect / questionsAsked : 0;
+                    finalScore = Math.round(accuracy * 100);
+                }
 
                 await fetch("/api/assessments/runner/response", {
                     method: "POST",
@@ -142,15 +193,16 @@ export function AdaptiveRunner({
                         questionId,
                         responseData: {
                             type: "ADAPTIVE_INTERVIEW",
-                            finalScore: completeData.finalScore,
-                            abilityEstimate: completeData.abilityEstimate,
-                            accuracy: completeData.accuracy,
-                            questionsAsked: completeData.questionsAsked,
-                            questionsCorrect: completeData.questionsCorrect,
+                            finalScore,
+                            abilityEstimate,
+                            accuracy,
+                            questionsAsked,
+                            questionsCorrect,
                         },
                         maxPoints: 100,
                     }),
                 });
+
                 toast.success("Section completed");
                 onComplete();
             }
@@ -163,9 +215,13 @@ export function AdaptiveRunner({
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center py-16">
-                <Loader2 className="h-10 w-10 animate-spin text-purple-600 mb-4" />
-                <p className="text-muted-foreground">Starting adaptive section...</p>
+            <div className="flex flex-col items-center justify-center py-16 space-y-4">
+                <div className="relative">
+                    <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
+                    <Brain className="h-4 w-4 text-purple-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <p className="text-muted-foreground font-medium">Calibrating adaptive engine...</p>
+                <p className="text-xs text-muted-foreground">Generating your first question based on your profile</p>
             </div>
         );
     }
@@ -195,21 +251,54 @@ export function AdaptiveRunner({
 
     const options = parseOptions(currentQuestion.options);
 
+    const difficultyPct = ((currentQuestion.difficulty ?? 5) / 10) * 100;
+    const difficultyLabel =
+        (currentQuestion.difficulty ?? 5) <= 3 ? "Foundational" :
+            (currentQuestion.difficulty ?? 5) <= 6 ? "Intermediate" :
+                (currentQuestion.difficulty ?? 5) <= 8 ? "Advanced" : "Expert";
+    const difficultyColor =
+        (currentQuestion.difficulty ?? 5) <= 3 ? "bg-green-500" :
+            (currentQuestion.difficulty ?? 5) <= 6 ? "bg-yellow-500" :
+                (currentQuestion.difficulty ?? 5) <= 8 ? "bg-orange-500" : "bg-red-500";
+
     return (
         <div className="max-w-2xl mx-auto py-8 space-y-6">
+            {/* Progress + Difficulty header */}
+            <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 text-gray-500">
+                    <Brain className="h-4 w-4 text-purple-600" />
+                    <span className="font-medium">
+                        {questionCount > 0 ? `${correctCount}/${questionCount} correct` : "Adaptive Assessment"}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">Difficulty:</span>
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full transition-all ${difficultyColor}`} style={{ width: `${difficultyPct}%` }} />
+                        </div>
+                        <span className={`text-xs font-bold ${(currentQuestion.difficulty ?? 5) <= 3 ? 'text-green-600' :
+                            (currentQuestion.difficulty ?? 5) <= 6 ? 'text-yellow-600' :
+                                (currentQuestion.difficulty ?? 5) <= 8 ? 'text-orange-600' : 'text-red-600'
+                            }`}>{difficultyLabel}</span>
+                    </div>
+                </div>
+            </div>
+
             <Card>
-                <CardHeader>
+                <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b">
                     <CardTitle className="flex items-center gap-2">
                         <Brain className="h-5 w-5 text-purple-600" />
                         {sectionName}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                        Answer the question below. Difficulty adapts to your performance.
+                        Your answer difficulty adjusts in real-time based on your performance.
                     </p>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="p-4 bg-slate-50 rounded-lg border">
-                        <p className="font-medium text-gray-900 whitespace-pre-wrap">
+                <CardContent className="space-y-6 pt-6">
+                    <div className="p-4 bg-purple-50 border border-purple-100 rounded-xl">
+                        <p className="text-xs font-bold uppercase tracking-widest text-purple-600 mb-2">Question</p>
+                        <p className="font-semibold text-gray-900 leading-relaxed whitespace-pre-wrap">
                             {currentQuestion.questionText}
                         </p>
                     </div>

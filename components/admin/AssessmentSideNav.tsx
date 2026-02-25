@@ -89,44 +89,47 @@ export function AssessmentSideNav() {
         { href: `${base}/projects`, label: "Projects", icon: FolderKanban, active: pathname.startsWith(`${base}/projects`) },
         { href: `${base}/teams`, label: "Teams", icon: Users, active: pathname.startsWith(`${base}/teams`) },
         { href: `${base}/roles`, label: "Roles", icon: FileText, active: pathname.startsWith(`${base}/roles`) },
-        { href: `${base}/assessments`, label: "Assessments", icon: FileText, active: pathname.startsWith(`${base}/assessments`) },
+        { href: `${base}/assessments`, label: "Assessments", icon: FileText, active: pathname.startsWith(`${base}/assessments`) && !pathname.startsWith(`${base}/assessments/mine`) },
         { href: `${base}/reports`, label: "Reports", icon: PieChart, active: pathname.startsWith(`${base}/reports`) },
         { href: `${base}/surveys`, label: "Survey", icon: FileText, active: pathname.startsWith(`${base}/surveys`) }
     ] : [];
 
-    const myProfileLinks = [
+    const myProfileLinks = base ? [
+        { href: `${base}/profile`, label: "My Details", icon: User, active: pathname.startsWith(`${base}/profile`) },
+        { href: `${base}/hierarchy`, label: "My Hierarchy", icon: Users, active: pathname.startsWith(`${base}/hierarchy`) },
+        { href: `${base}/assessments/mine`, label: "My Assessments", icon: FileText, active: pathname === `${base}/assessments/mine` },
+        { href: `${base}/career`, label: "My Career", icon: Trophy, active: pathname.startsWith(`${base}/career`) },
+    ] : [
         { href: "/assessments/profile", label: "My Details", icon: User, active: pathname.startsWith("/assessments/profile") },
         { href: "/assessments/hierarchy", label: "My Hierarchy", icon: Users, active: pathname.startsWith("/assessments/hierarchy") },
-        { href: "/assessments/dashboard", label: "My Projects", icon: FolderKanban, active: pathname === "/assessments/dashboard" },
+        { href: "/assessments/assessments/mine", label: "My Assessments", icon: FileText, active: pathname === "/assessments/assessments/mine" },
         { href: "/assessments/career", label: "My Career", icon: Trophy, active: pathname.startsWith("/assessments/career") },
-        { href: "/assessments/dashboard", label: "My Assessments", icon: FileText, active: pathname.startsWith("/assessments/dashboard") },
-        { href: "/assessments/dashboard", label: "Take Survey", icon: FileText, active: false }
     ];
 
     const employeeLinks = [
         {
-            href: "/assessments/dashboard",
-            label: "My Assessments",
+            href: `${base}/dashboard`,
+            label: "Dashboard",
             icon: LayoutDashboard,
-            active: pathname === "/assessments/dashboard"
+            active: pathname === `${base}/dashboard`
+        },
+        {
+            href: `${base}/assessments/mine`,
+            label: "My Assessments",
+            icon: FileText,
+            active: pathname === `${base}/assessments/mine`
         },
         {
             href: "/assessments/results",
             label: "My Results",
             icon: Trophy,
             active: pathname.startsWith("/assessments/results")
-        },
-        {
-            href: "/assessments/profile",
-            label: "My Profile",
-            icon: User,
-            active: pathname.startsWith("/assessments/profile")
         }
     ];
 
     const studentOrTeacherOrgLinks = base ? [
         { href: `${base}/dashboard`, label: "Dashboard", icon: LayoutDashboard, active: pathname === `${base}/dashboard` },
-        { href: `${base}/assessments`, label: "My Assessments", icon: FileText, active: pathname.startsWith(`${base}/assessments`) },
+        { href: `${base}/assessments/mine`, label: "My Assessments", icon: FileText, active: pathname === `${base}/assessments/mine` },
         { href: "/assessments/results", label: "My Results", icon: Trophy, active: pathname.startsWith("/assessments/results") },
         { href: "/assessments/profile", label: "My Profile", icon: User, active: pathname.startsWith("/assessments/profile") }
     ] : employeeLinks;
@@ -147,10 +150,8 @@ export function AssessmentSideNav() {
         mainLinks = employeeLinks;
     }
 
-    const hideProfileRoles = ["TENANT_ADMIN", "CLIENT_ADMIN", "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD", "TEAM_LEADER", "SUPER_ADMIN", "ADMIN"];
-    const isHiddenRole = hideProfileRoles.includes(role || "") || hideProfileRoles.includes(effectiveRole || "");
-
-    const showMyProfile = !isHiddenRole && (isClientPath || role === "EMPLOYEE" || role === "MEMBER") && clientAdminLinks.length > 0;
+    // Allow admins to see personal links if they are in a client/org context
+    const showMyProfile = (isClientPath || role === "EMPLOYEE" || role === "MEMBER") && clientAdminLinks.length > 0;
 
     return (
         <nav className="space-y-4">

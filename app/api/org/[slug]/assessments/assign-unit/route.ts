@@ -1,95 +1,110 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { assignToOrgUnit } from "@/lib/assessment-engine";
 
-const ALLOWED_ASSIGN_ROLES = [
-  "SUPER_ADMIN",
-  "TENANT_ADMIN",
-  "CLIENT_ADMIN",
-  "DEPARTMENT_HEAD",
-  "DEPT_HEAD",
-  "CLASS_TEACHER",
-];
-
-/**
- * POST /api/org/[slug]/assessments/assign-unit
- * Assign an assessment model to an org unit (class, department, etc.).
- * Body: { orgUnitId, modelId }
- * Creates MemberAssessment (ASSIGNED) for each member in the unit (and children).
- */
+// Assign assessment to all members in an org unit (class/department)
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  try {
-    const session = await getApiSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const role = (session.user as { role?: string }).role ?? "";
-    if (!ALLOWED_ASSIGN_ROLES.includes(role)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { slug } = await params;
-    const tenant = await prisma.tenant.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
-    if (!tenant) {
-      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
-    }
-
-    const userSlug = (session.user as { tenantSlug?: string }).tenantSlug;
-    if (role !== "SUPER_ADMIN" && userSlug !== slug) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const body = await req.json();
-    const { orgUnitId, modelId } = body;
-
-    if (!orgUnitId || !modelId) {
-      return NextResponse.json(
-        { error: "orgUnitId and modelId are required" },
-        { status: 400 }
-      );
-    }
-
-    const unit = await prisma.organizationUnit.findFirst({
-      where: { id: orgUnitId, tenantId: tenant.id },
-      select: { id: true },
-    });
-    if (!unit) {
-      return NextResponse.json({ error: "Org unit not found" }, { status: 404 });
-    }
-
-    const model = await prisma.assessmentModel.findFirst({
-      where: { id: modelId, isActive: true },
-      select: { id: true },
-    });
-    if (!model) {
-      return NextResponse.json({ error: "Assessment model not found" }, { status: 404 });
-    }
-
-    const { assignments, skippedStudentCount } = await assignToOrgUnit(
-      orgUnitId,
-      modelId,
-      session.user.id
-    );
-
-    return NextResponse.json({
-      success: true,
-      assignedCount: assignments.length,
-      skippedStudentCount,
-      message: `Assessment assigned to ${assignments.length} member(s)${skippedStudentCount > 0 ? `; ${skippedStudentCount} student(s) skipped (model level)` : ""}.`,
-    });
-  } catch (error) {
-    console.error("Assign to org unit error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
-    );
+  const session = await getApiSession();
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { slug } = await params;
+
+  // Ensure slug points to valid tenant
+  const tenant = await prisma.tenant.findUnique({
+    where: { slug }
+  });
+
+  if (!tenant) {
+    return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+  }
+
+  const body = await req.json();
+  const { orgUnitId, assessmentModelId } = body; // removed dueDate since it's not in schema
+
+  if (!orgUnitId || !assessmentModelId) {
+    return NextResponse.json({ error: "orgUnitId and assessmentModelId are required" }, { status: 400 });
+  }
+
+  // Get all members in this org unit (and child units recursively)
+  async function getMembersInUnit(unitId: string): Promise<string[]> {
+    const unit = await prisma.organizationUnit.findUnique({
+      where: { id: unitId },
+      include: {
+        members: true,
+        children: true
+      }
+    });
+
+    if (!unit) return [];
+
+    const memberIds = unit.members.map(m => m.id);
+
+    // Recursively get members from child units
+    for (const child of unit.children) {
+      const childMembers = await getMembersInUnit(child.id);
+      memberIds.push(...childMembers);
+    }
+
+    return memberIds;
+  }
+
+  const memberIds = await getMembersInUnit(orgUnitId);
+
+  // Filter out students if assessment is SENIOR/EXPERT level
+  const model = await prisma.assessmentModel.findUnique({
+    where: { id: assessmentModelId }
+  });
+
+  if (!model) {
+    return NextResponse.json({ error: "Assessment Model not found" }, { status: 404 });
+  }
+
+  let eligibleMemberIds = memberIds;
+
+  if (model.targetLevel && ['SENIOR', 'EXPERT'].includes(model.targetLevel)) {
+    // Only assign to members who are not students (or are graduated students)
+    const members = await prisma.member.findMany({
+      where: { id: { in: memberIds } }
+    });
+
+    eligibleMemberIds = members
+      .filter(m => m.type !== 'STUDENT' || m.hasGraduated)
+      .map(m => m.id);
+  }
+
+  // Create MemberAssessment for each eligible member
+  const assignerId = session.user.id as string;
+
+  const assignments = await Promise.all(
+    eligibleMemberIds.map(async (memberId) => {
+      // ensure MemberAssessment doesn't already exist for this combination
+      const existing = await prisma.memberAssessment.findFirst({
+        where: { memberId, assessmentModelId }
+      });
+
+      if (existing) return existing;
+
+      return prisma.memberAssessment.create({
+        data: {
+          memberId,
+          assessmentModelId,
+          assignmentType: 'ASSIGNED',
+          assignedBy: assignerId,
+          status: 'DRAFT' as any
+        }
+      });
+    })
+  );
+
+  return NextResponse.json({
+    assigned: assignments.length,
+    total: memberIds.length,
+    skipped: memberIds.length - assignments.length,
+    message: `Assessment assigned to ${assignments.length} members`
+  }, { status: 201 });
 }

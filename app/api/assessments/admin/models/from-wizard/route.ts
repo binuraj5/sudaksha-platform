@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        let { roleId, targetLevel, name, components, competencyWeights } = body;
+        let { roleId, targetLevel, name, components, competencyWeights, requesterId } = body;
 
         if (!targetLevel || !name || !Array.isArray(components) || components.length === 0) {
             return NextResponse.json(
@@ -106,6 +106,7 @@ export async function POST(request: Request) {
                     createdBy: userContext.id,
                     code: nextCode,
                     status: "DRAFT",
+                    metadata: requesterId ? { autoAssignToMemberId: requesterId } : undefined,
                 },
             });
 

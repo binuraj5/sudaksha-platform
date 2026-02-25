@@ -12,12 +12,20 @@ export async function GET(req: NextRequest) {
             include: {
                 currentRole: {
                     include: {
-                        competencies: { include: { competency: true } }
+                        competencies: {
+                            include: {
+                                competency: true
+                            }
+                        }
                     }
                 },
                 aspirationalRole: {
                     include: {
-                        competencies: { include: { competency: true } }
+                        competencies: {
+                            include: {
+                                competency: true
+                            }
+                        }
                     }
                 },
                 orgUnit: true,
@@ -45,9 +53,10 @@ export async function PATCH(req: NextRequest) {
         // We expect `careerFormData` as a JSON object, or specific fields
         // For the wizard, we mainly update `careerFormData` section by section
 
-        const { careerFormData, currentRoleId, aspirationalRoleId, bio, phone, metadata, studentInfo, professionalInfo, previousRoles, selfAssignedCompetencies } = body;
+        const { name, careerFormData, currentRoleId, aspirationalRoleId, bio, phone, metadata, studentInfo, professionalInfo, previousRoles, selfAssignedCompetencies } = body;
 
         const updateData: any = {};
+        if (name !== undefined) updateData.name = name;
         if (careerFormData !== undefined && typeof careerFormData === "object") {
             const existing = await prisma.member.findUnique({
                 where: { email: session.user.email },

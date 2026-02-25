@@ -28,7 +28,7 @@ export default function NewLibraryComponentPage() {
     const [visibility, setVisibility] = useState("PRIVATE");
     const [error, setError] = useState<string | null>(null);
 
-    const { data: competencies = [] } = useQuery({
+    const { data: competenciesData } = useQuery({
         queryKey: ["competencies"],
         queryFn: async () => {
             const res = await fetch("/api/admin/competencies");
@@ -36,6 +36,10 @@ export default function NewLibraryComponentPage() {
             return res.json();
         }
     });
+
+    // Ensure we always have an array, even if the API returns a different structure
+    const rawCompetencies = competenciesData?.competencies ?? competenciesData;
+    const competencies = Array.isArray(rawCompetencies) ? rawCompetencies : [];
 
     const createMutation = useMutation({
         mutationFn: async () => {

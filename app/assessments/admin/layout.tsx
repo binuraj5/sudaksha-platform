@@ -14,7 +14,8 @@ import {
     FileText,
     Box,
     CheckCircle,
-    Briefcase
+    Briefcase,
+    Brain
 } from "lucide-react";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { label: "Skill Library", href: "/assessments/admin/competencies", icon: BookOpen },
         { label: "Assessment Models", href: "/assessments/admin/models", icon: FileText },
         { label: "Competency Library", href: "/assessments/admin/components", icon: Box },
+        { label: "AI Sessions", href: "/assessments/admin/ai-sessions", icon: Brain },
         { label: "Reporting Hub", href: "/assessments/admin/reports", icon: BarChart3 },
         { label: "System Config", href: "/assessments/admin/settings", icon: Settings },
     ];

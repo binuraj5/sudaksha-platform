@@ -65,6 +65,7 @@ interface AssessmentBuilderWizardProps {
         }[];
         competencyWeights: Record<string, number>;
     } | null;
+    requesterId?: string;
 }
 
 function calculateCompetencyProgress(selection: ComponentSelection): number {
@@ -96,6 +97,7 @@ export function AssessmentBuilderWizard({
     targetLevel,
     preSelectedCompetencyIds = null,
     initialModel = null,
+    requesterId,
 }: AssessmentBuilderWizardProps) {
     const router = useRouter();
     const competencyWeightsRef = useRef<Record<string, number> | null>(null);
@@ -314,6 +316,7 @@ export function AssessmentBuilderWizard({
                 name: modelName,
                 targetLevel,
                 components,
+                requesterId
             };
             const weights =
                 competencyWeightsRef.current && Object.keys(competencyWeightsRef.current).length > 0

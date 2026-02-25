@@ -50,7 +50,7 @@ export function BulkUploadEmployeesDialog({ clientId, onSuccess, open: controlle
                 // Map common header variations
                 let key = header;
                 if (key === 'fullname') key = 'name';
-                if (key === 'id') key = 'employeeId';
+                if (key === 'id' || key === 'employeeid' || key === 'enrollmentnumber' || key === 'enrollmentno' || key === 'studentid' || key === 'membercode') key = 'employeeId';
                 obj[key] = currentLine[index]?.trim();
             });
             result.push(obj);
@@ -77,9 +77,9 @@ export function BulkUploadEmployeesDialog({ clientId, onSuccess, open: controlle
                 }
 
                 // Basic Frontend Validation
-                const validData = data.filter((row: any) => row.name && row.email && row.employeeId);
+                const validData = data.filter((row: any) => row.name && row.email && (row.employeeId || row.enrollmentNumber || row.id));
                 if (validData.length === 0) {
-                    toast.error("No valid records found. Ensure headers: Name, Email, EmployeeID");
+                    toast.error("No valid records found. Ensure headers contain: Name, Email, ID (or EmployeeID/EnrollmentNumber)");
                     return;
                 }
 
@@ -129,9 +129,9 @@ export function BulkUploadEmployeesDialog({ clientId, onSuccess, open: controlle
     };
 
     const downloadTemplate = () => {
-        const csvTemplate = `name,email,employeeId,department,designation
-John Doe,john@example.com,EMP001,Engineering,Software Engineer
-Jane Smith,jane@example.com,EMP002,HR,Manager`;
+        const csvTemplate = `name,email,id,department,designation
+John Doe,john@example.com,ID001,Engineering,Software Engineer
+Jane Smith,jane@example.com,ID002,HR,Manager`;
 
         const blob = new Blob([csvTemplate], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);

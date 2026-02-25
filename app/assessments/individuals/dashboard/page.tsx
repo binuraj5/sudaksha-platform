@@ -15,7 +15,7 @@ import { StartAssessmentButton } from "@/components/individuals/StartAssessmentB
 export default async function IndividualDashboard() {
     const session = await getApiSession();
 
-    if (!session || session.user.role !== 'INDIVIDUAL') {
+    if (!session) {
         redirect("/assessments/login");
     }
 

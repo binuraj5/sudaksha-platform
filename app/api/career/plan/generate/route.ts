@@ -59,14 +59,31 @@ export async function GET(req: NextRequest) {
 
         const member = await prisma.member.findUnique({
             where: { email: session.user.email },
-            select: { developmentPlan: true }
+            include: {
+                currentRole: {
+                    include: {
+                        competencies: { include: { competency: true } }
+                    }
+                },
+                aspirationalRole: {
+                    include: {
+                        competencies: { include: { competency: true } }
+                    }
+                }
+            }
         });
 
         if (!member) {
             return NextResponse.json({ error: "Member not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ plan: member.developmentPlan });
+        // If plan already exists, return it
+        if (member.developmentPlan) {
+            return NextResponse.json({ plan: member.developmentPlan });
+        }
+
+        // Otherwise return null or an empty plan object structure
+        return NextResponse.json({ plan: null });
 
     } catch (error) {
         console.error("Development Plan Fetch Error:", error);

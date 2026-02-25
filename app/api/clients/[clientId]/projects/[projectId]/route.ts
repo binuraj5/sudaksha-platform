@@ -67,6 +67,43 @@ export async function PATCH(
 
             // Run relation updates
             await prisma.$transaction(ops);
+
+            // --- Automatic Assessment Assignment Trigger ---
+            if (employeeIds && employeeIds.length > 0) {
+                const projectAssessments = await prisma.projectAssessmentModel.findMany({
+                    where: { projectId: projectId }
+                });
+
+                if (projectAssessments.length > 0) {
+                    const members = await prisma.member.findMany({
+                        where: { id: { in: employeeIds } },
+                        select: { email: true }
+                    });
+
+                    const users = await prisma.user.findMany({
+                        where: { email: { in: members.map(m => m.email) } },
+                        select: { id: true }
+                    });
+
+                    const newAssignments: any[] = [];
+                    for (const user of users) {
+                        for (const pa of projectAssessments) {
+                            newAssignments.push({
+                                userId: user.id,
+                                projectAssignmentId: pa.id,
+                                status: 'DRAFT' as any
+                            });
+                        }
+                    }
+
+                    if (newAssignments.length > 0) {
+                        await prisma.projectUserAssessment.createMany({
+                            data: newAssignments,
+                            skipDuplicates: true
+                        });
+                    }
+                }
+            }
         }
 
         const project = await prisma.activity.update({

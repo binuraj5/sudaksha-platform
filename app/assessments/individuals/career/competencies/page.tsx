@@ -44,6 +44,7 @@ export default function SelfAssignedCompetenciesPage() {
     const [allCompetencies, setAllCompetencies] = useState<Competency[]>([]);
     const [myCompetencies, setMyCompetencies] = useState<SelfAssignedCompetency[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [isRestrictedStudent, setIsRestrictedStudent] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -64,6 +65,7 @@ export default function SelfAssignedCompetenciesPage() {
                         ? profileData.selfAssignedCompetencies
                         : [];
                     setMyCompetencies(existing);
+                    setIsRestrictedStudent(profileData.type === "STUDENT" && !profileData.hasGraduated);
                 }
             } catch (error) {
                 console.error(error);
@@ -197,8 +199,8 @@ export default function SelfAssignedCompetenciesPage() {
                                                             <SelectContent>
                                                                 <SelectItem value="BEGINNER">Beginner</SelectItem>
                                                                 <SelectItem value="INTERMEDIATE">Intermediate</SelectItem>
-                                                                <SelectItem value="ADVANCED">Advanced</SelectItem>
-                                                                <SelectItem value="EXPERT">Expert</SelectItem>
+                                                                <SelectItem value="ADVANCED" disabled={isRestrictedStudent}>Advanced</SelectItem>
+                                                                <SelectItem value="EXPERT" disabled={isRestrictedStudent}>Expert</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     </div>

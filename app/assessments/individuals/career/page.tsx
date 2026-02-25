@@ -3,33 +3,49 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
     User,
     Sparkles,
-    Circle,
     Briefcase,
     TrendingUp,
     AlertCircle,
+    ChevronDown,
     ChevronRight,
     Target,
     CheckCircle2,
     Clock,
+    Circle,
     Loader2,
     Milestone,
-    Network,
+    Plus,
     Pencil,
+    Trash2,
+    X,
+    ThumbsUp,
+    ThumbsDown,
 } from "lucide-react";
 import { toast } from "sonner";
-import { OrgHierarchyView } from "@/components/Career/OrgHierarchyView";
+import { CareerProfileForm } from "@/components/Career/CareerProfileForm";
 
 export default function IndividualCareerPage() {
     const [member, setMember] = useState<any>(null);
     const [plan, setPlan] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
+
+    // Previous Roles state
+    const [prevRoles, setPrevRoles] = useState<any[]>([]);
+    const [editingIdx, setEditingIdx] = useState<number | null>(null);
+    const [editBuf, setEditBuf] = useState({ title: "", company: "", startDate: "", endDate: "" });
+    const [savingRole, setSavingRole] = useState(false);
+
+    // Competency expand state (role tabs)
+    const [expandedCompetency, setExpandedCompetency] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -38,7 +54,10 @@ export default function IndividualCareerPage() {
             const memberData = await memberRes.json();
             if (memberRes.ok && memberData?.id && !memberData.error) {
                 setMember(memberData);
-                // Use developmentPlan from profile when available (Phase 6: one request)
+                // Sync previousRoles
+                if (Array.isArray(memberData.previousRoles)) {
+                    setPrevRoles(memberData.previousRoles);
+                }
                 if (memberData.developmentPlan && typeof memberData.developmentPlan === "object") {
                     setPlan(memberData.developmentPlan);
                 } else {
@@ -104,6 +123,52 @@ export default function IndividualCareerPage() {
         }
     };
 
+    // ── Previous Roles helpers ──────────────────────────────────────────────
+    const savePrevRoles = async (updated: any[]) => {
+        setSavingRole(true);
+        try {
+            const res = await fetch("/api/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ previousRoles: updated }),
+            });
+            if (res.ok) {
+                setPrevRoles(updated);
+                toast.success("Previous roles updated!");
+            } else {
+                toast.error("Failed to save roles.");
+            }
+        } catch {
+            toast.error("Error saving roles.");
+        } finally {
+            setSavingRole(false);
+        }
+    };
+
+    const startAddRole = () => {
+        setEditBuf({ title: "", company: "", startDate: "", endDate: "" });
+        setEditingIdx(-1);
+    };
+
+    const startEditRole = (idx: number) => {
+        setEditBuf({ ...prevRoles[idx] });
+        setEditingIdx(idx);
+    };
+
+    const commitRole = async () => {
+        if (!editBuf.title.trim()) return;
+        const updated = editingIdx === -1
+            ? [...prevRoles, { ...editBuf }]
+            : prevRoles.map((r, i) => i === editingIdx ? { ...editBuf } : r);
+        await savePrevRoles(updated);
+        setEditingIdx(null);
+    };
+
+    const deleteRole = async (idx: number) => {
+        const updated = prevRoles.filter((_, i) => i !== idx);
+        await savePrevRoles(updated);
+    };
+
     const planProgress = plan
         ? (() => {
             const total = plan.gaps?.reduce((s: number, g: any) => s + (g.actions?.length ?? 0), 0) ?? 0;
@@ -146,16 +211,139 @@ export default function IndividualCareerPage() {
         );
     }
 
+    // ── Role competency tab helper ──────────────────────────────────────────
+    function RoleCompetencyTab({ role }: { role: any }) {
+        if (!role) {
+            return (
+                <Card className="border-none shadow-md bg-white">
+                    <CardContent className="py-16 text-center text-gray-400">
+                        <Briefcase className="h-10 w-10 mx-auto mb-3" />
+                        <p>No role set. Update it in My Profile.</p>
+                    </CardContent>
+                </Card>
+            );
+        }
+
+        const competencies: any[] = role.competencies ?? [];
+
+        return (
+            <div className="space-y-4">
+                <Card className="border-none shadow-md bg-white overflow-hidden">
+                    <div className="h-1 bg-indigo-500" />
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-xl font-semibold text-gray-900">{role.name}</CardTitle>
+                        {role.description && (
+                            <CardDescription className="text-sm text-gray-500 mt-1">{role.description}</CardDescription>
+                        )}
+                    </CardHeader>
+                </Card>
+
+                {competencies.length === 0 ? (
+                    <Card className="border-none shadow-md bg-white">
+                        <CardContent className="py-10 text-center text-gray-400 text-sm">
+                            No competencies linked to this role yet.
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="grid md:grid-cols-5 gap-4">
+                        {/* Left vertical list */}
+                        <div className="md:col-span-2 space-y-1">
+                            {competencies.map((rc: any) => {
+                                const comp = rc.competency ?? rc;
+                                const isActive = expandedCompetency === comp.id;
+                                return (
+                                    <button
+                                        key={comp.id}
+                                        onClick={() => setExpandedCompetency(isActive ? null : comp.id)}
+                                        className={`w-full text-left flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors border ${isActive
+                                            ? "bg-indigo-50 border-indigo-200 text-indigo-800"
+                                            : "bg-white border-gray-100 text-gray-700 hover:bg-gray-50"
+                                            }`}
+                                    >
+                                        <span>{comp.name}</span>
+                                        {isActive ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Right detail panel */}
+                        <div className="md:col-span-3">
+                            {(() => {
+                                const rc = competencies.find((rc: any) => (rc.competency ?? rc).id === expandedCompetency);
+                                if (!rc) {
+                                    return (
+                                        <Card className="border-none shadow-md bg-white h-full flex items-center justify-center">
+                                            <CardContent className="py-10 text-center text-gray-400 text-sm">
+                                                <Target className="h-8 w-8 mx-auto mb-2" />
+                                                Select a competency to view its indicators
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                }
+                                const comp = rc.competency ?? rc;
+                                const positives: any[] = comp.indicators?.filter((i: any) => i.type === "POSITIVE") ?? [];
+                                const negatives: any[] = comp.indicators?.filter((i: any) => i.type === "NEGATIVE") ?? [];
+                                return (
+                                    <Card className="border-none shadow-md bg-white">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-lg text-gray-900">{comp.name}</CardTitle>
+                                            {comp.description && <CardDescription className="text-sm text-gray-500">{comp.description}</CardDescription>}
+                                            {rc.targetLevel && <Badge variant="outline" className="w-fit mt-1 text-xs">{rc.targetLevel}</Badge>}
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            {positives.length > 0 && (
+                                                <div>
+                                                    <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                                                        <ThumbsUp className="h-3.5 w-3.5" /> Positive Indicators
+                                                    </p>
+                                                    <ul className="space-y-1.5">
+                                                        {positives.map((ind: any) => (
+                                                            <li key={ind.id} className="flex items-start gap-2 text-sm text-gray-700">
+                                                                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                                                                {ind.description}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            {negatives.length > 0 && (
+                                                <div>
+                                                    <p className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                                                        <ThumbsDown className="h-3.5 w-3.5" /> Negative Indicators
+                                                    </p>
+                                                    <ul className="space-y-1.5">
+                                                        {negatives.map((ind: any) => (
+                                                            <li key={ind.id} className="flex items-start gap-2 text-sm text-gray-700">
+                                                                <X className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+                                                                {ind.description}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            {positives.length === 0 && negatives.length === 0 && (
+                                                <p className="text-sm text-gray-400">No indicators defined for this competency yet.</p>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50/50 p-6 space-y-8">
             <div className="max-w-7xl mx-auto space-y-8">
-                {/* Header – same style as Dashboard / Profile */}
+                {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Career Hub</h1>
-                        <p className="text-gray-500 mt-1">
-                            Navigate your professional growth with precision.
-                        </p>
+                        <p className="text-gray-500 mt-1">Navigate your professional growth with precision.</p>
                     </div>
                     <Button
                         onClick={generatePlan}
@@ -168,22 +356,28 @@ export default function IndividualCareerPage() {
                 </div>
 
                 <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 max-w-2xl mb-6 bg-gray-100 p-1 rounded-lg">
-                        <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                            <Target className="h-4 w-4" /> Overview
+                    <TabsList className="grid w-full grid-cols-6 max-w-4xl mb-6 bg-gray-100 p-1 rounded-lg">
+                        <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs flex items-center gap-1">
+                            <Target className="h-3.5 w-3.5" /> Overview
                         </TabsTrigger>
-                        <TabsTrigger value="profile" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                            <User className="h-4 w-4" /> My Profile
+                        <TabsTrigger value="profile" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs flex items-center gap-1">
+                            <User className="h-3.5 w-3.5" /> My Profile
                         </TabsTrigger>
-                        <TabsTrigger value="plan" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                            <Sparkles className="h-4 w-4" /> Dev Plan
+                        <TabsTrigger value="current-role" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs flex items-center gap-1">
+                            <Briefcase className="h-3.5 w-3.5" /> Current Role
                         </TabsTrigger>
-                        <TabsTrigger value="org" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
-                            <Network className="h-4 w-4" /> Hierarchy
+                        <TabsTrigger value="aspirational-role" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs flex items-center gap-1">
+                            <TrendingUp className="h-3.5 w-3.5" /> Aspirational
+                        </TabsTrigger>
+                        <TabsTrigger value="previous-roles" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5" /> Prev. Roles
+                        </TabsTrigger>
+                        <TabsTrigger value="competencies" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs flex items-center gap-1">
+                            <Sparkles className="h-3.5 w-3.5" /> Competencies
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* OVERVIEW – from member (profile API with competencies) */}
+                    {/* ── TAB 1: OVERVIEW ──────────────────────────────────────────── */}
                     <TabsContent value="overview" className="space-y-6 mt-0">
                         <div className="grid gap-6 md:grid-cols-2">
                             <Card className="border-none shadow-md bg-white overflow-hidden">
@@ -198,9 +392,7 @@ export default function IndividualCareerPage() {
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-gray-500 text-sm mb-4">
-                                        {member.currentRole?.description || "Set your current role in My Details."}
-                                    </p>
+                                    <p className="text-gray-500 text-sm mb-4">{member.currentRole?.description || "Set your current role in My Profile."}</p>
                                     {member.currentRole?.competencies?.length > 0 && (
                                         <div className="space-y-2">
                                             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Core Competencies</p>
@@ -230,9 +422,7 @@ export default function IndividualCareerPage() {
                                 <CardContent>
                                     {member.aspirationalRole ? (
                                         <>
-                                            <p className="text-gray-500 text-sm mb-4">
-                                                {member.aspirationalRole.description}
-                                            </p>
+                                            <p className="text-gray-500 text-sm mb-4">{member.aspirationalRole.description}</p>
                                             {gapPercent != null && (
                                                 <div className="p-4 rounded-lg bg-purple-50 border border-purple-100 flex items-start gap-3">
                                                     <AlertCircle className="h-5 w-5 text-purple-600 shrink-0 mt-0.5" />
@@ -247,9 +437,7 @@ export default function IndividualCareerPage() {
                                                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Target competencies</p>
                                                     <div className="flex flex-wrap gap-2">
                                                         {member.aspirationalRole.competencies.slice(0, 8).map((rc: any) => (
-                                                            <Badge key={rc.id} variant="outline" className="text-gray-600">
-                                                                {rc.competency?.name}
-                                                            </Badge>
+                                                            <Badge key={rc.id} variant="outline" className="text-gray-600">{rc.competency?.name}</Badge>
                                                         ))}
                                                         {member.aspirationalRole.competencies.length > 8 && (
                                                             <span className="text-xs text-gray-500">+{member.aspirationalRole.competencies.length - 8} more</span>
@@ -260,276 +448,260 @@ export default function IndividualCareerPage() {
                                         </>
                                     ) : (
                                         <div className="text-center py-6">
-                                            <p className="text-gray-500 mb-4">Set your aspirational role in My Details to see your gap and generate a plan.</p>
+                                            <p className="text-gray-500 mb-4">Set your aspirational role in My Profile to see your gap and generate a plan.</p>
                                             <Button asChild variant="outline" size="sm">
-                                                <Link href="/assessments/individuals/profile">Edit in My Details</Link>
+                                                <Link href="/assessments/individuals/career?tab=profile">Edit in My Profile</Link>
                                             </Button>
                                         </div>
                                     )}
                                 </CardContent>
                             </Card>
                         </div>
-                    </TabsContent>
 
-                    {/* MY PROFILE – read-only summary from member + careerFormData; edit on My Details (Phase 5) */}
-                    <TabsContent value="profile" className="mt-0">
-                        <Card className="border-none shadow-md bg-white">
-                            <CardHeader className="pb-2">
-                                <div className="flex flex-wrap justify-between items-start gap-4">
-                                    <div>
-                                        <CardTitle className="text-xl text-gray-900">Profile summary</CardTitle>
-                                        <CardDescription className="text-sm mt-1">
-                                            Your career details from My Details. Edit there to update.
-                                        </CardDescription>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        <Button asChild variant="outline" size="sm" className="text-indigo-600 border-indigo-200 hover:bg-indigo-50">
-                                            <Link href="/assessments/individuals/profile">
-                                                <Pencil className="h-4 w-4 mr-2" />
-                                                Edit in My Details
-                                            </Link>
-                                        </Button>
-                                        <Button asChild variant="outline" size="sm" className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
-                                            <Link href="/assessments/individuals/career/competencies">
-                                                <Sparkles className="h-4 w-4 mr-2" />
-                                                Self-Assign Competencies
-                                            </Link>
-                                        </Button>
-                                        <Button asChild variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                                            <Link href="/assessments/individuals/career/previous-roles">
-                                                <Briefcase className="h-4 w-4 mr-2" />
-                                                Manage Previous Roles
-                                            </Link>
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Name</p>
-                                        <p className="text-gray-900">
-                                            {[member.firstName, member.lastName].filter(Boolean).join(" ") || member.name || "—"}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Email</p>
-                                        <p className="text-gray-900">{member.email ?? "—"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Phone</p>
-                                        <p className="text-gray-900">{member.phone ?? "—"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Current role</p>
-                                        <p className="text-gray-900">{member.currentRole?.name ?? "Not set"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Aspirational role</p>
-                                        <p className="text-gray-900">{member.aspirationalRole?.name ?? "Not set"}</p>
-                                    </div>
-                                </div>
-                                {member.bio && (
-                                    <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Bio</p>
-                                        <p className="text-gray-700 text-sm">{member.bio}</p>
-                                    </div>
-                                )}
-                                {(() => {
-                                    const form = (member.careerFormData as Record<string, unknown>) || {};
-                                    const responsibilities = form.responsibilities;
-                                    const learning = form.learningPreferences;
-                                    const hasExtra = responsibilities != null || learning != null;
-                                    if (!hasExtra) return null;
-                                    return (
-                                        <div className="space-y-4 pt-4 border-t border-gray-100">
-                                            {responsibilities != null && (
-                                                <div>
-                                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Responsibilities</p>
-                                                    <p className="text-gray-700 text-sm">
-                                                        {typeof responsibilities === "string" ? responsibilities : Array.isArray(responsibilities) ? responsibilities.join(", ") : String(responsibilities)}
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {learning != null && (
-                                                <div>
-                                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Learning preferences</p>
-                                                    <p className="text-gray-700 text-sm">
-                                                        {typeof learning === "string" ? learning : Array.isArray(learning) ? learning.join(", ") : String(learning)}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })()}
-
-                                {member.previousRoles && Array.isArray(member.previousRoles) && member.previousRoles.length > 0 && (
-                                    <div className="space-y-4 pt-4 border-t border-gray-100">
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 flex items-center gap-2">
-                                            <Briefcase className="h-3 w-3" /> Previous Roles
-                                        </p>
-                                        <div className="grid gap-3 sm:grid-cols-2">
-                                            {member.previousRoles.map((role: any, idx: number) => (
-                                                <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                                    <p className="font-semibold text-gray-900">{role.title}</p>
-                                                    {role.company && <p className="text-sm text-gray-600">{role.company}</p>}
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                        {role.startDate || "?"} — {role.endDate || "Present"}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
-                    {/* DEV PLAN – from /api/career/plan/generate (member.developmentPlan) */}
-                    <TabsContent value="plan" className="mt-0 space-y-6">
-                        {plan?.gaps?.length > 0 ? (
-                            <div className="space-y-6">
-                                <Card className="border-none shadow-md bg-white">
-                                    <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                        <div>
-                                            <Badge className="bg-indigo-600 text-white mb-2">PERSONALIZED PLAN</Badge>
-                                            <h3 className="text-xl font-bold text-gray-900">Goal: {plan.aspirationalRoleName}</h3>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                Generated {plan.generatedAt ? new Date(plan.generatedAt).toLocaleDateString() : "—"}
-                                            </p>
-                                        </div>
-                                        <Button variant="outline" onClick={generatePlan} disabled={generating}>
-                                            Refresh Plan
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-
-                                {planProgress && planProgress.total > 0 && (
-                                    <Card className="border-none shadow-md bg-white">
-                                        <CardContent className="p-6 flex flex-wrap items-center gap-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                                    <Milestone className="h-5 w-5 text-indigo-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-xl font-bold text-gray-900">{planProgress.milestones}</p>
-                                                    <p className="text-xs text-gray-500">Milestones</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                                                    <Target className="h-5 w-5 text-gray-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-xl font-bold text-gray-900">{planProgress.total}</p>
-                                                    <p className="text-xs text-gray-500">Total steps</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-                                                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-xl font-bold text-gray-900">{planProgress.completed} / {planProgress.total}</p>
-                                                    <p className="text-xs text-gray-500">Completed</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex-1 min-w-[120px] h-2 rounded-full bg-gray-200 overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full bg-indigo-600 transition-all"
-                                                    style={{ width: planProgress.total ? `${(planProgress.completed / planProgress.total) * 100}%` : "0%" }}
-                                                />
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )}
-
-                                <div className="space-y-4">
-                                    {plan.gaps.map((gap: any, idx: number) => (
-                                        <Card key={idx} className="border-none shadow-md bg-white">
-                                            <CardHeader className="pb-2">
-                                                <div className="flex flex-wrap justify-between items-start gap-2">
-                                                    <div>
-                                                        <CardTitle className="text-lg text-gray-900">{gap.name}</CardTitle>
-                                                        <CardDescription className="text-xs mt-1">
-                                                            Current: {gap.currentLevel} → Target: {gap.targetLevel}
-                                                        </CardDescription>
-                                                    </div>
-                                                    <Badge
-                                                        variant="outline"
-                                                        className={
-                                                            gap.priority === "HIGH" ? "bg-red-50 text-red-700 border-red-200" :
-                                                                gap.priority === "MEDIUM" ? "bg-amber-50 text-amber-700 border-amber-200" :
-                                                                    "bg-blue-50 text-blue-700 border-blue-200"
-                                                        }
-                                                    >
-                                                        {gap.priority}
-                                                    </Badge>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3">
-                                                {gap.actions?.map((action: any, aidx: number) => (
-                                                    <div
-                                                        key={aidx}
-                                                        className="flex gap-4 p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
-                                                    >
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const next = action.status === "COMPLETED" ? "NOT_STARTED" : action.status === "NOT_STARTED" ? "IN_PROGRESS" : "COMPLETED";
-                                                                updateActionStatus(idx, aidx, next);
-                                                            }}
-                                                            className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0 border transition-colors"
-                                                            style={{
-                                                                backgroundColor: action.status === "COMPLETED" ? "rgb(34 197 94 / 0.15)" : action.status === "IN_PROGRESS" ? "rgb(99 102 241 / 0.1)" : "rgb(249 250 251)",
-                                                                color: action.status === "COMPLETED" ? "rgb(22 163 74)" : action.status === "IN_PROGRESS" ? "rgb(99 102 241)" : "rgb(156 163 175)",
-                                                            }}
-                                                        >
-                                                            {action.status === "COMPLETED" ? <CheckCircle2 className="h-5 w-5" /> : action.status === "IN_PROGRESS" ? <Clock className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
-                                                        </button>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex flex-wrap items-center gap-2">
-                                                                <span className="font-medium text-gray-900">{action.title}</span>
-                                                                <Badge variant="secondary" className="text-xs">{action.type}</Badge>
-                                                                <Badge variant="outline" className="text-xs">{action.status?.replace("_", " ") ?? "NOT_STARTED"}</Badge>
-                                                            </div>
-                                                            {action.description && (
-                                                                <p className="text-sm text-gray-500 mt-1">{action.description}</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
+                        {/* Dev Plan progress summary */}
+                        {plan?.gaps?.length > 0 && planProgress && planProgress.total > 0 && (
                             <Card className="border-none shadow-md bg-white">
-                                <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                                    <Sparkles className="h-14 w-14 text-gray-300 mb-4" />
-                                    <h2 className="text-xl font-bold text-gray-900">No roadmap yet</h2>
-                                    <p className="text-gray-500 max-w-sm mt-2 mb-6">
-                                        Generate a development plan based on your current and aspirational roles.
-                                    </p>
-                                    <Button
-                                        onClick={generatePlan}
-                                        disabled={generating || !member.aspirationalRoleId}
-                                        className="bg-indigo-600 hover:bg-indigo-700 gap-2"
-                                    >
-                                        {generating ? "Generating..." : "Build My Roadmap"}
-                                    </Button>
-                                    {!member.aspirationalRoleId && (
-                                        <p className="text-sm text-amber-600 mt-4">Set your aspirational role in My Details first.</p>
-                                    )}
+                                <CardContent className="p-6 flex flex-wrap items-center gap-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                            <Milestone className="h-5 w-5 text-indigo-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xl font-bold text-gray-900">{planProgress.milestones}</p>
+                                            <p className="text-xs text-gray-500">Milestones</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
+                                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xl font-bold text-gray-900">{planProgress.completed}/{planProgress.total}</p>
+                                            <p className="text-xs text-gray-500">Steps Completed</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 min-w-[120px] h-2 rounded-full bg-gray-200 overflow-hidden">
+                                        <div
+                                            className="h-full rounded-full bg-indigo-600 transition-all"
+                                            style={{ width: planProgress.total ? `${(planProgress.completed / planProgress.total) * 100}%` : "0%" }}
+                                        />
+                                    </div>
                                 </CardContent>
                             </Card>
                         )}
                     </TabsContent>
 
-                    {/* HIERARCHY */}
-                    <TabsContent value="org" className="mt-0">
-                        <OrgHierarchyView tenantId={member?.tenantId} currentOrgUnitId={member?.orgUnitId} />
+                    {/* ── TAB 2: MY PROFILE (CareerProfileForm restored) ────────────── */}
+                    <TabsContent value="profile" className="mt-0">
+                        <CareerProfileForm />
+                    </TabsContent>
+
+                    {/* ── TAB 3: CURRENT ROLE ──────────────────────────────────────── */}
+                    <TabsContent value="current-role" className="mt-0">
+                        <RoleCompetencyTab role={member.currentRole} />
+                    </TabsContent>
+
+                    {/* ── TAB 4: ASPIRATIONAL ROLE ─────────────────────────────────── */}
+                    <TabsContent value="aspirational-role" className="mt-0">
+                        <RoleCompetencyTab role={member.aspirationalRole} />
+                    </TabsContent>
+
+                    {/* ── TAB 5: PREVIOUS ROLES ────────────────────────────────────── */}
+                    <TabsContent value="previous-roles" className="mt-0 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-semibold text-gray-900">Previous Roles</h2>
+                            <Button size="sm" onClick={startAddRole} disabled={editingIdx !== null} className="gap-1">
+                                <Plus className="h-4 w-4" /> Add Role
+                            </Button>
+                        </div>
+
+                        {/* Add / Edit inline form */}
+                        {editingIdx !== null && (
+                            <Card className="border-2 border-indigo-200 shadow-sm bg-indigo-50/20">
+                                <CardContent className="pt-5 space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <Label>Job Title *</Label>
+                                            <Input value={editBuf.title} onChange={(e) => setEditBuf({ ...editBuf, title: e.target.value })} placeholder="e.g. Software Engineer" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label>Company</Label>
+                                            <Input value={editBuf.company} onChange={(e) => setEditBuf({ ...editBuf, company: e.target.value })} placeholder="e.g. Acme Corp" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label>Start Date</Label>
+                                            <Input value={editBuf.startDate} onChange={(e) => setEditBuf({ ...editBuf, startDate: e.target.value })} placeholder="e.g. Jan 2019" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label>End Date</Label>
+                                            <Input value={editBuf.endDate} onChange={(e) => setEditBuf({ ...editBuf, endDate: e.target.value })} placeholder="e.g. Dec 2022 or Present" />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button onClick={commitRole} disabled={savingRole || !editBuf.title.trim()}>
+                                            {savingRole ? "Saving..." : "Save"}
+                                        </Button>
+                                        <Button variant="outline" onClick={() => setEditingIdx(null)}>
+                                            <X className="h-4 w-4 mr-1" /> Cancel
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {prevRoles.length === 0 && editingIdx === null ? (
+                            <Card className="border-dashed border-2 border-gray-200">
+                                <CardContent className="py-12 text-center text-gray-400">
+                                    <Briefcase className="h-10 w-10 mx-auto mb-3" />
+                                    <p className="text-sm">No previous roles added yet. Click "Add Role" to get started.</p>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="space-y-3">
+                                {prevRoles.map((role, idx) => (
+                                    <Card key={idx} className="border-none shadow-sm bg-white">
+                                        <CardContent className="py-4 flex flex-wrap items-center justify-between gap-3">
+                                            <div>
+                                                <p className="font-semibold text-gray-900">{role.title}</p>
+                                                {role.company && <p className="text-sm text-gray-600">{role.company}</p>}
+                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                    {role.startDate || "?"} — {role.endDate || "Present"}
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button variant="outline" size="sm" onClick={() => startEditRole(idx)} disabled={editingIdx !== null}>
+                                                    <Pencil className="h-4 w-4 mr-1" /> Edit
+                                                </Button>
+                                                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700" onClick={() => deleteRole(idx)} disabled={savingRole}>
+                                                    <Trash2 className="h-4 w-4 mr-1" /> Delete
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </TabsContent>
+
+                    {/* ── TAB 6: COMPETENCIES ──────────────────────────────────────── */}
+                    <TabsContent value="competencies" className="mt-0 space-y-8">
+                        {/* Current Role Competencies */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="h-3 w-3 rounded-full bg-indigo-500" />
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    Current Role — {member.currentRole?.name || "Not Set"}
+                                </h2>
+                            </div>
+                            {!member.currentRole ? (
+                                <Card className="border-dashed border-2 border-gray-200">
+                                    <CardContent className="py-10 text-center text-gray-400 text-sm">No current role set. Update it in <Link href="#" className="text-indigo-600 underline">My Profile</Link>.</CardContent>
+                                </Card>
+                            ) : (member.currentRole.competencies?.length ?? 0) === 0 ? (
+                                <Card className="border-none shadow-sm bg-white">
+                                    <CardContent className="py-10 text-center text-gray-400 text-sm">No competencies linked to this role.</CardContent>
+                                </Card>
+                            ) : (
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {member.currentRole.competencies.map((rc: any) => {
+                                        const comp = rc.competency ?? rc;
+                                        const positives = comp.indicators?.filter((i: any) => i.type === "POSITIVE") ?? [];
+                                        const negatives = comp.indicators?.filter((i: any) => i.type === "NEGATIVE") ?? [];
+                                        return (
+                                            <Card key={comp.id} className="border-none shadow-md bg-white overflow-hidden">
+                                                <div className="h-1 bg-indigo-400" />
+                                                <CardHeader className="pb-2">
+                                                    <CardTitle className="text-base text-gray-900">{comp.name}</CardTitle>
+                                                    {rc.targetLevel && <Badge variant="outline" className="w-fit text-xs">{rc.targetLevel}</Badge>}
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    {positives.length > 0 && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-green-700 uppercase mb-1">✅ Positive</p>
+                                                            <ul className="space-y-1">
+                                                                {positives.slice(0, 3).map((ind: any) => <li key={ind.id} className="text-xs text-gray-600">• {ind.description}</li>)}
+                                                                {positives.length > 3 && <li className="text-xs text-gray-400">+{positives.length - 3} more</li>}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {negatives.length > 0 && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-red-700 uppercase mb-1">❌ Negative</p>
+                                                            <ul className="space-y-1">
+                                                                {negatives.slice(0, 3).map((ind: any) => <li key={ind.id} className="text-xs text-gray-600">• {ind.description}</li>)}
+                                                                {negatives.length > 3 && <li className="text-xs text-gray-400">+{negatives.length - 3} more</li>}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {positives.length === 0 && negatives.length === 0 && (
+                                                        <p className="text-xs text-gray-400">No indicators defined.</p>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Aspirational Role Competencies */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="h-3 w-3 rounded-full bg-purple-500" />
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    Aspirational Role — {member.aspirationalRole?.name || "Not Set"}
+                                </h2>
+                            </div>
+                            {!member.aspirationalRole ? (
+                                <Card className="border-dashed border-2 border-gray-200">
+                                    <CardContent className="py-10 text-center text-gray-400 text-sm">No aspirational role set. Update it in My Profile.</CardContent>
+                                </Card>
+                            ) : (member.aspirationalRole.competencies?.length ?? 0) === 0 ? (
+                                <Card className="border-none shadow-sm bg-white">
+                                    <CardContent className="py-10 text-center text-gray-400 text-sm">No competencies linked to this role.</CardContent>
+                                </Card>
+                            ) : (
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {member.aspirationalRole.competencies.map((rc: any) => {
+                                        const comp = rc.competency ?? rc;
+                                        const positives = comp.indicators?.filter((i: any) => i.type === "POSITIVE") ?? [];
+                                        const negatives = comp.indicators?.filter((i: any) => i.type === "NEGATIVE") ?? [];
+                                        return (
+                                            <Card key={comp.id} className="border-none shadow-md bg-white overflow-hidden">
+                                                <div className="h-1 bg-purple-400" />
+                                                <CardHeader className="pb-2">
+                                                    <CardTitle className="text-base text-gray-900">{comp.name}</CardTitle>
+                                                    {rc.targetLevel && <Badge variant="outline" className="w-fit text-xs">{rc.targetLevel}</Badge>}
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    {positives.length > 0 && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-green-700 uppercase mb-1">✅ Positive</p>
+                                                            <ul className="space-y-1">
+                                                                {positives.slice(0, 3).map((ind: any) => <li key={ind.id} className="text-xs text-gray-600">• {ind.description}</li>)}
+                                                                {positives.length > 3 && <li className="text-xs text-gray-400">+{positives.length - 3} more</li>}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {negatives.length > 0 && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-red-700 uppercase mb-1">❌ Negative</p>
+                                                            <ul className="space-y-1">
+                                                                {negatives.slice(0, 3).map((ind: any) => <li key={ind.id} className="text-xs text-gray-600">• {ind.description}</li>)}
+                                                                {negatives.length > 3 && <li className="text-xs text-gray-400">+{negatives.length - 3} more</li>}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {positives.length === 0 && negatives.length === 0 && (
+                                                        <p className="text-xs text-gray-400">No indicators defined.</p>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </TabsContent>
                 </Tabs>
             </div>

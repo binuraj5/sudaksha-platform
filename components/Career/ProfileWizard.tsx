@@ -341,6 +341,7 @@ export function ProfileWizard({
     const renderCompetencySelector = (listKey: string, category: string, label: string) => {
         const filtered = competencies.filter((c) => c.category === category);
         const selectedIds = new Set(formData[listKey]?.map((c: any) => c.id));
+        const isRestrictedStudent = profile?.type === "STUDENT" && profile.hasGraduated === false;
 
         return (
             <div className="space-y-4">
@@ -366,20 +367,26 @@ export function ProfileWizard({
                                 <div className="mt-2" onClick={(e) => e.stopPropagation()}>
                                     <Label className="text-xs text-gray-500">Proficiency Level (1-5)</Label>
                                     <div className="flex gap-1 mt-1">
-                                        {[1, 2, 3, 4, 5].map((lvl) => (
-                                            <button
-                                                key={lvl}
-                                                className={cn(
-                                                    "w-6 h-6 rounded-full text-xs flex items-center justify-center",
-                                                    formData[listKey]?.find((c: any) => c.id === comp.id)?.level === lvl
-                                                        ? "bg-indigo-600 text-white"
-                                                        : "bg-gray-200 text-gray-600"
-                                                )}
-                                                onClick={() => updateCompetencyLevel(listKey, comp.id, lvl)}
-                                            >
-                                                {lvl}
-                                            </button>
-                                        ))}
+                                        {[1, 2, 3, 4, 5].map((lvl) => {
+                                            const isDisabled = isRestrictedStudent && lvl >= 4;
+                                            return (
+                                                <button
+                                                    key={lvl}
+                                                    disabled={isDisabled}
+                                                    className={cn(
+                                                        "w-6 h-6 rounded-full text-xs flex items-center justify-center",
+                                                        formData[listKey]?.find((c: any) => c.id === comp.id)?.level === lvl
+                                                            ? "bg-indigo-600 text-white"
+                                                            : "bg-gray-200 text-gray-600",
+                                                        isDisabled && "opacity-50 cursor-not-allowed"
+                                                    )}
+                                                    onClick={() => !isDisabled && updateCompetencyLevel(listKey, comp.id, lvl)}
+                                                    title={isDisabled ? "Advanced levels restricted for undergraduates." : undefined}
+                                                >
+                                                    {lvl}
+                                                </button>
+                                            )
+                                        })}
                                     </div>
                                 </div>
                             )}

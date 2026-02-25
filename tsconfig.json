@@ -45,6 +45,7 @@
     "node_modules",
     "backups",
     "backup-stable-version",
-    "src/_app_old"
+    "src/_app_old",
+    "scripts"
   ]
 }

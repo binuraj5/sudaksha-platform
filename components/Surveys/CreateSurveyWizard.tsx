@@ -12,6 +12,8 @@ import { Plus, ArrowRight, ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { RecommendationCard } from "@/components/assessments/RecommendationCard";
+import { useEffect } from "react";
 
 export function CreateSurveyWizard({ clientId }: { clientId: string }) {
     const [open, setOpen] = useState(false);
@@ -26,6 +28,24 @@ export function CreateSurveyWizard({ clientId }: { clientId: string }) {
         scoringEnabled: false,
         questions: [] as any[]
     });
+
+    const [recommendations, setRecommendations] = useState<{ id: string; category: string; recommendationText: string; rationale: string; autoApplyValues: Record<string, unknown> | null }[]>([]);
+
+    useEffect(() => {
+        if (!formData.purpose || formData.purpose.trim() === '') {
+            setRecommendations([]);
+            return;
+        }
+
+        const timeoutId = setTimeout(() => {
+            fetch(`/api/recommendations/survey?purpose=${encodeURIComponent(formData.purpose)}`)
+                .then((r) => r.json())
+                .then((data) => setRecommendations(data.recommendations || []))
+                .catch(() => setRecommendations([]));
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [formData.purpose]);
 
     const router = useRouter();
 
@@ -109,6 +129,26 @@ export function CreateSurveyWizard({ clientId }: { clientId: string }) {
                                 <Label>Purpose</Label>
                                 <Input value={formData.purpose} onChange={e => setFormData({ ...formData, purpose: e.target.value })} placeholder="e.g. Gather feedback on new policy" />
                             </div>
+
+                            {/* Insert recommendations dynamically */}
+                            {recommendations.length > 0 && (
+                                <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-bottom-2">
+                                    <Label className="text-xs text-muted-foreground">Smart Suggestions based on Purpose</Label>
+                                    {recommendations.map((rec) => (
+                                        <RecommendationCard
+                                            key={rec.id}
+                                            recommendation={rec}
+                                            onApply={(values) => {
+                                                if (values) {
+                                                    setFormData(prev => ({ ...prev, ...values }));
+                                                    toast.success("Applied intelligent recommendation template");
+                                                }
+                                            }}
+                                            onDismiss={(id) => setRecommendations(prev => prev.filter(r => r.id !== id))}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 

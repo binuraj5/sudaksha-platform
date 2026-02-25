@@ -64,19 +64,23 @@ export function AllocateEmployeesDialog({ clientId, teamId, deptId }: { clientId
                     <DialogDescription>Select employees from the department.</DialogDescription>
                 </DialogHeader>
                 <div className="py-4 max-h-[300px] overflow-y-auto space-y-2">
-                    {employees.map(emp => (
-                        <div key={emp.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
-                            <Checkbox
-                                id={emp.id}
-                                checked={selectedIds.includes(emp.id)}
-                                onCheckedChange={(checked) => {
-                                    if (checked) setSelectedIds([...selectedIds, emp.id]);
-                                    else setSelectedIds(selectedIds.filter(id => id !== emp.id));
-                                }}
-                            />
-                            <Label htmlFor={emp.id} className="cursor-pointer flex-1">{emp.name}</Label>
-                        </div>
-                    ))}
+                    {employees.map(emp => {
+                        const code = emp.employeeId || emp.enrollmentNumber || emp.memberCode;
+                        const labelText = code ? `${emp.name} (${code})` : emp.name;
+                        return (
+                            <div key={emp.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                                <Checkbox
+                                    id={emp.id}
+                                    checked={selectedIds.includes(emp.id)}
+                                    onCheckedChange={(checked) => {
+                                        if (checked) setSelectedIds([...selectedIds, emp.id]);
+                                        else setSelectedIds(selectedIds.filter(id => id !== emp.id));
+                                    }}
+                                />
+                                <Label htmlFor={emp.id} className="cursor-pointer flex-1">{labelText}</Label>
+                            </div>
+                        );
+                    })}
                     {employees.length === 0 && <div className="text-gray-500 text-sm text-center">No available employees found in this department.</div>}
                 </div>
                 <DialogFooter>

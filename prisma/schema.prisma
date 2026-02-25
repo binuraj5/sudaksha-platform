@@ -1281,6 +1281,7 @@ model Member {
   phone                    String?
   avatar                   String?
   bio                      String?
+  profileType              String                  @default("FULL")
   createdAt                DateTime                @default(now())
   updatedAt                DateTime                @updatedAt
   aspirationalRoleId       String?
@@ -1288,8 +1289,8 @@ model Member {
   currentRoleId            String?
   previousRoles            Json?
   selfAssignedCompetencies Json?
-  enrollmentNumber         String?
-  employeeId               String?
+  enrollmentNumber         String?                 @unique
+  employeeId               String?                 @unique
   hasGraduated             Boolean                 @default(false)
   graduationDate           DateTime?               @db.Date
   facultyType              String?

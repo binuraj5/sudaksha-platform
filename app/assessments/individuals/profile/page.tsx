@@ -6,9 +6,7 @@ export default async function IndividualProfilePage() {
     const session = await getApiSession();
     if (!session) redirect("/assessments/login");
 
-    if (session.user.role !== "INDIVIDUAL") {
-        redirect("/assessments/login");
-    }
+    if (!session) redirect("/assessments/login");
 
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8">

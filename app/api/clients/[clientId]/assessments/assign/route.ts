@@ -1,6 +1,7 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getIneligibleMemberIds } from "@/lib/assessment-student-restrictions";
 
 export async function POST(
     req: NextRequest,
@@ -33,40 +34,101 @@ export async function POST(
         }
 
         if (targetType === "PROJECT") {
+            const { projectId, dueDate, isMandatory } = body;
             if (!projectId) return NextResponse.json({ error: "projectId required" }, { status: 400 });
-            const activity = await prisma.activity.findFirst({
-                where: { id: projectId, tenantId: clientId, type: 'PROJECT' }
+
+            // Assign to all users in project
+            const project = await prisma.activity.findUnique({
+                where: { id: projectId },
+                include: { members: true }
             });
-            if (!activity) {
-                return NextResponse.json({ error: "Project not found" }, { status: 404 });
+
+            if (!project) {
+                return NextResponse.json({ error: 'Project not found' }, { status: 404 });
             }
-            await prisma.activityAssessment.create({
+
+            const members = await prisma.member.findMany({
+                where: { id: { in: project.members.map(m => m.memberId) } },
+                select: { id: true, email: true, type: true, hasGraduated: true }
+            });
+
+            const ineligible = getIneligibleMemberIds(members as any[], model.targetLevel);
+            if (ineligible.length > 0) {
+                return NextResponse.json({ error: `Cannot assign ${model.targetLevel} assessment to ungraduated students in this project.` }, { status: 400 });
+            }
+
+            // Create project assignment
+            const assignment = await prisma.projectAssessmentModel.create({
                 data: {
-                    activityId: projectId,
-                    assessmentModelId: modelId,
+                    projectId,
+                    modelId,
                     assignedBy: assignerId,
+                    dueDate: dueDate ? new Date(dueDate) : null,
+                    isMandatory: isMandatory || false,
+                    assignmentLevel: 'PROJECT' as any
                 }
             });
-            return NextResponse.json({ success: true, message: "Assessment assigned to project" });
+
+            // Create user assessments for all project members
+            const users = await prisma.user.findMany({
+                where: { email: { in: members.map(m => m.email) } },
+                select: { id: true, email: true }
+            });
+
+            const emailToUserId = new Map(users.map(u => [u.email, u.id]));
+            const memberIdToUserId = new Map(members.map(m => [m.id, emailToUserId.get(m.email)]));
+
+            const userAssessments = await Promise.all(
+                project.members.map(async (activityMember) => {
+                    const userId = memberIdToUserId.get(activityMember.memberId);
+                    if (!userId) return null;
+
+                    return prisma.projectUserAssessment.create({
+                        data: {
+                            userId: userId,
+                            projectAssignmentId: assignment.id,
+                            status: 'DRAFT' as any
+                        }
+                    });
+                })
+            );
+
+            const successfulAssignments = userAssessments.filter(Boolean);
+
+            return NextResponse.json({
+                success: true,
+                message: `Assessment assigned to ${successfulAssignments.length} users in project`,
+                assignment,
+                userAssignments: successfulAssignments.length
+            });
         }
 
         if (targetType === "INDIVIDUAL") {
             if (!memberId) return NextResponse.json({ error: "memberId required" }, { status: 400 });
             const member = await prisma.member.findFirst({
-                where: { id: memberId, tenantId: clientId }
+                where: { id: memberId, tenantId: clientId },
+                select: { id: true, type: true, hasGraduated: true }
             });
             if (!member) {
                 return NextResponse.json({ error: "Member not found" }, { status: 404 });
             }
-            await prisma.memberAssessment.create({
+
+            const ineligible = getIneligibleMemberIds([member as any], model.targetLevel);
+            if (ineligible.length > 0) {
+                return NextResponse.json({ error: `Cannot assign ${model.targetLevel} assessment to ungraduated student.` }, { status: 400 });
+            }
+
+            // We need to fetch the full member record to generate the assignment
+            const assignment = await prisma.memberAssessment.create({
                 data: {
                     memberId,
                     assessmentModelId: modelId,
                     assignedBy: assignerId,
                     assignmentType: 'ASSIGNED',
+                    status: 'DRAFT' as any
                 }
             });
-            return NextResponse.json({ success: true, message: "Assessment assigned to individual" });
+            return NextResponse.json({ success: true, message: "Assessment assigned to individual", assignment });
         }
 
         return NextResponse.json({ error: "Invalid targetType" }, { status: 400 });

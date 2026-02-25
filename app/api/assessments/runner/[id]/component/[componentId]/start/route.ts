@@ -59,8 +59,8 @@ export async function POST(
         const maxScore = useRuntimeAI
             ? totalRuntimeQuestions * 10
             : isVoiceInterview || isVideoInterview || isAdaptiveAI || isPanelInterview
-              ? 100
-              : component.questions.reduce((sum, q) => sum + (q.points ?? 1), 0);
+                ? 100
+                : component.questions.reduce((sum, q) => sum + (q.points ?? 1), 0);
 
         // 1. Org flow: ProjectUserAssessment
         const projectAssessment = await prisma.projectUserAssessment.findFirst({
@@ -83,7 +83,7 @@ export async function POST(
                     componentId,
                     componentExists: !!component
                 });
-                
+
                 if (!componentId || !assessmentId) {
                     return NextResponse.json({ error: "Missing required fields for component creation" }, { status: 400 });
                 }
@@ -101,8 +101,8 @@ export async function POST(
                 } catch (createError: any) {
                     console.error("UserAssessmentComponent creation error:", createError);
                     if (createError.code === 'P2003') {
-                        return NextResponse.json({ 
-                            error: "Foreign key constraint violation. Ensure componentId and projectUserAssessmentId are valid.", 
+                        return NextResponse.json({
+                            error: "Foreign key constraint violation. Ensure componentId and projectUserAssessmentId are valid.",
                             details: { componentId, projectUserAssessmentId: assessmentId }
                         }, { status: 400 });
                     }
@@ -146,6 +146,8 @@ export async function POST(
                     adaptiveAssessmentId: assessmentId,
                     adaptiveComponentId: componentId,
                     adaptiveQuestionId: component.questions[0]?.id ?? null,
+                    adaptiveCompetencyId: (component as any).competencyId ?? "",
+                    adaptiveTargetLevel: (component as any).targetLevel ?? componentConfig?.targetLevel ?? "JUNIOR",
                 }),
                 ...(isPanelInterview && {
                     usePanelInterview: true,
@@ -232,7 +234,7 @@ export async function POST(
                         componentId,
                         componentExists: !!component
                     });
-                    
+
                     if (!componentId || !uam.id) {
                         return NextResponse.json({ error: "Missing required fields for component creation" }, { status: 400 });
                     }
@@ -250,8 +252,8 @@ export async function POST(
                     } catch (createError: any) {
                         console.error("UserAssessmentComponent creation error (member flow):", createError);
                         if (createError.code === 'P2003') {
-                            return NextResponse.json({ 
-                                error: "Foreign key constraint violation. Ensure componentId and userAssessmentModelId are valid.", 
+                            return NextResponse.json({
+                                error: "Foreign key constraint violation. Ensure componentId and userAssessmentModelId are valid.",
                                 details: { componentId, userAssessmentModelId: uam.id }
                             }, { status: 400 });
                         }

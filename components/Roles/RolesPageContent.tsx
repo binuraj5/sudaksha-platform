@@ -617,20 +617,20 @@ export function RejectionAlert({
     if (status !== "REJECTED" && status !== "CHANGES_REQUESTED") return null;
     const isRejected = status === "REJECTED";
     return (
-        <div className={`mt-1.5 flex flex-col gap-1 rounded-md border px-3 py-2 text-xs ${isRejected ? "border-red-200 bg-red-50 text-red-800" : "border-orange-200 bg-orange-50 text-orange-800"
+        <div className={`mt-2 flex flex-col gap-1.5 rounded-md border-l-4 px-4 py-3 text-sm shadow-sm ${isRejected ? "border-l-red-500 bg-red-50 text-red-900 border-y border-r border-red-100" : "border-l-orange-500 bg-orange-50 text-orange-900 border-y border-r border-orange-100"
             }`}>
-            <div className="flex items-center gap-1.5 font-semibold">
-                {isRejected ? <XCircle className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
-                {isRejected ? "Rejected by Super Admin" : "Changes Requested"}
+            <div className="flex items-center gap-2 font-bold">
+                {isRejected ? <XCircle className="w-4 h-4 text-red-600" /> : <AlertCircle className="w-4 h-4 text-orange-600" />}
+                {isRejected ? "Rejected" : "Changes Requested"}
             </div>
-            {reason && <p className="text-[11px] leading-snug opacity-80">&ldquo;{reason}&rdquo;</p>}
+            {reason && <p className="text-xs leading-relaxed opacity-90 italic">&ldquo;{reason}&rdquo;</p>}
             {onResubmit && (role._canSubmitGlobal || role._canEdit) && permissions.canSubmitForGlobal && (
                 <button
                     onClick={() => onResubmit(role)}
-                    className={`mt-0.5 inline-flex items-center gap-1 self-start rounded px-2 py-0.5 text-[11px] font-semibold hover:opacity-80 ${isRejected ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
+                    className={`mt-1 inline-flex items-center gap-1.5 self-start rounded px-2.5 py-1 text-xs font-semibold shadow-sm transition-colors ${isRejected ? "bg-red-100 text-red-700 hover:bg-red-200" : "bg-orange-100 text-orange-700 hover:bg-orange-200"
                         }`}
                 >
-                    <RefreshCw className="w-3 h-3" /> Resubmit
+                    <RefreshCw className="w-3.5 h-3.5" /> Resubmit
                 </button>
             )}
         </div>

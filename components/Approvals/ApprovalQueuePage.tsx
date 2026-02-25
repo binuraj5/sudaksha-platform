@@ -184,25 +184,43 @@ export function ApprovalQueuePage() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className="bg-amber-100 text-amber-700 border-none">Pending</Badge>
+                                            {(req as any).needsAssessmentModel ? (
+                                                <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">Needs Assessment Model</Badge>
+                                            ) : (
+                                                <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none">Pending Approval</Badge>
+                                            )}
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-green-600 hover:bg-green-700 h-8"
-                                                    onClick={() => openReview(req, "APPROVED")}
-                                                >
-                                                    <CheckCircle className="w-3 h-3 mr-1" /> Approve
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="destructive"
-                                                    className="h-8"
-                                                    onClick={() => openReview(req, "REJECTED")}
-                                                >
-                                                    <XCircle className="w-3 h-3 mr-1" /> Reject
-                                                </Button>
+                                                {(req as any).needsAssessmentModel ? (
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-blue-600 hover:bg-blue-700 text-white h-8"
+                                                        onClick={() => {
+                                                            window.location.href = `/assessments/admin/models/competency-builder?competencyId=${req.entityId}&requesterId=${req.requesterId || ""}`;
+                                                        }}
+                                                    >
+                                                        <BrainCircuit className="w-3 h-3 mr-1" /> Build Model
+                                                    </Button>
+                                                ) : (
+                                                    <>
+                                                        <Button
+                                                            size="sm"
+                                                            className="bg-green-600 hover:bg-green-700 h-8 text-white"
+                                                            onClick={() => openReview(req, "APPROVED")}
+                                                        >
+                                                            <CheckCircle className="w-3 h-3 mr-1" /> Approve
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            className="h-8"
+                                                            onClick={() => openReview(req, "REJECTED")}
+                                                        >
+                                                            <XCircle className="w-3 h-3 mr-1" /> Reject
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

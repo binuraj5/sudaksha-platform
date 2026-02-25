@@ -141,6 +141,24 @@ export async function POST(
                             skipDuplicates: true,
                         });
                     }
+
+                    // Auto-spawn ApprovalRequest for non-global, non-super-admin creations
+                    if (!isSuperAdmin && competencyScope !== 'GLOBAL' && tenantId) {
+                        try {
+                            await prisma.approvalRequest.create({
+                                data: {
+                                    tenantId,
+                                    type: 'COMPETENCY' as any,
+                                    entityId: competency.id,
+                                    status: 'PENDING' as any,
+                                    requesterId: u.id as string,
+                                    modificationNotes: `New competency "${competency.name}" submitted during bulk upload.`,
+                                },
+                            });
+                        } catch (e) {
+                            console.warn('Failed to create ApprovalRequest for bulk competency:', e);
+                        }
+                    }
                 }
 
                 // Check if already mapped

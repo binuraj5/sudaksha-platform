@@ -53,6 +53,8 @@ export async function GET(
             } else {
                 return NextResponse.json({ error: "No managed team assigned" }, { status: 403 });
             }
+        } else if (!['SUPER_ADMIN', 'TENANT_ADMIN', 'CLIENT_ADMIN'].includes(session.user.role as string)) {
+            return NextResponse.json({ error: "Not authorized to view departments" }, { status: 403 });
         }
 
         if (status === 'active') whereClause.isActive = true;
