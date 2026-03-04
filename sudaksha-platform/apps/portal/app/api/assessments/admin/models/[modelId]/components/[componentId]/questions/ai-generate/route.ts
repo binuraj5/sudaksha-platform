@@ -116,7 +116,15 @@ export async function POST(
         return NextResponse.json({ questions });
     } catch (error: unknown) {
         console.error("AI Generation API error:", error);
-        const message = error instanceof Error ? error.message : "Failed to generate questions via AI";
-        return NextResponse.json({ error: message }, { status: 500 });
+        const raw = error instanceof Error ? error.message : String(error);
+        // Detect quota/billing exhaustion across all providers
+        const isQuotaError = /quota|billing|insufficient_quota|credit balance|rate.limit/i.test(raw);
+        if (isQuotaError) {
+            return NextResponse.json({
+                error: "AI quota exceeded",
+                detail: "All configured AI providers have exhausted their quotas or credits. Please top up Gemini, OpenAI, or Anthropic API credits, or add an xAI / Perplexity API key to .env.",
+            }, { status: 503 });
+        }
+        return NextResponse.json({ error: raw }, { status: 500 });
     }
 }

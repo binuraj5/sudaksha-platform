@@ -24,7 +24,8 @@ export async function GET(
     try {
         const session = await getApiSession();
         const user = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" || user?.userType === "SUPER_ADMIN";
+        const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN", "INSTITUTION_ADMIN", "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD"];
+        const isAdmin = (user?.role ? ALLOWED_ROLES.includes(user.role) : false) || user?.userType === "SUPER_ADMIN";
         if (!session?.user || !isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }

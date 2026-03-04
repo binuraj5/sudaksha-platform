@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
-import { selectRelevantIndicators } from "@/lib/assessment/indicator-selection";
 import { ProficiencyLevel } from "@sudaksha/db-core";
 import { prismaAssessments } from "@sudaksha/db-assessments";
 
@@ -50,9 +49,11 @@ export async function POST(request: Request) {
         if (!resolvedTenantId && requesterId) {
             const requester = await prisma.user.findUnique({
                 where: { id: requesterId },
-                select: { clientId: true }
+                select: { clientId: true, tenantId: true }
             });
-            if (requester?.clientId) {
+            if (requester?.tenantId) {
+                resolvedTenantId = requester.tenantId;
+            } else if (requester?.clientId) {
                 resolvedTenantId = requester.clientId;
             }
         }
@@ -133,52 +134,35 @@ export async function POST(request: Request) {
             }
         }
 
-        const result = await prisma.$transaction(async (tx) => {
-            const model = await tx.assessmentModel.create({
-                data: {
-                    name: String(name).trim(),
-                    slug: nextCode.toLowerCase(),
-                    description: description ? String(description).trim() : "",
-                    sourceType: "ROLE_BASED",
-                    roleId,
-                    targetLevel: targetLevel as ProficiencyLevel,
-                    tenantId: resolvedTenantId,
-                    createdBy: userId,
-                    code: nextCode,
-                    status: "DRAFT",
-                    metadata: requesterId ? { autoAssignToMemberId: requesterId } : undefined,
+        // Build competency weights map to persist in metadata (used by builder SUGGEST step)
+        const resolvedWeights: Record<string, number> = {};
+        for (const rc of competenciesToUse) {
+            const rawWeight = competencyWeights?.[rc.competencyId] ?? rc.weight;
+            resolvedWeights[rc.competencyId] =
+                typeof rawWeight === "number" && !Number.isNaN(rawWeight)
+                    ? Math.max(0, Math.min(100, rawWeight))
+                    : 1;
+        }
+
+        // Create the model shell only — components are created by the Assessment Builder
+        // after the admin selects component types in the Component Suggestions step.
+        const result = await prisma.assessmentModel.create({
+            data: {
+                name: String(name).trim(),
+                slug: nextCode.toLowerCase(),
+                description: description ? String(description).trim() : "",
+                sourceType: "ROLE_BASED",
+                roleId,
+                targetLevel: targetLevel as ProficiencyLevel,
+                tenantId: resolvedTenantId,
+                createdBy: userId,
+                code: nextCode,
+                status: "DRAFT",
+                metadata: {
+                    ...(requesterId ? { autoAssignToMemberId: requesterId } : {}),
+                    competencyWeights: resolvedWeights,
                 },
-            });
-
-            let order = 0;
-            for (const rc of competenciesToUse) {
-                const selectedIndicators = await selectRelevantIndicators(
-                    rc.competencyId,
-                    targetLevel as ProficiencyLevel
-                );
-                const indicatorIds = selectedIndicators.map((i) => i.id);
-
-                const rawWeight = competencyWeights?.[rc.competencyId] ?? rc.weight;
-                const weight =
-                    typeof rawWeight === "number" && !Number.isNaN(rawWeight)
-                        ? Math.max(0, Math.min(100, rawWeight))
-                        : 1;
-
-                await tx.assessmentModelComponent.create({
-                    data: {
-                        modelId: model.id,
-                        competencyId: rc.competencyId,
-                        weight,
-                        targetLevel: targetLevel as ProficiencyLevel,
-                        indicatorIds,
-                        order: order++,
-                        isRequired: true,
-                        isTimed: true,
-                    },
-                });
-            }
-
-            return model;
+            },
         });
 
         if (requestId) {

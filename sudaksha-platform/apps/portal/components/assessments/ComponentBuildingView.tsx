@@ -130,7 +130,8 @@ export function ComponentBuildingView({
         // Refetch components so newly added components (e.g. VOICE) are available
         fetch(`/api/assessments/admin/models/${modelId}/components`)
             .then((r) => r.ok ? r.json() : [])
-            .then((data) => Array.isArray(data) && setComponents(data));
+            .then((data) => Array.isArray(data) && setComponents(data))
+            .catch(() => {/* refetch failed — state stays as-is */});
     };
 
     const closeDialog = () => {

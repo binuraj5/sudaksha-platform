@@ -110,6 +110,7 @@ export async function POST(
                     description,
                     overallLevel: overallLevel || 'JUNIOR',
                     visibility: 'TENANT_SPECIFIC',
+                    scope: 'ORGANIZATION',
                     status: (submitForApproval ? 'PENDING' : 'DRAFT') as any,
                     competencies: {
                         create: (competencyIds || []).map((id: string) => ({

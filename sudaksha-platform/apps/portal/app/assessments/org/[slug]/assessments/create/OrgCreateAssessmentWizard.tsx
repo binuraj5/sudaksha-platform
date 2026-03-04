@@ -226,7 +226,7 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
             if (res.ok) {
                 const model = await res.json();
                 toast.success("Assessment created successfully");
-                router.push(`/assessments/org/${slug}/assessments/${model.id}/questions`);
+                router.push(`/assessments/org/${slug}/assessments/${model.id}/builder`);
             } else {
                 const err = await res.json().catch(() => ({}));
                 toast.error(err.details || err.error || "Failed to create assessment");

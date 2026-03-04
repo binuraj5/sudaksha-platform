@@ -13,9 +13,13 @@ export async function POST(
         const session = await getApiSession();
         const { componentId } = await params;
 
-        const u = session?.user as { role?: string; userType?: string } | undefined;
-        const isAdmin = u?.role === "ADMIN" || u?.role === "SUPER_ADMIN" || u?.userType === "SUPER_ADMIN";
-        if (!session?.user || !isAdmin) {
+        if (!session?.user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        const u = session.user as { role?: string; userType?: string; tenantId?: string; clientId?: string };
+        const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN", "TENANT_ADMIN", "CLIENT_ADMIN", "INSTITUTION_ADMIN", "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD"];
+        const isAdmin = (u.role ? ALLOWED_ROLES.includes(u.role) : false) || u.userType === "SUPER_ADMIN";
+        if (!isAdmin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -75,8 +79,14 @@ export async function POST(
 
     } catch (error: any) {
         console.error("AI Generation API error:", error);
-        return NextResponse.json({
-            error: error.message || "Failed to generate questions via AI"
-        }, { status: 500 });
+        const raw: string = error.message || "Failed to generate questions via AI";
+        const isQuotaError = /quota|billing|insufficient_quota|credit balance|rate.limit/i.test(raw);
+        if (isQuotaError) {
+            return NextResponse.json({
+                error: "AI quota exceeded",
+                detail: "All configured AI providers have exhausted their quotas or credits. Please top up Gemini, OpenAI, or Anthropic API credits, or add an xAI / Perplexity API key to .env.",
+            }, { status: 503 });
+        }
+        return NextResponse.json({ error: raw }, { status: 500 });
     }
 }

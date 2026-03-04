@@ -85,6 +85,18 @@ async function callGemini(messages: Array<{ role: string, content: string }>) {
         });
     }
 
+    // Third fallback: gemini-1.5-flash (separate free-tier quota)
+    if (!response.ok) {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: context }] }],
+                generationConfig: { maxOutputTokens: 4000 }
+            }),
+        });
+    }
+
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error?.message || `Gemini API error: ${response.status}`);
@@ -116,7 +128,7 @@ async function callAnthropic(messages: Array<{ role: string, content: string }>)
             'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20240620',
+            model: 'claude-haiku-4-5-20251001',
             max_tokens: 4096,
             system: system,
             messages: filteredMessages.map(m => ({

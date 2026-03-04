@@ -74,7 +74,7 @@ export async function POST(
                 {
                     id: u.id,
                     role: userRole,
-                    tenantId: u.tenantId || "",
+                    tenantId: u.tenantId || u.clientId || "",
                     tenantType: u.tenantType || "CORPORATE",
                     departmentId: u.departmentId,
                     teamId: u.teamId,
@@ -94,16 +94,17 @@ export async function POST(
         }
 
         // Determine scope for competency creation
+        const resolvedTenantId = u.tenantId || u.clientId || null;
         const permissions = getRoleCompetencyPermissions({
             id: u.id,
             role: userRole,
-            tenantId: u.tenantId || null,
+            tenantId: resolvedTenantId,
             tenantType: u.tenantType || null,
             departmentId: u.departmentId || null,
             teamId: u.teamId || null,
         });
         const competencyScope = permissions.creatableScope || "ORGANIZATION";
-        const tenantId = u.tenantId || null;
+        const tenantId = resolvedTenantId;
 
         const items: BulkCompetencyItem[] = await request.json();
 
@@ -131,12 +132,13 @@ export async function POST(
             }
 
             try {
-                // Find or create the competency (tenant-scoped if not super admin)
+                // Find or create the competency.
+                // Competency.name has a global @unique constraint so only one record
+                // with any given name can exist across ALL tenants. Search by name only.
                 let competency = await prisma.competency.findFirst({
                     where: {
                         name: { equals: item.name, mode: "insensitive" },
-                        ...(isSuperAdmin ? {} : { OR: [{ tenantId }, { tenantId: null, scope: "GLOBAL" }] }),
-                    } as any,
+                    },
                 });
 
                 let competencyCreated = false;

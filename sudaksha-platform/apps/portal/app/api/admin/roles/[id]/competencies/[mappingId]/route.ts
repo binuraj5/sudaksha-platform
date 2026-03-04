@@ -38,7 +38,7 @@ export async function PATCH(
 
         if (!isSuperAdmin) {
             const canModify = canUserModifyRole(
-                { id: u.id, role: userRole, tenantId: u.tenantId || "", tenantType: "CORPORATE", departmentId: u.departmentId, teamId: u.teamId, classId: u.classId },
+                { id: u.id, role: userRole, tenantId: u.tenantId || u.clientId || "", tenantType: "CORPORATE", departmentId: u.departmentId, teamId: u.teamId, classId: u.classId },
                 { scope: (role as any).scope, tenantId: role.tenantId ?? undefined, departmentId: (role as any).departmentId ?? undefined, teamId: (role as any).teamId ?? undefined, createdByUserId: (role as any).createdByUserId ?? undefined }
             );
             if (!canModify) {
@@ -96,7 +96,7 @@ export async function DELETE(
 
         if (!isSuperAdmin) {
             const canModify = canUserModifyRole(
-                { id: u.id, role: userRole, tenantId: u.tenantId || "", tenantType: "CORPORATE", departmentId: u.departmentId, teamId: u.teamId, classId: u.classId },
+                { id: u.id, role: userRole, tenantId: u.tenantId || u.clientId || "", tenantType: "CORPORATE", departmentId: u.departmentId, teamId: u.teamId, classId: u.classId },
                 { scope: (role as any).scope, tenantId: role.tenantId ?? undefined, departmentId: (role as any).departmentId ?? undefined, teamId: (role as any).teamId ?? undefined, createdByUserId: (role as any).createdByUserId ?? undefined }
             );
             if (!canModify) {

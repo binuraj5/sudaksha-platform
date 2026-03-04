@@ -206,7 +206,7 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
             if (res.ok) {
                 const model = await res.json();
                 toast.success("Assessment created successfully!");
-                router.push(`${redirectBase}/${model.id}/questions`);
+                router.push(`${redirectBase}/${model.id}/builder`);
             } else {
                 const err = await res.json().catch(() => ({}));
                 toast.error(err.error || "Failed to create assessment");

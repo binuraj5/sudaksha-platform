@@ -70,7 +70,11 @@ export function CreateCompetencyDialog({
                 body: JSON.stringify(values),
             });
 
-            if (!response.ok) throw new Error("Failed to create competency");
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                toast.error(err.error || "Failed to create competency");
+                return;
+            }
 
             toast.success("Competency created successfully");
             setOpen(false);

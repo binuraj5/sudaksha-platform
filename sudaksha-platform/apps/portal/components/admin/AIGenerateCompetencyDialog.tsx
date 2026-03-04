@@ -80,7 +80,11 @@ export function AIGenerateCompetencyDialog() {
                 }),
             });
 
-            if (!compRes.ok) throw new Error("Failed to create competency");
+            if (!compRes.ok) {
+                const err = await compRes.json().catch(() => ({}));
+                toast.error(err.error || "Failed to create competency");
+                return;
+            }
             const newComp = await compRes.json();
 
             // 2. Save Indicators

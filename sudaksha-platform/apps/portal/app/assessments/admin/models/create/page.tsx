@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
     ArrowRight,
@@ -56,7 +57,9 @@ const WIZARD_WEIGHTS_KEY = "assessment-wizard-competency-weights";
 export default function CreateAssessmentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { data: session } = useSession();
     const permissions = useRoleCompetencyPermissions();
+    const userRole = (session?.user as any)?.role ?? "EMPLOYEE";
     const [step, setStep] = useState<Step>(0);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -197,7 +200,7 @@ export default function CreateAssessmentPage() {
             if (res.ok) {
                 const model = await res.json();
                 toast.success("Assessment created");
-                router.push(`/assessments/admin/models/${model.id}/questions`);
+                router.push(`/assessments/admin/models/${model.id}/builder`);
             } else {
                 const err = await res.json().catch(() => ({}));
                 toast.error(err.details || err.error || "Failed to create");
@@ -283,7 +286,7 @@ export default function CreateAssessmentPage() {
 
             {step === 0 && (
                 <AssessmentTypeSelector
-                    userRole="SUPER_ADMIN"
+                    userRole={userRole}
                     onSelect={(type) => {
                         if (type === 'role') setStep(1);
                         if (type === 'competency') router.push("/assessments/admin/models/competency-builder");

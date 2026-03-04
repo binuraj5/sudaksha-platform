@@ -33,7 +33,7 @@ export async function GET(
 
         if (!isSuperAdmin) {
             const isSameTenant = (model.tenantId === userTenantId) || (model.clientId === userTenantId);
-            if (!isSameTenant && user.role !== "MEMBER") {
+            if (!isSameTenant) {
                 return NextResponse.json({ error: "Outside organization hierarchy" }, { status: 403 });
             }
         }

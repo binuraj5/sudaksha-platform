@@ -286,21 +286,25 @@ export function canUserModifyRole(
   const r = normalizeUserRole(user.role as string);
   if (r === 'SUPER_ADMIN') return true;
 
-  // Global roles: only Super Admin
-  if (role.scope === 'GLOBAL') return false;
+  // Roles with a tenantId are org-specific even if the scope field defaults to 'GLOBAL'.
+  // Map them to ORGANIZATION scope for the permission checks below.
+  const effectiveScope: Scope = (role.scope === 'GLOBAL' && role.tenantId) ? 'ORGANIZATION' : role.scope;
+
+  // Truly global roles (no tenantId): only Super Admin can modify
+  if (effectiveScope === 'GLOBAL') return false;
 
   // Must be in same tenant
   if (role.tenantId !== user.tenantId) return false;
 
   // Org scope: Tenant Admin or CLIENT_ADMIN can modify
-  if (role.scope === 'ORGANIZATION') {
+  if (effectiveScope === 'ORGANIZATION') {
     return ['TENANT_ADMIN', 'INSTITUTION_ADMIN', 'CLIENT_ADMIN'].includes(r) ||
       // Also allow the role creator
       (role.tenantId === user.tenantId && role.createdByUserId === user.id);
   }
 
   // Dept scope: Dept head or above in same dept
-  if (role.scope === 'DEPARTMENT') {
+  if (effectiveScope === 'DEPARTMENT') {
     const isDeptHead = ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST'].includes(r);
     const isTenantAdmin = ['TENANT_ADMIN', 'INSTITUTION_ADMIN', 'CLIENT_ADMIN'].includes(r);
     return (isTenantAdmin) ||
@@ -308,14 +312,14 @@ export function canUserModifyRole(
   }
 
   // Team scope (Corporate): Team leader who created it, or dept head above
-  if (role.scope === 'TEAM') {
+  if (effectiveScope === 'TEAM') {
     return role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',
         'TENANT_ADMIN', 'INSTITUTION_ADMIN', 'CLIENT_ADMIN'].includes(r);
   }
 
   // Class scope (Institution): Class Teacher for same class (teamId = class id), or above
-  if (role.scope === 'CLASS') {
+  if (effectiveScope === 'CLASS') {
     const isSameClass = user.classId != null && role.teamId === user.classId;
     return (r === 'CLASS_TEACHER' && isSameClass) || role.createdByUserId === user.id ||
       ['DEPARTMENT_HEAD', 'DEPT_HEAD_INST',

@@ -76,7 +76,7 @@ export function GenerateAssessmentDialog({ roleId, roleName, defaultOpen = false
             const model = await res.json();
             toast.success(`Assessment "${model.name}" created successfully!`);
             setOpen(false);
-            router.push(`/assessments/admin/models/${model.id}/questions`);
+            router.push(`/assessments/admin/models/${model.id}/builder`);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to create assessment");
         } finally {

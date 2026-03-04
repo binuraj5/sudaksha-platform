@@ -4,7 +4,7 @@ import { prismaAssessments } from "@sudaksha/db-assessments";
 import { getApiSession } from "@/lib/get-session";
 import { normalizeUserRole } from "@/lib/permissions/role-competency-permissions";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const session = await getApiSession();
     const u = session?.user as any;
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     try {
-        const requestId = params.id;
+        const { id: requestId } = await params;
         if (!requestId) {
             return NextResponse.json({ error: "Missing request ID" }, { status: 400 });
         }
@@ -105,6 +105,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             activeModels.find(m => m.status === "DRAFT" && m.roleId === roleIdToMatch) ||
             activeModels[0];
 
+        // Guard: model must have components (questions) before it can be assigned.
+        // If the model exists but was never built, redirect to builder instead.
+        if (!bestFit.components || bestFit.components.length === 0) {
+            return NextResponse.json({
+                error: "NO_MODEL_EXISTS",
+                message: "The assessment model has no components. Please build it in the Assessment Builder first.",
+                modelId: bestFit.id,
+            }, { status: 404 });
+        }
+
         // Branch B: The Atomic Publish-and-Assign
         await prisma.$transaction(async (tx) => {
             // 1. If the best-fit model is DRAFT, publish it
@@ -122,9 +132,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
                 data: {
                     memberId: member.id,
                     assessmentModelId: bestFit.id,
-                    status: "ASSIGNED",
-                    assignedByRoles: [role],
-                    progress: 0,
+                    status: "ACTIVE",
+                    assignmentType: "ASSIGNED",
+                    assignedBy: u.id,
+                    completionPercentage: 0,
                 }
             });
         });
@@ -132,7 +143,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         // 3. Mark request as APPROVED traversing db boundaries (db-assessments)
         await prismaAssessments.approvalRequest.update({
             where: { id: requestId },
-            data: { status: "APPROVED", reviewerId: u.id },
+            data: { status: "APPROVED", reviewerId: u.id, reviewedAt: new Date() },
         });
 
         return NextResponse.json({
