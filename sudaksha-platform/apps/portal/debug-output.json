@@ -1,0 +1,425 @@
+{
+  "modelId": "cmma528fy0005x64ka66jbxfz",
+  "metadata": {
+    "autoAssignToMemberId": "cmlrqwyad0003ma5we8ptz1d6"
+  },
+  "assignedToValue": "cmlrqwyad0003ma5we8ptz1d6",
+  "modelTenantId": "cmlrqwy6y0000ma5w8q7h0sey",
+  "approvalRequest": null,
+  "foundDirectUser": {
+    "id": "cmlrqwyad0003ma5we8ptz1d6",
+    "email": "Peter.mndeme@tra.go.tz",
+    "password": "$2b$10$rw6n5Es7vH7kKMrTj3L50eCZFPkK9/c4xwXNnd5L6O64LiWyzcS5S",
+    "name": "Peter Zawadiel Mndeme",
+    "role": "CLIENT_ADMIN",
+    "clientId": "cmlrqwy880001ma5wt9tneco8",
+    "employeeId": null,
+    "department": null,
+    "departmentId": null,
+    "projectId": null,
+    "accountType": "CLIENT_ADMIN",
+    "isActive": true,
+    "emailVerified": null,
+    "createdAt": "2026-02-18T08:03:53.341Z",
+    "updatedAt": "2026-02-26T05:57:40.553Z",
+    "assignedRoleId": null,
+    "failedAttempts": 0,
+    "lockoutUntil": null,
+    "userType": "TENANT"
+  },
+  "foundMemberUsingTenantIdDirect": {
+    "id": "cmlrqwyb00005ma5ww3800m3w",
+    "tenantId": "cmlrqwy6y0000ma5w8q7h0sey",
+    "type": "EMPLOYEE",
+    "role": "TENANT_ADMIN",
+    "email": "Peter.mndeme@tra.go.tz",
+    "password": "$2b$10$a5.MmH9C1KwmHIIm8rPfV.PTquGQaqzOtA0NVDvaRwZZoUMBtdTWa",
+    "name": "Peter Zawadiel Mndeme",
+    "externalId": null,
+    "orgUnitId": null,
+    "isActive": true,
+    "emailVerified": null,
+    "phone": "",
+    "avatar": null,
+    "bio": "",
+    "profileType": "FULL",
+    "createdAt": "2026-02-18T08:03:53.383Z",
+    "updatedAt": "2026-03-02T07:34:35.964Z",
+    "aspirationalRoleId": "cmm5xpmwf000511gsdvkwlws3",
+    "careerFormData": {
+      "goals": "",
+      "awards": [],
+      "skills": [],
+      "projects": [],
+      "education": [],
+      "languages": [],
+      "experience": [],
+      "certifications": [],
+      "selfAssessment": {
+        "vision": "",
+        "strengths": [
+          "Problem solving",
+          "Collaboration",
+          "Mentoring others",
+          "Domain knowledge",
+          "Stakeholder management",
+          "Analytical thinking"
+        ],
+        "motivation": "balance",
+        "areasToImprove": [
+          "Change management",
+          "Influence without authority",
+          "Conflict resolution",
+          "Presentation skills",
+          "Delegation"
+        ],
+        "motivationOther": "",
+        "performanceRating": "3"
+      },
+      "aspirationalTech": [
+        {
+          "id": "cmlqgb58f001zmad0ofrjrybc",
+          "name": "Interview Coordination & Logistics",
+          "level": 5
+        },
+        {
+          "id": "cmlvz72mh001nmahgjtmflr8v",
+          "name": "Process Modeling Notation",
+          "level": 4
+        },
+        {
+          "id": "cmlvz72ik000fmahg3ngzcdzf",
+          "name": "System Design Principles",
+          "level": 4
+        },
+        {
+          "id": "cmlqp44hi0038maesf6j4mv8i",
+          "name": "Vendor and Tool Management",
+          "level": 4
+        },
+        {
+          "id": "cmlqp44fs002pmaescv1frlub",
+          "name": "Talent Analytics and Insights",
+          "level": 4
+        },
+        {
+          "id": "cmlv9s9ap001bmacknk964rbj",
+          "name": "Solution Design",
+          "level": 3
+        },
+        {
+          "id": "cmlt9eemz007yma20z2m7ncgz",
+          "name": "Lead Generation",
+          "level": 3
+        },
+        {
+          "id": "cmlqgb5fx002ymad00lp5q0rl",
+          "name": "Applicant Tracking System (ATS) Management",
+          "level": 4
+        }
+      ],
+      "responsibilities": "Complete recruitment responisbilities here",
+      "techCompetencies": [],
+      "aspirationalBehav": [
+        {
+          "id": "cmlqgb5mr003xmad0rrogzv25",
+          "name": "Communication & Interpersonal Skills",
+          "level": 4
+        },
+        {
+          "id": "cmlt9egt2009wma20q6wo8jnn",
+          "name": "Customer Relationship Management",
+          "level": 4
+        },
+        {
+          "id": "cmlv9s96n0003macki1i7j4r2",
+          "name": "Stakeholder Communication",
+          "level": 4
+        },
+        {
+          "id": "cmlqp447o001nmaes0lqaca7i",
+          "name": "Team Leadership and Development",
+          "level": 2
+        },
+        {
+          "id": "cmlqp44du0026maes69dsre3r",
+          "name": "Stakeholder Relationship Management",
+          "level": 2
+        },
+        {
+          "id": "cmlt9efjd008xma202ycwjpjd",
+          "name": "Negotiation and Closing",
+          "level": 2
+        },
+        {
+          "id": "cmlt9eeaw006zma2064gbbukn",
+          "name": "Communication Skills",
+          "level": 2
+        }
+      ],
+      "behavCompetencies": [],
+      "learningPreferences": {
+        "other": "",
+        "selected": [
+          "Workshops / bootcamps",
+          "Classroom / instructor-led",
+          "Mentoring / coaching"
+        ]
+      },
+      "selfAssessmentScores": [
+        {
+          "name": "Stakeholder Engagement & Influence",
+          "note": "",
+          "rating": 3,
+          "category": "BEHAVIORAL",
+          "competencyId": "cmm5wreov001rmu4enqpox6wh"
+        },
+        {
+          "name": "Business Process Architecture",
+          "note": "",
+          "rating": 4,
+          "category": "TECHNICAL",
+          "competencyId": "cmm5wrelr000jmu4eas6j8ow4"
+        },
+        {
+          "name": "Innovation & Solution Design",
+          "note": "",
+          "rating": 3,
+          "category": "BEHAVIORAL",
+          "competencyId": "cmm5wrepu002zmu4eblu9ohaf"
+        },
+        {
+          "name": "Data-Driven Analysis",
+          "note": "",
+          "rating": 3,
+          "category": "BEHAVIORAL",
+          "competencyId": "cmm5wreqm0047mu4ev465rfll"
+        },
+        {
+          "name": "Strategic Technology Planning",
+          "note": "",
+          "rating": 5,
+          "category": "DOMAIN_SPECIFIC",
+          "competencyId": "cmm5xpmy1000711gsvjou8eiy"
+        },
+        {
+          "name": "Financial Acumen & ROI Justification",
+          "note": "",
+          "rating": 4,
+          "category": "COGNITIVE",
+          "competencyId": "cmm5xpmyl000b11gsuqegob5t"
+        },
+        {
+          "name": "ICT Governance & Policy Development",
+          "note": "",
+          "rating": 2,
+          "category": "DOMAIN_SPECIFIC",
+          "competencyId": "cmm5xpmyu000f11gs54o1e85b"
+        },
+        {
+          "name": "Vendor & Contract Management",
+          "note": "",
+          "rating": 5,
+          "category": "TECHNICAL",
+          "competencyId": "cmm5xpmz2000j11gs1209uty2"
+        },
+        {
+          "name": "Cross-Functional Collaboration & Influence",
+          "note": "",
+          "rating": 5,
+          "category": "BEHAVIORAL",
+          "competencyId": "cmm5xpmza000n11gss5307jeh"
+        },
+        {
+          "name": "Talent Development & Mentorship",
+          "note": "",
+          "rating": 4,
+          "category": "BEHAVIORAL",
+          "competencyId": "cmm5xpmzo000r11gskx9imzaz"
+        }
+      ],
+      "additionalResponsibilities": "Complete recruitment responisbilities here",
+      "aspirationalAdditionalResponsibilities": ""
+    },
+    "currentRoleId": "cmm5vqs2t0005mu4ed5rdm27j",
+    "previousRoles": null,
+    "selfAssignedCompetencies": [
+      "cmm5xpmyb000911gszy1glzit",
+      "cmm5xpmyp000d11gsv25i2b0l",
+      "cmm5xpmyw000h11gshkw4v9yl",
+      "cmm5xpmz5000l11gsf6nstxc1",
+      "cmm5xpmzi000p11gsjibpu7qb",
+      "cmm5xpmzr000t11gswmjzbznj"
+    ],
+    "enrollmentNumber": null,
+    "employeeId": null,
+    "hasGraduated": false,
+    "graduationDate": null,
+    "facultyType": null,
+    "designation": null,
+    "developmentPlan": {
+      "gaps": [
+        {
+          "name": "Strategic Talent Sourcing",
+          "actions": [
+            {
+              "type": "LEARNING",
+              "title": "Comprehensive Course: Strategic Talent Sourcing",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Enroll in a structured course targeting MIDDLE level proficiency in Strategic Talent Sourcing. Focus on core concepts and advanced patterns."
+            },
+            {
+              "type": "PRACTICE",
+              "title": "Practical Application: Strategic Talent Sourcing",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Implement Strategic Talent Sourcing in a real-world project or sandbox environment. Aim to complete at least 2 significant tasks requiring MIDDLE skills."
+            }
+          ],
+          "priority": "MEDIUM",
+          "targetLevel": "MIDDLE",
+          "competencyId": "cmlqp441o0014maesadrgh90r",
+          "currentLevel": "NONE"
+        },
+        {
+          "name": "Team Leadership and Development",
+          "actions": [
+            {
+              "type": "LEARNING",
+              "title": "Comprehensive Course: Team Leadership and Development",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Enroll in a structured course targeting MIDDLE level proficiency in Team Leadership and Development. Focus on core concepts and advanced patterns."
+            },
+            {
+              "type": "PRACTICE",
+              "title": "Practical Application: Team Leadership and Development",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Implement Team Leadership and Development in a real-world project or sandbox environment. Aim to complete at least 2 significant tasks requiring MIDDLE skills."
+            }
+          ],
+          "priority": "MEDIUM",
+          "targetLevel": "MIDDLE",
+          "competencyId": "cmlqp447o001nmaes0lqaca7i",
+          "currentLevel": "NONE"
+        },
+        {
+          "name": "Stakeholder Relationship Management",
+          "actions": [
+            {
+              "type": "LEARNING",
+              "title": "Comprehensive Course: Stakeholder Relationship Management",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Enroll in a structured course targeting MIDDLE level proficiency in Stakeholder Relationship Management. Focus on core concepts and advanced patterns."
+            },
+            {
+              "type": "PRACTICE",
+              "title": "Practical Application: Stakeholder Relationship Management",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Implement Stakeholder Relationship Management in a real-world project or sandbox environment. Aim to complete at least 2 significant tasks requiring MIDDLE skills."
+            }
+          ],
+          "priority": "MEDIUM",
+          "targetLevel": "MIDDLE",
+          "competencyId": "cmlqp44du0026maes69dsre3r",
+          "currentLevel": "NONE"
+        },
+        {
+          "name": "Talent Analytics and Insights",
+          "actions": [
+            {
+              "type": "LEARNING",
+              "title": "Comprehensive Course: Talent Analytics and Insights",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Enroll in a structured course targeting MIDDLE level proficiency in Talent Analytics and Insights. Focus on core concepts and advanced patterns."
+            },
+            {
+              "type": "PRACTICE",
+              "title": "Practical Application: Talent Analytics and Insights",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Implement Talent Analytics and Insights in a real-world project or sandbox environment. Aim to complete at least 2 significant tasks requiring MIDDLE skills."
+            }
+          ],
+          "priority": "MEDIUM",
+          "targetLevel": "MIDDLE",
+          "competencyId": "cmlqp44fs002pmaescv1frlub",
+          "currentLevel": "NONE"
+        },
+        {
+          "name": "Vendor and Tool Management",
+          "actions": [
+            {
+              "type": "LEARNING",
+              "title": "Comprehensive Course: Vendor and Tool Management",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Enroll in a structured course targeting MIDDLE level proficiency in Vendor and Tool Management. Focus on core concepts and advanced patterns."
+            },
+            {
+              "type": "PRACTICE",
+              "title": "Practical Application: Vendor and Tool Management",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Implement Vendor and Tool Management in a real-world project or sandbox environment. Aim to complete at least 2 significant tasks requiring MIDDLE skills."
+            }
+          ],
+          "priority": "MEDIUM",
+          "targetLevel": "MIDDLE",
+          "competencyId": "cmlqp44hi0038maesf6j4mv8i",
+          "currentLevel": "NONE"
+        },
+        {
+          "name": "Employer Branding and Candidate Experience",
+          "actions": [
+            {
+              "type": "LEARNING",
+              "title": "Comprehensive Course: Employer Branding and Candidate Experience",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Enroll in a structured course targeting MIDDLE level proficiency in Employer Branding and Candidate Experience. Focus on core concepts and advanced patterns."
+            },
+            {
+              "type": "PRACTICE",
+              "title": "Practical Application: Employer Branding and Candidate Experience",
+              "status": "NOT_STARTED",
+              "priority": "MEDIUM",
+              "description": "Implement Employer Branding and Candidate Experience in a real-world project or sandbox environment. Aim to complete at least 2 significant tasks requiring MIDDLE skills."
+            }
+          ],
+          "priority": "MEDIUM",
+          "targetLevel": "MIDDLE",
+          "competencyId": "cmlqp44it003rmaeshiv79hh6",
+          "currentLevel": "NONE"
+        }
+      ],
+      "memberId": "cmlrqwyb00005ma5ww3800m3w",
+      "generatedAt": "2026-02-27T09:52:10.741Z",
+      "aspirationalRoleId": "cmlqp440r0013maesfz1b0i3i",
+      "aspirationalRoleName": "Talent Acquisition - Manager"
+    },
+    "firstName": null,
+    "invitationAcceptedAt": null,
+    "invitationSentAt": null,
+    "invitationToken": null,
+    "joiningDate": null,
+    "lastName": null,
+    "memberCode": null,
+    "metadata": null,
+    "reportingToId": null,
+    "status": "ACTIVE"
+  },
+  "allMembersForThisEmailDirect": [
+    {
+      "id": "cmlrqwyb00005ma5ww3800m3w",
+      "tenantId": "cmlrqwy6y0000ma5w8q7h0sey",
+      "type": "EMPLOYEE"
+    }
+  ],
+  "recentMA": []
+}

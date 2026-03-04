@@ -1,0 +1,5 @@
+question_text,question_type,option_1,option_2,option_3,option_4,option_5,option_6,correct_answer,points,time_limit_seconds,indicator_ids,explanation
+"What is polymorphism in Java?",MULTIPLE_CHOICE,"Method overloading","Method overriding","Both A and B","None",,,3,2,120,"ind-123","Polymorphism includes both compile-time and runtime"
+"Is Java platform independent?",TRUE_FALSE,,,,,,,true,1,60,"ind-789","Java bytecode runs on JVM"
+"Describe the benefits of microservices.",ESSAY,,,,,,,Multiple benefits including scalability and independence,5,300,"ind-456",""
+"Write a function to sum two numbers.",FILL_IN_BLANK,,,,,,,"return a + b",3,120,"ind-000","Basic function syntax"

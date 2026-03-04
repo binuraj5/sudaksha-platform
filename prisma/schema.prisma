@@ -1030,6 +1030,7 @@ model ProjectUserAssessment {
   reviewedBy           String?
   reviewedAt           DateTime?
   managerComments      String?
+  metadata             Json?
   createdAt            DateTime                  @default(now())
   updatedAt            DateTime                  @updatedAt
   projectAssignment    ProjectAssessmentModel    @relation(fields: [projectAssignmentId], references: [id], onDelete: Cascade)

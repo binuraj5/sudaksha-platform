@@ -1,0 +1,110 @@
+import { getApiSession } from "@/lib/get-session";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(
+    request: Request,
+    { params }: { params: Promise<{ componentId: string }> }
+) {
+    try {
+        const session = await getApiSession();
+        if (!session?.user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const user = session.user as any;
+        const userContext = {
+            id: user.id,
+            role: user.role,
+            tenantId: user.tenantId || user.clientId,
+            tenantType: (user.tenant?.type as any) || "CORPORATE",
+            departmentId: user.departmentId,
+            teamId: user.teamId,
+            classId: user.classId,
+        };
+
+        const { getRoleCompetencyPermissions } = await import("@/lib/permissions/role-competency-permissions");
+        const permissions = getRoleCompetencyPermissions(userContext);
+
+        if (!permissions.canCreate && !permissions.canEditOrg) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+        }
+
+        const { componentId } = await params;
+
+        const body = await request.json();
+        const { questions } = body;
+
+        if (!questions || !Array.isArray(questions)) {
+            return NextResponse.json({ error: "Invalid questions format" }, { status: 400 });
+        }
+
+        const component = await prisma.assessmentModelComponent.findUnique({
+            where: { id: componentId },
+            include: { model: true }
+        });
+
+        if (!component) {
+            return NextResponse.json({ error: "Component not found" }, { status: 404 });
+        }
+
+        if (component.model.status === "PUBLISHED") {
+            return NextResponse.json({ error: "Cannot modify a published assessment model" }, { status: 403 });
+        }
+
+        // Add componentId to each question and ensure type consistency
+        const formattedQuestions = questions.map((q, idx) => ({
+            componentId,
+            questionText: q.questionText,
+            questionType: q.questionType,
+            options: q.options || [],
+            correctAnswer: q.correctAnswer ? String(q.correctAnswer) : null,
+            points: q.points || 1,
+            timeLimit: q.timeLimit || null,
+            linkedIndicators: q.linkedIndicators || [],
+            explanation: q.explanation || null,
+            metadata: q.metadata ?? null,
+            order: idx // Simple order for now
+        }));
+
+        const result = await prisma.$transaction(async (tx) => {
+            const created = await tx.componentQuestion.createMany({
+                data: formattedQuestions
+            });
+
+            const component = await tx.assessmentModelComponent.findUnique({
+                where: { id: componentId },
+                select: { modelId: true }
+            });
+            if (component) {
+                await tx.assessmentModelComponent.update({
+                    where: { id: componentId },
+                    data: { status: "COMPLETE", completionPercentage: 100 }
+                });
+                const allComponents = await tx.assessmentModelComponent.findMany({
+                    where: { modelId: component.modelId },
+                    select: { completionPercentage: true, status: true }
+                });
+                const allComplete = allComponents.every(
+                    (c) => c.completionPercentage >= 100 || c.status === "COMPLETE"
+                );
+                if (allComplete && allComponents.length > 0) {
+                    await tx.assessmentModel.update({
+                        where: { id: component.modelId },
+                        data: { completionPercentage: 100 }
+                    });
+                }
+            }
+            return created;
+        });
+
+        return NextResponse.json({
+            success: true,
+            count: result.count
+        });
+
+    } catch (error: any) {
+        console.error("Bulk JSON create error:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}

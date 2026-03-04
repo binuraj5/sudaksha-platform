@@ -1,0 +1,1 @@
+export default function PricingModels() { return (<section className="py-16 bg-white"><div className="container mx-auto px-4"><h2 className="text-3xl font-bold text-center mb-8">Pricing Models - Coming Soon</h2><p className="text-center text-gray-600">This section is under development</p></div></section>); }

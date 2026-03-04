@@ -1,0 +1,15 @@
+{
+    "name": "sudaksha-platform",
+    "private": true,
+    "scripts": {
+        "dev": "turbo run dev",
+        "dev:website": "turbo run dev --filter=@sudaksha/website",
+        "dev:portal": "turbo run dev --filter=@sudaksha/portal",
+        "build": "turbo run build",
+        "lint": "turbo run lint"
+    },
+    "devDependencies": {
+        "turbo": "latest"
+    },
+    "packageManager": "pnpm@8.15.0"
+}
