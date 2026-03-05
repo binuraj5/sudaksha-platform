@@ -49,11 +49,9 @@ export async function POST(request: Request) {
         if (!resolvedTenantId && requesterId) {
             const requester = await prisma.user.findUnique({
                 where: { id: requesterId },
-                select: { clientId: true, tenantId: true }
+                select: { clientId: true }
             });
-            if (requester?.tenantId) {
-                resolvedTenantId = requester.tenantId;
-            } else if (requester?.clientId) {
+            if (requester?.clientId) {
                 resolvedTenantId = requester.clientId;
             }
         }

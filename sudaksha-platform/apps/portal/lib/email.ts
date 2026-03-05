@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM_ADDRESS = process.env.EMAIL_FROM ?? "SudAssess <noreply@sudaksha.com>";
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
@@ -9,6 +7,8 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
         console.warn("[EMAIL] RESEND_API_KEY not set — email not sent to:", to);
         return false;
     }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     try {
         const { error } = await resend.emails.send({

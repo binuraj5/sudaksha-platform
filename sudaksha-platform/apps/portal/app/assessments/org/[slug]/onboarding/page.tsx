@@ -1,7 +1,7 @@
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { OrgOnboardingWizard, type OnboardingStep } from "@/components/Onboarding/OrgOnboardingWizard";
+import { OrgOnboardingWizard, type OnboardingStep } from "@/components/onboarding/OrgOnboardingWizard";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "TENANT_ADMIN", "DEPARTMENT_HEAD", "DEPT_HEAD", "TEAM_LEAD"];
 

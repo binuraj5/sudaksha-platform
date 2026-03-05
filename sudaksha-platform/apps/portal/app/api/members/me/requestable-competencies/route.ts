@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
     // Check existing pending approval requests to NOT show items already requested
     const existingRequests = await prismaAssessments.approvalRequest.findMany({
         where: {
-            tenantId: member.tenantId,
+            tenantId: member.tenantId ?? undefined,
             type: "ASSESSMENT_REQUEST" as any,
             requesterId: session.user.id,
             status: "PENDING",
