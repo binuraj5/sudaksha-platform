@@ -26,15 +26,19 @@ interface AdaptiveQuestion {
     id: string;
     questionText: string;
     questionType: string;
-    options?: { text: string; isCorrect?: boolean }[];
+    options?: { id?: string; text: string; isCorrect?: boolean }[];
     difficulty?: number;
 }
 
-function parseOptions(opts: unknown): { text: string; isCorrect?: boolean }[] {
+function parseOptions(opts: unknown): { id?: string; text: string; isCorrect?: boolean }[] {
     if (Array.isArray(opts)) {
         return opts.map((o) =>
             typeof o === "object" && o && "text" in (o as object)
-                ? { text: (o as { text: string }).text, isCorrect: (o as { isCorrect?: boolean }).isCorrect }
+                ? {
+                    id: (o as { id?: string }).id,
+                    text: (o as { text: string }).text,
+                    isCorrect: (o as { isCorrect?: boolean }).isCorrect,
+                }
                 : { text: String(o) }
         );
     }
@@ -323,7 +327,7 @@ export function AdaptiveRunner({
                                     key={idx}
                                     className="flex items-center space-x-3 p-4 rounded-lg border hover:bg-slate-50 cursor-pointer"
                                 >
-                                    <RadioGroupItem value={opt.text} id={`q-${currentQuestion.id}-${idx}`} />
+                                    <RadioGroupItem value={opt.id ?? opt.text} id={`q-${currentQuestion.id}-${idx}`} />
                                     <Label
                                         htmlFor={`q-${currentQuestion.id}-${idx}`}
                                         className="flex-1 cursor-pointer font-normal"

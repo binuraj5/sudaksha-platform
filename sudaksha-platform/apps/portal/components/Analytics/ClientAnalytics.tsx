@@ -71,7 +71,7 @@ export function ClientAnalytics({ clientId }: { clientId: string }) {
             <div className="grid grid-cols-12 gap-8">
                 {/* Visualizations */}
                 <div className="col-span-12 lg:col-span-8 space-y-8">
-                    <CompetencyHeatmap />
+                    <CompetencyHeatmap clientId={clientId} />
                     <ParticipationTrends />
                 </div>
 

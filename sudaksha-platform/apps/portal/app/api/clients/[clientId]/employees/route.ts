@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getApiSession } from "@/lib/get-session";
 import { v4 as uuidv4 } from "uuid";
 import { invitationEmailTemplate } from "@/lib/email-templates/invitation";
+import { sendEmail } from "@/lib/email";
 import { hash } from "bcryptjs";
 import { validateStudentOrgUnit } from "@/lib/services/class-service";
 
@@ -229,8 +230,11 @@ export async function POST(
 
         const inviteLink = `${process.env.NEXTAUTH_URL}/invite/${invitationToken}`;
 
-        console.log(`[EMAIL MOCK] To: ${email}, Subject: Invitation to join ${tenantInfo?.name || 'SudAssess'}`);
-        console.log(`[EMAIL MOCK] Body:\n`, invitationEmailTemplate(tenantInfo?.name || 'SudAssess', inviteLink));
+        await sendEmail(
+            email,
+            `Invitation to join ${tenantInfo?.name || 'SudAssess'}`,
+            invitationEmailTemplate(tenantInfo?.name || 'SudAssess', inviteLink)
+        );
 
         return NextResponse.json(newEmployee);
     } catch (error) {

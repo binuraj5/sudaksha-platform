@@ -25,28 +25,10 @@ import { IndicatorPreview } from "@/components/assessments/IndicatorPreview";
 import { RecommendationCard } from "@/components/assessments/RecommendationCard";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { STUDENT_LEVEL_TOOLTIP } from "@/lib/assessment-student-restrictions";
+import { useAssessmentBuilder } from "@/hooks/useAssessmentBuilder";
 
 type Step = 1 | 2 | 3;
 type SourceType = 'ROLE_BASED' | 'COMPETENCY_BASED' | 'CUSTOM' | 'TEMPLATE';
-
-interface RoleData {
-    id: string;
-    name: string;
-    description: string;
-    _count?: { competencies: number };
-}
-
-interface CompetencyMapping {
-    id: string;
-    competencyId: string;
-    competency: {
-        id: string;
-        name: string;
-        category: string;
-    };
-    weight: number;
-    requiredLevel: string;
-}
 
 interface CreateAssessmentWizardProps {
     clientId?: string;
@@ -55,82 +37,30 @@ interface CreateAssessmentWizardProps {
 
 export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessmentWizardProps) {
     const router = useRouter();
-    const [step, setStep] = useState<Step>(1);
-    const [loading, setLoading] = useState(false);
-    const [creating, setCreating] = useState(false);
+    const builder = useAssessmentBuilder();
 
+    const [step, setStep] = useState<Step>(1);
     const [sourceType, setSourceType] = useState<SourceType | null>(null);
-    const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
-    const [selectedRoleId, setSelectedRoleId] = useState<string>("");
-    const [targetLevel, setTargetLevel] = useState<string>("JUNIOR");
     const [targetAudience, setTargetAudience] = useState<'ALL' | 'STUDENTS'>('ALL');
     const [recommendations, setRecommendations] = useState<{ id: string; category: string; recommendationText: string; rationale: string; autoApplyValues: Record<string, unknown> | null }[]>([]);
 
-    const [roles, setRoles] = useState<RoleData[]>([]);
-    const [roleCompetencies, setRoleCompetencies] = useState<CompetencyMapping[]>([]);
-    const [weights, setWeights] = useState<Record<string, number>>({});
-    const [indicatorPreview, setIndicatorPreview] = useState<any[]>([]);
-
     const rolesUrl = clientId ? `/api/clients/${clientId}/roles` : "/api/admin/roles";
-    const roleCompetenciesUrl = clientId
-        ? `/api/clients/${clientId}/roles/${selectedRoleId}/competencies`
-        : `/api/admin/roles/${selectedRoleId}/competencies`;
 
     useEffect(() => {
-        if (step === 2 && roles.length === 0) {
-            fetchRoles();
+        if (step === 2 && builder.roles.length === 0) {
+            builder.fetchRoles(rolesUrl);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [step, clientId]);
 
-    const fetchRoles = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch(rolesUrl);
-            if (res.ok) {
-                const data = await res.json();
-                setRoles(Array.isArray(data) ? data : data?.roles || data?.models || []);
-            } else {
-                const err = await res.json().catch(() => ({}));
-                toast.error(err.error || "Failed to load roles");
-            }
-        } catch (error) {
-            toast.error("Failed to load roles");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchRoleCompetencies = async (roleId: string) => {
-        if (!roleId) return;
-        setLoading(true);
-        try {
-            const url = clientId ? `/api/clients/${clientId}/roles/${roleId}/competencies` : `/api/admin/roles/${roleId}/competencies`;
-            const res = await fetch(url);
-            if (res.ok) {
-                const data = await res.json();
-                const list = Array.isArray(data) ? data : data?.competencies || [];
-                setRoleCompetencies(list);
-
-                const initialWeights: Record<string, number> = {};
-                list.forEach((rc: CompetencyMapping) => {
-                    initialWeights[rc.competencyId] = rc.weight;
-                });
-                setWeights(initialWeights);
-
-                const role = roles.find(r => r.id === roleId);
-                if (role && !name) {
-                    setName(`${role.name} - ${targetLevel} Assessment`);
-                }
-            } else {
-                toast.error("Failed to load role competencies");
-            }
-        } catch (error) {
-            toast.error("Failed to load role competencies");
-        } finally {
-            setLoading(false);
-        }
-    };
+    useEffect(() => {
+        if (!builder.selectedRoleId || !builder.targetLevel) return;
+        const audience = targetAudience === 'STUDENTS' ? 'STUDENTS' : '';
+        fetch(`/api/recommendations/assessment?roleLevel=${builder.targetLevel}&targetAudience=${audience}`)
+            .then((r) => r.json())
+            .then((data) => setRecommendations(data.recommendations || []))
+            .catch(() => setRecommendations([]));
+    }, [builder.selectedRoleId, builder.targetLevel, targetAudience]);
 
     const handleSourceSelect = (type: SourceType) => {
         setSourceType(type);
@@ -146,88 +76,37 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
     };
 
     const handleRoleSelect = (roleId: string) => {
-        setSelectedRoleId(roleId);
-        fetchRoleCompetencies(roleId);
-    };
-
-    useEffect(() => {
-        if (!selectedRoleId || !targetLevel) return;
-        const audience = targetAudience === 'STUDENTS' ? 'STUDENTS' : undefined;
-        fetch(`/api/recommendations/assessment?roleLevel=${targetLevel}&targetAudience=${audience || ''}`)
-            .then((r) => r.json())
-            .then((data) => setRecommendations(data.recommendations || []))
-            .catch(() => setRecommendations([]));
-    }, [selectedRoleId, targetLevel, targetAudience]);
-
-    const fetchPreview = async () => {
-        if (!selectedRoleId || roleCompetencies.length === 0) return;
-        setLoading(true);
-        try {
-            const res = await fetch("/api/assessments/admin/indicators/preview", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    competencyIds: roleCompetencies.map(rc => rc.competencyId),
-                    targetLevel
-                })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setIndicatorPreview(Array.isArray(data) ? data : data?.indicators || []);
-                setStep(3);
-            } else {
-                toast.error("Failed to generate preview");
-            }
-        } catch (error) {
-            toast.error("Failed to generate preview");
-        } finally {
-            setLoading(false);
+        builder.setSelectedRoleId(roleId);
+        const url = clientId
+            ? `/api/clients/${clientId}/roles/${roleId}/competencies`
+            : `/api/admin/roles/${roleId}/competencies`;
+        builder.fetchRoleCompetencies(roleId, url);
+        const role = builder.roles.find((r) => r.id === roleId);
+        if (role && !builder.name) {
+            builder.setName(`${role.name} - ${builder.targetLevel} Assessment`);
         }
     };
 
-    const handleCreate = async () => {
-        setCreating(true);
-        try {
-            const body: Record<string, unknown> = {
-                roleId: selectedRoleId,
-                targetLevel,
-                name,
-                description,
-                competencyWeights: weights
-            };
-            if (clientId) body.tenantId = clientId;
-
-            const res = await fetch("/api/assessments/admin/models/from-role", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
-            });
-
-            if (res.ok) {
-                const model = await res.json();
-                toast.success("Assessment created successfully!");
-                router.push(`${redirectBase}/${model.id}/builder`);
-            } else {
-                const err = await res.json().catch(() => ({}));
-                toast.error(err.error || "Failed to create assessment");
-            }
-        } catch (error) {
-            toast.error("An error occurred");
-        } finally {
-            setCreating(false);
-        }
+    const goToPreview = async () => {
+        const ok = await builder.fetchPreview(
+            builder.roleCompetencies.map((rc) => rc.competencyId),
+            builder.targetLevel
+        );
+        if (ok) setStep(3);
+        else toast.error("Failed to generate preview");
     };
 
-    const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+    const totalWeight = Object.values(builder.weights).reduce((a, b) => a + b, 0);
 
     return (
         <div className="max-w-4xl mx-auto py-12 px-4">
             <div className="mb-12 flex items-center justify-between px-4">
                 {[1, 2, 3].map((s) => (
                     <div key={s} className="flex items-center">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all shadow-sm ${step === s ? "bg-indigo-600 text-white ring-4 ring-indigo-100" :
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all shadow-sm ${
+                            step === s ? "bg-indigo-600 text-white ring-4 ring-indigo-100" :
                             step > s ? "bg-green-500 text-white" : "bg-gray-200 text-gray-500"
-                            }`}>
+                        }`}>
                             {step > s ? <Check className="w-5 h-5" /> : s}
                         </div>
                         {s < 3 && <div className={`w-24 h-1 mx-2 rounded-full ${step > s ? "bg-green-500" : "bg-gray-200"}`} />}
@@ -260,17 +139,17 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
                         <CardContent className="p-10 space-y-10">
                             <div className="space-y-4">
                                 <Label className="text-sm font-black uppercase tracking-widest text-gray-400">Select Job Role</Label>
-                                <Select onValueChange={handleRoleSelect} value={selectedRoleId}>
+                                <Select onValueChange={handleRoleSelect} value={builder.selectedRoleId}>
                                     <SelectTrigger className="h-14 rounded-2xl border-2 border-gray-100 bg-gray-50/30 text-lg font-bold">
                                         <SelectValue placeholder="Choose a role..." />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                        {roles.map(role => (
+                                        {builder.roles.map(role => (
                                             <SelectItem key={role.id} value={role.id} className="h-12 font-medium">
                                                 {role.name} ({role._count?.competencies ?? 0} Competencies)
                                             </SelectItem>
                                         ))}
-                                        {roles.length === 0 && !loading && (
+                                        {builder.roles.length === 0 && !builder.loading && (
                                             <SelectItem value="_" disabled>No roles available</SelectItem>
                                         )}
                                     </SelectContent>
@@ -280,7 +159,10 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
                                 <Label className="text-sm font-medium text-muted-foreground">Target audience</Label>
                                 <div className="flex gap-2">
                                     <Button type="button" variant={targetAudience === 'ALL' ? 'default' : 'outline'} size="sm" onClick={() => setTargetAudience('ALL')}>All</Button>
-                                    <Button type="button" variant={targetAudience === 'STUDENTS' ? 'default' : 'outline'} size="sm" onClick={() => { setTargetAudience('STUDENTS'); if (['SENIOR', 'EXPERT'].includes(targetLevel)) setTargetLevel('JUNIOR'); }}>Students</Button>
+                                    <Button type="button" variant={targetAudience === 'STUDENTS' ? 'default' : 'outline'} size="sm" onClick={() => {
+                                        setTargetAudience('STUDENTS');
+                                        if (['SENIOR', 'EXPERT'].includes(builder.targetLevel)) builder.setTargetLevel('JUNIOR');
+                                    }}>Students</Button>
                                 </div>
                             </div>
                             <div className="space-y-6">
@@ -289,10 +171,10 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
                                     {['JUNIOR', 'MIDDLE', 'SENIOR', 'EXPERT'].map(level => {
                                         const disabledForStudents = targetAudience === 'STUDENTS' && (level === 'SENIOR' || level === 'EXPERT');
                                         const el = (
-                                            <div key={level} onClick={() => !disabledForStudents && setTargetLevel(level)}
-                                                className={`p-4 rounded-2xl border-2 transition-all text-center space-y-1 ${disabledForStudents ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-100" : "cursor-pointer "} ${targetLevel === level && !disabledForStudents ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200" : !disabledForStudents ? "bg-white border-gray-100 text-gray-500 hover:border-indigo-200" : ""}`}>
+                                            <div key={level} onClick={() => !disabledForStudents && builder.setTargetLevel(level)}
+                                                className={`p-4 rounded-2xl border-2 transition-all text-center space-y-1 ${disabledForStudents ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-100" : "cursor-pointer"} ${builder.targetLevel === level && !disabledForStudents ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200" : !disabledForStudents ? "bg-white border-gray-100 text-gray-500 hover:border-indigo-200" : ""}`}>
                                                 <p className="text-[10px] font-black tracking-tighter uppercase">{level === 'MIDDLE' ? 'Mid-Level' : level}</p>
-                                                <Target className={`w-5 h-5 mx-auto ${targetLevel === level && !disabledForStudents ? "text-indigo-200" : "text-gray-300"}`} />
+                                                <Target className={`w-5 h-5 mx-auto ${builder.targetLevel === level && !disabledForStudents ? "text-indigo-200" : "text-gray-300"}`} />
                                             </div>
                                         );
                                         return disabledForStudents ? (
@@ -319,8 +201,8 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
                                     <ArrowLeft className="w-5 h-5" />
                                 </Button>
                                 <Button className="flex-1 h-14 rounded-[1.25rem] bg-indigo-600 hover:bg-indigo-700 text-lg font-black italic shadow-xl shadow-indigo-100 gap-3"
-                                    onClick={fetchPreview} disabled={!selectedRoleId || loading}>
-                                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "See Smart Selection"}
+                                    onClick={goToPreview} disabled={!builder.selectedRoleId || builder.loading}>
+                                    {builder.loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "See Smart Selection"}
                                     <ArrowRight className="w-5 h-5" />
                                 </Button>
                             </div>
@@ -334,7 +216,7 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-black text-gray-900 italic tracking-tight">Refine & Finalize</h1>
-                            <p className="text-gray-500 font-medium">Auto-selected {indicatorPreview.length} competencies based on {targetLevel} level.</p>
+                            <p className="text-gray-500 font-medium">Auto-selected {builder.indicatorPreview.length} competencies based on {builder.targetLevel} level.</p>
                         </div>
                         <Button variant="outline" className="rounded-xl h-10 border-gray-200 gap-2" onClick={() => setStep(2)}>
                             <ArrowLeft className="w-4 h-4" /> Change Role
@@ -349,11 +231,11 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
                                 <CardContent className="p-6 space-y-4">
                                     <div className="space-y-2">
                                         <Label className="text-[10px] font-bold uppercase text-gray-400">Model Name</Label>
-                                        <Input value={name} onChange={e => setName(e.target.value)} className="h-11 rounded-xl" />
+                                        <Input value={builder.name} onChange={e => builder.setName(e.target.value)} className="h-11 rounded-xl" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-[10px] font-bold uppercase text-gray-400">Description</Label>
-                                        <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional purpose..." className="h-11 rounded-xl" />
+                                        <Input value={builder.description} onChange={e => builder.setDescription(e.target.value)} placeholder="Optional purpose..." className="h-11 rounded-xl" />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -367,29 +249,40 @@ export function CreateAssessmentWizard({ clientId, redirectBase }: CreateAssessm
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-6 space-y-8">
-                                    {roleCompetencies.map(rc => (
+                                    {builder.roleCompetencies.map(rc => (
                                         <div key={rc.competencyId} className="space-y-3">
                                             <div className="flex items-center justify-between">
                                                 <Label className="text-xs font-bold text-gray-700">{rc.competency.name}</Label>
-                                                <span className="text-xs font-black text-indigo-600">{(weights[rc.competencyId] || 0).toFixed(1)}%</span>
+                                                <span className="text-xs font-black text-indigo-600">{(builder.weights[rc.competencyId] || 0).toFixed(1)}%</span>
                                             </div>
-                                            <Slider value={[weights[rc.competencyId] || 0]} max={100} step={0.5}
-                                                onValueChange={([val]) => setWeights({ ...weights, [rc.competencyId]: val })} />
+                                            <Slider value={[builder.weights[rc.competencyId] || 0]} max={100} step={0.5}
+                                                onValueChange={([val]) => builder.setWeights({ ...builder.weights, [rc.competencyId]: val })} />
                                         </div>
                                     ))}
                                 </CardContent>
                             </Card>
                             <Button className="w-full h-16 rounded-3xl bg-indigo-600 hover:bg-indigo-700 text-lg font-black italic shadow-2xl shadow-indigo-200 gap-3"
-                                onClick={handleCreate} disabled={creating || Math.abs(totalWeight - 100) > 0.1}>
-                                {creating ? <Loader2 className="w-6 h-6 animate-spin" /> : "Build Smart Assessment"}
+                                onClick={() => builder.handleCreate(
+                                    {
+                                        roleId: builder.selectedRoleId,
+                                        targetLevel: builder.targetLevel,
+                                        name: builder.name,
+                                        description: builder.description,
+                                        competencyWeights: builder.weights,
+                                        ...(clientId ? { tenantId: clientId } : {}),
+                                    },
+                                    (model) => router.push(`${redirectBase}/${model.id}/builder`)
+                                )}
+                                disabled={builder.creating || Math.abs(totalWeight - 100) > 0.1}>
+                                {builder.creating ? <Loader2 className="w-6 h-6 animate-spin" /> : "Build Smart Assessment"}
                                 <ArrowRight className="w-6 h-6" />
                             </Button>
                         </div>
                         <div className="lg:col-span-3">
-                            <IndicatorPreview competencies={roleCompetencies.map(rc => ({
+                            <IndicatorPreview competencies={builder.roleCompetencies.map(rc => ({
                                 name: rc.competency.name,
-                                targetLevel: targetLevel as any,
-                                indicators: indicatorPreview.find((p: any) => p.competencyId === rc.competencyId)?.indicators || []
+                                targetLevel: builder.targetLevel as any,
+                                indicators: builder.indicatorPreview.find((p: any) => p.competencyId === rc.competencyId)?.indicators || []
                             }))} />
                         </div>
                     </div>

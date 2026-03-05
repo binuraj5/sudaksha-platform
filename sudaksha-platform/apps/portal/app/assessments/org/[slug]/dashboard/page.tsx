@@ -25,7 +25,7 @@ export default async function TenantDashboard({
         redirect("/assessments/login");
     }
 
-    const tenant = await prisma.tenant.findUnique({ where: { slug } });
+    const tenant = await prisma.tenant.findUnique({ where: { slug }, select: { id: true, name: true, slug: true, features: true } });
     if (!tenant) redirect("/");
 
     const sessionRole = (session.user as any).role;
@@ -49,6 +49,16 @@ export default async function TenantDashboard({
     }
 
     if (isAdmin) {
+        // Redirect new orgs to onboarding if not yet completed
+        const onboardingComplete = (tenant.features as any)?.onboardingComplete ?? false;
+        if (!onboardingComplete) {
+            const memberCount = await prisma.member.count({ where: { tenantId: tenant.id } });
+            // Only show onboarding for brand-new orgs (≤1 member = just the admin)
+            if (memberCount <= 1) {
+                redirect(`/assessments/org/${slug}/onboarding`);
+            }
+        }
+
         const labels = await resolveTenantLabels(tenant.id);
         return (
             <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">

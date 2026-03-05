@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { ComponentQuestionRenderer, type RunnerQuestion } from "./ComponentQuestionRenderer";
 import { VoiceInterviewRunner } from "./VoiceInterviewRunner";
 import { VideoInterviewRunner } from "./VideoInterviewRunner";
+import { ConversationalInterviewRunner } from "./ConversationalInterviewRunner";
 import { AdaptiveRunner } from "./AdaptiveRunner";
 import { PanelRunner } from "./PanelRunner";
 import { SectionCheckpoint } from "./SectionCheckpoint";
@@ -62,6 +63,9 @@ export function AssessmentRunner({ userAssessment, initialSectionIndex = 0 }: As
         useVideoInterview?: boolean;
         videoConfig?: { questionCount: number; maxDurationPerQuestion: number; retakesAllowed: number; competencyName: string; targetLevel: string };
         videoQuestionId?: string | null;
+        useConversationalInterview?: boolean;
+        conversationalConfig?: { questionCount: number; competencyName: string; targetLevel: string };
+        conversationalQuestionId?: string | null;
         useAdaptiveInterview?: boolean;
         adaptiveAssessmentId?: string;
         adaptiveComponentId?: string;
@@ -233,6 +237,11 @@ export function AssessmentRunner({ userAssessment, initialSectionIndex = 0 }: As
                     useVideoInterview: true,
                     videoConfig: data.videoConfig,
                     videoQuestionId: data.videoQuestionId,
+                }),
+                ...(data.useConversationalInterview && data.conversationalConfig && data.conversationalQuestionId && {
+                    useConversationalInterview: true,
+                    conversationalConfig: data.conversationalConfig,
+                    conversationalQuestionId: data.conversationalQuestionId,
                 }),
                 ...(data.useAdaptiveInterview && data.adaptiveAssessmentId && data.adaptiveComponentId && {
                     useAdaptiveInterview: true,
@@ -620,6 +629,34 @@ export function AssessmentRunner({ userAssessment, initialSectionIndex = 0 }: As
                             userComponentId={runnerState.userComponentId}
                             questionId={runnerState.videoQuestionId}
                             videoConfig={runnerState.videoConfig}
+                            sectionName={sectionName}
+                            onComplete={handleNextSection}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        // Conversational interview: live back-and-forth AI voice interview
+        if (runnerState?.useConversationalInterview && runnerState?.conversationalConfig && runnerState?.conversationalQuestionId) {
+            return (
+                <div className="min-h-[80vh] flex flex-col">
+                    <div className="bg-white border-b px-8 py-4 flex justify-between items-center sticky top-0 z-20">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-indigo-50 p-2 rounded-lg">
+                                <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900">{sectionName}</h3>
+                                <p className="text-[10px] text-gray-500 uppercase tracking-widest">{model?.name}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex-1 p-8 bg-gray-50 overflow-y-auto">
+                        <ConversationalInterviewRunner
+                            userComponentId={runnerState.userComponentId}
+                            questionId={runnerState.conversationalQuestionId}
+                            conversationalConfig={runnerState.conversationalConfig}
                             sectionName={sectionName}
                             onComplete={handleNextSection}
                         />

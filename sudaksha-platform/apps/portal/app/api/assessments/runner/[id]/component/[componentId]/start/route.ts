@@ -20,16 +20,13 @@ export async function POST(
         const { id: assessmentId, componentId } = await params;
 
         // Resolve component and maxScore
-        console.log('🔍 Looking for component with ID:', componentId);
         const component = await prisma.assessmentModelComponent.findFirst({
             where: { id: componentId },
             include: { questions: { orderBy: { order: "asc" } } }
         });
         if (!component) {
-            console.error('❌ Component not found with ID:', componentId);
             return NextResponse.json({ error: "Component not found" }, { status: 404 });
         }
-        console.log('✅ Found component:', { id: component.id, modelId: component.modelId, componentType: (component as any).componentType });
 
         // Additional validation: ensure componentId is valid before creating UserAssessmentComponent
         if (!component.id || component.id !== componentId) {
@@ -52,6 +49,7 @@ export async function POST(
         const panelConfig = (component as { config?: unknown }).config as { panelId?: string; competencyName?: string; targetLevel?: string; durationMinutes?: number } | null;
         const isVoiceInterview = componentType === "VOICE" && componentConfig?.competencyName && componentConfig?.targetLevel;
         const isVideoInterview = componentType === "VIDEO" && componentConfig?.competencyName && componentConfig?.targetLevel;
+        const isConversationalInterview = componentType === "CONVERSATIONAL" && componentConfig?.competencyName && componentConfig?.targetLevel;
         const isAdaptiveAI =
             (componentType === "ADAPTIVE_AI" || componentType === "ADAPTIVE_QUESTIONNAIRE") &&
             (adaptiveConfig?.min_questions != null || componentConfig?.competencyName);
@@ -77,13 +75,6 @@ export async function POST(
             });
 
             if (!userComponent) {
-                // Final validation before creation
-                console.log('🔍 Project flow - Creating UserAssessmentComponent with:', {
-                    projectUserAssessmentId: assessmentId,
-                    componentId,
-                    componentExists: !!component
-                });
-
                 if (!componentId || !assessmentId) {
                     return NextResponse.json({ error: "Missing required fields for component creation" }, { status: 400 });
                 }
@@ -97,7 +88,6 @@ export async function POST(
                             startedAt: new Date()
                         }
                     });
-                    console.log('✅ UserAssessmentComponent created successfully (project):', userComponent.id);
                 } catch (createError: any) {
                     console.error("UserAssessmentComponent creation error:", createError);
                     if (createError.code === 'P2003') {
@@ -140,6 +130,15 @@ export async function POST(
                         targetLevel: componentConfig!.targetLevel,
                     },
                     videoQuestionId: component.questions[0]?.id ?? null,
+                }),
+                ...(isConversationalInterview && {
+                    useConversationalInterview: true,
+                    conversationalConfig: {
+                        questionCount: componentConfig?.questionCount ?? 5,
+                        competencyName: componentConfig!.competencyName,
+                        targetLevel: componentConfig!.targetLevel,
+                    },
+                    conversationalQuestionId: component.questions[0]?.id ?? null,
                 }),
                 ...(isAdaptiveAI && {
                     useAdaptiveInterview: true,
@@ -228,13 +227,6 @@ export async function POST(
                     orderBy: { createdAt: "desc" }
                 });
                 if (!userComponent) {
-                    // Final validation before creation
-                    console.log('🔍 Member flow - Creating UserAssessmentComponent with:', {
-                        userAssessmentModelId: uam.id,
-                        componentId,
-                        componentExists: !!component
-                    });
-
                     if (!componentId || !uam.id) {
                         return NextResponse.json({ error: "Missing required fields for component creation" }, { status: 400 });
                     }
@@ -248,7 +240,6 @@ export async function POST(
                                 startedAt: new Date()
                             }
                         });
-                        console.log('✅ UserAssessmentComponent created successfully:', userComponent.id);
                     } catch (createError: any) {
                         console.error("UserAssessmentComponent creation error (member flow):", createError);
                         if (createError.code === 'P2003') {
@@ -291,6 +282,15 @@ export async function POST(
                             targetLevel: componentConfig!.targetLevel,
                         },
                         videoQuestionId: component.questions[0]?.id ?? null,
+                    }),
+                    ...(isConversationalInterview && {
+                        useConversationalInterview: true,
+                        conversationalConfig: {
+                            questionCount: componentConfig?.questionCount ?? 5,
+                            competencyName: componentConfig!.competencyName,
+                            targetLevel: componentConfig!.targetLevel,
+                        },
+                        conversationalQuestionId: component.questions[0]?.id ?? null,
                     }),
                     ...(isAdaptiveAI && {
                         useAdaptiveInterview: true,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -8,7 +8,6 @@ import {
     ArrowLeft,
     Check,
     Loader2,
-    Target,
     Sparkles,
     ChevronDown,
     ChevronUp,
@@ -25,23 +24,9 @@ import { toast } from "sonner";
 import { IndicatorPreview } from "@/components/assessments/IndicatorPreview";
 import { AssessmentTypeSelector } from "@/components/assessments/AssessmentTypeSelector";
 import { LevelSelector, type ProficiencyLevelStr } from "@/components/assessments/LevelSelector";
+import { useAssessmentBuilder } from "@/hooks/useAssessmentBuilder";
 
 type Step = 0 | 1 | 2 | 3;
-
-interface RoleData {
-    id: string;
-    name: string;
-    overallLevel: string;
-    _count?: { competencies: number };
-    competencies?: Array<{ competency: { id: string; name: string } }>;
-}
-
-interface CompetencyMapping {
-    id: string;
-    competencyId: string;
-    weight: number;
-    competency: { id: string; name: string; category: string };
-}
 
 const STEPS = [
     { num: 1, label: "Role & level" },
@@ -61,20 +46,11 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
     const urlRequesterId = searchParams?.get("requesterId");
     const urlRequestId = searchParams?.get("requestId");
 
-    const [step, setStep] = useState<Step>(urlRoleId ? 1 : 0);
-    const [loading, setLoading] = useState(false);
-    const [creating, setCreating] = useState(false);
-    const [showPreview, setShowPreview] = useState(false);
+    const builder = useAssessmentBuilder();
 
-    const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
-    const [roles, setRoles] = useState<RoleData[]>([]);
-    const [selectedRoleId, setSelectedRoleId] = useState<string>("");
-    const [targetLevel, setTargetLevel] = useState<string>("JUNIOR");
-    const [roleCompetencies, setRoleCompetencies] = useState<CompetencyMapping[]>([]);
+    const [step, setStep] = useState<Step>(urlRoleId ? 1 : 0);
+    const [showPreview, setShowPreview] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const [weights, setWeights] = useState<Record<string, number>>({});
-    const [indicatorPreview, setIndicatorPreview] = useState<any[]>([]);
 
     // Load roles scoped to this tenant
     useEffect(() => {
@@ -83,69 +59,54 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
             .then((data) => {
                 let list = Array.isArray(data) ? data : [];
                 if (urlRoleId && urlRequesterId) {
-                    list = list.filter((r) => r.id === urlRoleId);
+                    list = list.filter((r: any) => r.id === urlRoleId);
                 }
-                setRoles(list);
-                if (urlRoleId && list.some(r => r.id === urlRoleId)) {
-                    setSelectedRoleId(urlRoleId);
-                    fetchRoleCompetencies(urlRoleId);
+                // Manually set roles since we pre-filter here
+                if (urlRoleId && list.some((r: any) => r.id === urlRoleId)) {
+                    builder.setSelectedRoleId(urlRoleId);
+                    builder.fetchRoleCompetencies(
+                        urlRoleId,
+                        `/api/clients/${clientId}/roles/${urlRoleId}/competencies`
+                    ).then(() => {
+                        const role = list.find((r: any) => r.id === urlRoleId);
+                        if (role) builder.setName(`${role.name} - ${builder.targetLevel} Assessment`);
+                    });
                 }
             })
-            .catch(() => setRoles([]));
+            .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [clientId, urlRoleId, urlRequesterId]);
 
-    const fetchRoleCompetencies = useCallback(
-        async (roleId: string) => {
-            setLoading(true);
-            try {
-                const res = await fetch(`/api/clients/${clientId}/roles/${roleId}/competencies`);
-                if (res.ok) {
-                    const data: CompetencyMapping[] = await res.json();
-                    setRoleCompetencies(data);
-                    const ids = new Set<string>(data.map((rc) => rc.competencyId));
-                    setSelectedIds(ids);
-                    const w: Record<string, number> = {};
-                    const equal = data.length > 0 ? Math.round((100 / data.length) * 10) / 10 : 0;
-                    data.forEach((rc) => {
-                        const raw = rc.weight ?? 1;
-                        w[rc.competencyId] =
-                            raw > 0 && raw <= 1
-                                ? Math.round(raw * 1000) / 10
-                                : typeof raw === "number" && raw > 1
-                                    ? raw
-                                    : equal;
-                    });
-                    setWeights(w);
-                }
-            } catch {
-                toast.error("Failed to load competencies");
-            } finally {
-                setLoading(false);
-            }
-        },
-        [clientId]
-    );
+    // Also load the full role list for the dropdown
+    useEffect(() => {
+        builder.fetchRoles(`/api/clients/${clientId}/roles`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [clientId]);
+
+    // Sync selectedIds when competencies load
+    useEffect(() => {
+        const ids = new Set<string>(builder.roleCompetencies.map((rc) => rc.competencyId));
+        setSelectedIds(ids);
+    }, [builder.roleCompetencies]);
+
+    // Update name when targetLevel changes
+    useEffect(() => {
+        if (!builder.selectedRoleId || !builder.name) return;
+        const role = builder.roles.find((r) => r.id === builder.selectedRoleId);
+        if (role) builder.setName(`${role.name} - ${builder.targetLevel} Assessment`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [builder.targetLevel]);
 
     const handleRoleSelect = (roleId: string) => {
-        setSelectedRoleId(roleId);
-        fetchRoleCompetencies(roleId);
-        const role = roles.find((r) => r.id === roleId);
-        if (role) setName(`${role.name} - ${targetLevel} Assessment`);
+        builder.setSelectedRoleId(roleId);
+        builder.fetchRoleCompetencies(roleId, `/api/clients/${clientId}/roles/${roleId}/competencies`);
+        const role = builder.roles.find((r) => r.id === roleId);
+        if (role) builder.setName(`${role.name} - ${builder.targetLevel} Assessment`);
     };
 
-    useEffect(() => {
-        if (!selectedRoleId || !name) return;
-        const role = roles.find((r) => r.id === selectedRoleId);
-        if (role) setName(`${role.name} - ${targetLevel} Assessment`);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [targetLevel]);
-
-    const totalWeight = Object.keys(weights).reduce((s, k) => {
-        if (selectedIds.has(k)) return s + (weights[k] ?? 0);
-        return s;
-    }, 0);
+    const totalWeight = Array.from(selectedIds).reduce((s, k) => s + (builder.weights[k] ?? 0), 0);
     const weightsValid = Math.abs(totalWeight - 100) <= 0.5;
-    const selectedCompetencies = roleCompetencies.filter((rc) => selectedIds.has(rc.competencyId));
+    const selectedCompetencies = builder.roleCompetencies.filter((rc) => selectedIds.has(rc.competencyId));
 
     const toggleCompetency = (compId: string) => {
         setSelectedIds((prev) => {
@@ -156,86 +117,17 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
         });
     };
 
-    const normalizeWeights = () => {
-        const sum = selectedCompetencies.reduce((s, c) => s + (weights[c.competencyId] ?? 0), 0);
-        if (sum <= 0) return;
-        const next: Record<string, number> = { ...weights };
-        selectedCompetencies.forEach((c) => {
-            next[c.competencyId] = Math.round(((weights[c.competencyId] ?? 0) / sum) * 1000) / 10;
-        });
-        setWeights(next);
-    };
-
     const goToStep3 = async () => {
         if (selectedIds.size === 0) {
             toast.error("Select at least one competency");
             return;
         }
-        setLoading(true);
-        try {
-            const res = await fetch("/api/assessments/admin/indicators/preview", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    competencyIds: selectedCompetencies.map((rc) => rc.competencyId),
-                    targetLevel,
-                }),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setIndicatorPreview(data);
-                setStep(3);
-            } else {
-                // Still allow proceeding without preview
-                setStep(3);
-            }
-        } catch {
-            setStep(3);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleCreate = async () => {
-        if (!name.trim()) {
-            toast.error("Please enter a name for the assessment");
-            return;
-        }
-        const competencyWeights: Record<string, number> = {};
-        selectedCompetencies.forEach((rc) => {
-            const w = weights[rc.competencyId];
-            if (w != null) competencyWeights[rc.competencyId] = w;
-        });
-
-        setCreating(true);
-        try {
-            const res = await fetch("/api/assessments/admin/models/from-role", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    roleId: selectedRoleId,
-                    targetLevel,
-                    name: name.trim(),
-                    description,
-                    competencyWeights,
-                    tenantId: clientId,
-                    requesterId: urlRequesterId || undefined,
-                    requestId: urlRequestId || undefined,
-                }),
-            });
-            if (res.ok) {
-                const model = await res.json();
-                toast.success("Assessment created successfully");
-                router.push(`/assessments/org/${slug}/assessments/${model.id}/builder`);
-            } else {
-                const err = await res.json().catch(() => ({}));
-                toast.error(err.details || err.error || "Failed to create assessment");
-            }
-        } catch {
-            toast.error("An error occurred");
-        } finally {
-            setCreating(false);
-        }
+        // fetchPreview — proceed to step 3 regardless of success (preview is optional)
+        await builder.fetchPreview(
+            selectedCompetencies.map((rc) => rc.competencyId),
+            builder.targetLevel
+        );
+        setStep(3);
     };
 
     return (
@@ -304,17 +196,17 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                     <CardContent className="space-y-5">
                         <div>
                             <Label>Job role</Label>
-                            <Select value={selectedRoleId} onValueChange={handleRoleSelect}>
+                            <Select value={builder.selectedRoleId} onValueChange={handleRoleSelect}>
                                 <SelectTrigger className="mt-1.5">
                                     <SelectValue placeholder="Select a role..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {roles.length === 0 && (
+                                    {builder.roles.length === 0 && (
                                         <div className="px-3 py-2 text-sm text-muted-foreground">
                                             No roles found — create roles first
                                         </div>
                                     )}
-                                    {roles.map((r) => (
+                                    {builder.roles.map((r) => (
                                         <SelectItem key={r.id} value={r.id}>
                                             {r.name}
                                         </SelectItem>
@@ -326,8 +218,8 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                         <div>
                             <Label>Proficiency level</Label>
                             <LevelSelector
-                                value={targetLevel as ProficiencyLevelStr}
-                                onChange={(level) => setTargetLevel(level)}
+                                value={builder.targetLevel as ProficiencyLevelStr}
+                                onChange={(level) => builder.setTargetLevel(level)}
                                 className="mt-1.5"
                             />
                         </div>
@@ -340,10 +232,10 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                                 <ArrowLeft className="w-4 h-4 mr-1" /> Cancel
                             </Button>
                             <Button
-                                onClick={() => selectedRoleId && setStep(2)}
-                                disabled={!selectedRoleId || loading}
+                                onClick={() => builder.selectedRoleId && setStep(2)}
+                                disabled={!builder.selectedRoleId || builder.loading}
                             >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                                {builder.loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
                                 Continue <ArrowRight className="w-4 h-4 ml-1" />
                             </Button>
                         </div>
@@ -361,24 +253,23 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {loading ? (
+                        {builder.loading ? (
                             <div className="flex items-center justify-center py-8">
                                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                             </div>
-                        ) : roleCompetencies.length === 0 ? (
+                        ) : builder.roleCompetencies.length === 0 ? (
                             <div className="text-center py-8 text-muted-foreground text-sm">
                                 This role has no competencies yet. Add competencies to the role first.
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {roleCompetencies.map((rc) => {
+                                {builder.roleCompetencies.map((rc) => {
                                     const isSelected = selectedIds.has(rc.competencyId);
-                                    const val = weights[rc.competencyId] ?? 0;
+                                    const val = builder.weights[rc.competencyId] ?? 0;
                                     return (
                                         <div
                                             key={rc.competencyId}
-                                            className={`p-3 rounded-lg border transition-colors ${isSelected ? "border-primary/50 bg-primary/5" : "border-border"
-                                                }`}
+                                            className={`p-3 rounded-lg border transition-colors ${isSelected ? "border-primary/50 bg-primary/5" : "border-border"}`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <Checkbox
@@ -398,16 +289,10 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                                                             value={val === 0 ? "" : val}
                                                             onChange={(e) => {
                                                                 const num = parseFloat(e.target.value);
-                                                                if (!Number.isNaN(num))
-                                                                    setWeights({
-                                                                        ...weights,
-                                                                        [rc.competencyId]: Math.min(100, Math.max(0, num)),
-                                                                    });
-                                                                else
-                                                                    setWeights({
-                                                                        ...weights,
-                                                                        [rc.competencyId]: 0,
-                                                                    });
+                                                                builder.setWeights({
+                                                                    ...builder.weights,
+                                                                    [rc.competencyId]: !Number.isNaN(num) ? Math.min(100, Math.max(0, num)) : 0,
+                                                                });
                                                             }}
                                                             className="h-7 w-16 text-right text-xs"
                                                         />
@@ -417,7 +302,7 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                                                             max={100}
                                                             step={0.5}
                                                             onValueChange={([v]) =>
-                                                                setWeights({ ...weights, [rc.competencyId]: v })
+                                                                builder.setWeights({ ...builder.weights, [rc.competencyId]: v })
                                                             }
                                                             className="w-20"
                                                         />
@@ -446,7 +331,7 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={normalizeWeights}
+                                        onClick={() => builder.normalizeWeights(selectedIds, builder.roleCompetencies)}
                                         disabled={selectedCompetencies.length === 0}
                                     >
                                         Auto-balance to 100%
@@ -461,9 +346,9 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                             </Button>
                             <Button
                                 onClick={goToStep3}
-                                disabled={selectedIds.size === 0 || !weightsValid || loading}
+                                disabled={selectedIds.size === 0 || !weightsValid || builder.loading}
                             >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                                {builder.loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
                                 Continue <ArrowRight className="w-4 h-4 ml-1" />
                             </Button>
                         </div>
@@ -482,8 +367,8 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                         <div>
                             <Label>Assessment name</Label>
                             <Input
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                value={builder.name}
+                                onChange={(e) => builder.setName(e.target.value)}
                                 placeholder="e.g. Senior Software Engineer Assessment"
                                 className="mt-1.5"
                             />
@@ -491,8 +376,8 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                         <div>
                             <Label>Description (optional)</Label>
                             <Input
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                                value={builder.description}
+                                onChange={(e) => builder.setDescription(e.target.value)}
                                 placeholder="Brief description of this assessment..."
                                 className="mt-1.5"
                             />
@@ -501,10 +386,10 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                         <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
                             <p>
                                 <span className="font-medium">Role:</span>{" "}
-                                {roles.find((r) => r.id === selectedRoleId)?.name ?? selectedRoleId}
+                                {builder.roles.find((r) => r.id === builder.selectedRoleId)?.name ?? builder.selectedRoleId}
                             </p>
                             <p>
-                                <span className="font-medium">Level:</span> {targetLevel}
+                                <span className="font-medium">Level:</span> {builder.targetLevel}
                             </p>
                             <p>
                                 <span className="font-medium">Competencies:</span>{" "}
@@ -512,7 +397,7 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                             </p>
                         </div>
 
-                        {indicatorPreview.length > 0 && (
+                        {builder.indicatorPreview.length > 0 && (
                             <div className="border-t pt-4">
                                 <Button
                                     variant="ghost"
@@ -522,7 +407,7 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                                     <span className="flex items-center gap-2">
                                         <Sparkles className="w-4 h-4" />
                                         Indicators (
-                                        {indicatorPreview.reduce(
+                                        {builder.indicatorPreview.reduce(
                                             (a, p) => a + (p.indicators?.length || 0),
                                             0
                                         )}
@@ -539,9 +424,9 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                                         <IndicatorPreview
                                             competencies={selectedCompetencies.map((rc) => ({
                                                 name: rc.competency.name,
-                                                targetLevel: targetLevel as any,
+                                                targetLevel: builder.targetLevel as any,
                                                 indicators:
-                                                    indicatorPreview.find(
+                                                    builder.indicatorPreview.find(
                                                         (p) => p.competencyId === rc.competencyId
                                                     )?.indicators || [],
                                             }))}
@@ -557,10 +442,29 @@ export function OrgCreateAssessmentWizard({ slug, clientId }: Props) {
                             </Button>
                             <Button
                                 className="flex-1"
-                                onClick={handleCreate}
-                                disabled={creating || !weightsValid || !name.trim()}
+                                onClick={() => {
+                                    const competencyWeights: Record<string, number> = {};
+                                    selectedCompetencies.forEach((rc) => {
+                                        const w = builder.weights[rc.competencyId];
+                                        if (w != null) competencyWeights[rc.competencyId] = w;
+                                    });
+                                    builder.handleCreate(
+                                        {
+                                            roleId: builder.selectedRoleId,
+                                            targetLevel: builder.targetLevel,
+                                            name: builder.name.trim(),
+                                            description: builder.description,
+                                            competencyWeights,
+                                            tenantId: clientId,
+                                            requesterId: urlRequesterId || undefined,
+                                            requestId: urlRequestId || undefined,
+                                        },
+                                        (model) => router.push(`/assessments/org/${slug}/assessments/${model.id}/builder`)
+                                    );
+                                }}
+                                disabled={builder.creating || !weightsValid || !builder.name.trim()}
                             >
-                                {creating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                                {builder.creating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
                                 Create Assessment
                             </Button>
                         </div>

@@ -1,7 +1,7 @@
 import { getApiSession } from "@/lib/get-session";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { canEditModelComponents } from "@/lib/assessments/model-edit-permission";
+import { canUnpublishModel } from "@/lib/assessments/model-edit-permission";
 import type { ProficiencyLevel } from "@sudaksha/db-core";
 
 /**
@@ -28,9 +28,11 @@ export async function POST(
         if (!model) {
             return NextResponse.json({ error: "Model not found" }, { status: 404 });
         }
-        const editCheck = await canEditModelComponents(model, session);
-        if (!editCheck.allowed) {
-            return NextResponse.json({ error: editCheck.reason }, { status: 403 });
+        // AI generation is a preview-only action — allow for published models too.
+        // Only question-saving routes enforce the published lock.
+        const accessCheck = await canUnpublishModel(model, session);
+        if (!accessCheck.allowed) {
+            return NextResponse.json({ error: accessCheck.reason }, { status: 403 });
         }
 
         const body = await request.json();

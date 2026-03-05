@@ -985,52 +985,59 @@ export default function IndividualCareerPage() {
                                     </div>
                                 )}
 
-                                {/* Past requests */}
+                                {/* Approved / acquired competencies */}
                                 {(() => {
-                                    const approvedCompetencies = skillRequests
-                                        .filter(req => req.status === "APPROVED" && req.competency)
-                                        .map(req => ({ competency: req.competency, expectedLevel: req.level }));
-                                    const pendingRequests = skillRequests.filter(req => req.status !== "APPROVED" || !req.competency);
-
+                                    const approvedRequests = skillRequests.filter(req => req.status === "APPROVED" && req.competency);
+                                    if (approvedRequests.length === 0) return null;
                                     return (
-                                        <div className="space-y-6">
-                                            {approvedCompetencies.length > 0 && (
-                                                <div>
-                                                    <h4 className="text-sm font-semibold text-gray-700 mb-3 px-1">Approved &amp; Assigned Competencies</h4>
-                                                    <CompetencyListTable competencies={approvedCompetencies} accentColor="rgb(236, 72, 153)" />
-                                                </div>
-                                            )}
+                                        <div className="space-y-2">
+                                            <p className="text-xs font-bold text-green-700 uppercase tracking-wider flex items-center gap-1">
+                                                <CheckCircle2 className="h-3.5 w-3.5" /> Acquired Competencies
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {approvedRequests.map(req => (
+                                                    <div key={req.id} className="flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-800 rounded-lg px-3 py-1.5 text-sm font-medium">
+                                                        <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                                                        {req.competency.name}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
+                                {/* Pending & rejected requests */}
+                                {(() => {
+                                    const pendingRequests = skillRequests.filter(req => req.status === "PENDING" || req.status === "REJECTED");
+                                    return (
+                                        <div className="space-y-4">
                                             {pendingRequests.length > 0 && (
-                                                <div>
-                                                    {approvedCompetencies.length > 0 && <h4 className="text-sm font-semibold text-gray-700 mb-3 px-1 mt-6">Pending &amp; Rejected Requests</h4>}
-                                                    <Table>
-                                                        <TableHeader className="bg-gray-50">
-                                                            <TableRow className="border-b border-gray-100 hover:bg-transparent">
-                                                                <TableHead className="text-gray-500 text-xs">Competency</TableHead>
-                                                                <TableHead className="text-gray-500 text-xs hidden md:table-cell">Category</TableHead>
-                                                                <TableHead className="text-gray-500 text-xs hidden md:table-cell">Level</TableHead>
-                                                                <TableHead className="text-gray-500 text-xs hidden lg:table-cell">Reason</TableHead>
-                                                                <TableHead className="text-gray-500 text-xs w-36">Status</TableHead>
+                                                <Table>
+                                                    <TableHeader className="bg-gray-50">
+                                                        <TableRow className="border-b border-gray-100 hover:bg-transparent">
+                                                            <TableHead className="text-gray-500 text-xs">Competency</TableHead>
+                                                            <TableHead className="text-gray-500 text-xs hidden md:table-cell">Category</TableHead>
+                                                            <TableHead className="text-gray-500 text-xs hidden md:table-cell">Level</TableHead>
+                                                            <TableHead className="text-gray-500 text-xs hidden lg:table-cell">Reason</TableHead>
+                                                            <TableHead className="text-gray-500 text-xs w-36">Status</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {pendingRequests.map(req => (
+                                                            <TableRow key={req.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                                                <TableCell className="font-medium text-gray-900 py-3 text-sm">{req.name}</TableCell>
+                                                                <TableCell className="py-3 hidden md:table-cell">
+                                                                    <Badge variant="outline" className="text-[10px] text-gray-500 lowercase">{req.category || "—"}</Badge>
+                                                                </TableCell>
+                                                                <TableCell className="py-3 hidden md:table-cell">
+                                                                    <Badge variant="secondary" className="text-[10px] lowercase">{req.level || "—"}</Badge>
+                                                                </TableCell>
+                                                                <TableCell className="py-3 text-sm text-gray-400 italic hidden lg:table-cell max-w-xs truncate">{req.description || "—"}</TableCell>
+                                                                <TableCell className="py-3">{skillStatusBadge(req.status)}</TableCell>
                                                             </TableRow>
-                                                        </TableHeader>
-                                                        <TableBody>
-                                                            {pendingRequests.map(req => (
-                                                                <TableRow key={req.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                                                    <TableCell className="font-medium text-gray-900 py-3 text-sm">{req.name}</TableCell>
-                                                                    <TableCell className="py-3 hidden md:table-cell">
-                                                                        <Badge variant="outline" className="text-[10px] text-gray-500 lowercase">{req.category || "—"}</Badge>
-                                                                    </TableCell>
-                                                                    <TableCell className="py-3 hidden md:table-cell">
-                                                                        <Badge variant="secondary" className="text-[10px] lowercase">{req.level || "—"}</Badge>
-                                                                    </TableCell>
-                                                                    <TableCell className="py-3 text-sm text-gray-400 italic hidden lg:table-cell max-w-xs truncate">{req.description || "—"}</TableCell>
-                                                                    <TableCell className="py-3">{skillStatusBadge(req.status)}</TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </div>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
                                             )}
 
                                             {skillRequests.length === 0 && !isSkillFormOpen && (

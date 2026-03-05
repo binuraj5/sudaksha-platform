@@ -30,18 +30,30 @@ export async function GET(request: Request) {
             'JUNIOR': 1,
             'MIDDLE': 2,
             'SENIOR': 3,
-            'EXPERT': 4
+            'EXPERT': 4,
+            'MASTER': 5
         };
+
+        // Build a lookup of competencyId → current level from careerFormData
+        const careerData = (member.careerFormData as any) || {};
+        const selfComps: Array<{ id: string; level: number }> = [
+            ...(Array.isArray(careerData.techCompetencies) ? careerData.techCompetencies : []),
+            ...(Array.isArray(careerData.behavCompetencies) ? careerData.behavCompetencies : []),
+        ];
+        const selfLevelMap = new Map<string, number>(
+            selfComps.map((c) => [c.id, typeof c.level === 'number' ? c.level : 0])
+        );
 
         const aspirationalCompetencies = member.aspirationalRole?.competencies || [];
 
         const analysis = aspirationalCompetencies.map(comp => {
             const reqLevel = LEVEL_MAP[comp.requiredLevel] || 1;
-            const currentLevel = Math.floor(Math.random() * 5) + 1; // Mock current level
+            const currentLevel = selfLevelMap.get(comp.competency.id) ?? 0;
             return {
                 name: comp.competency.name,
+                competencyId: comp.competency.id,
                 requiredLevel: reqLevel,
-                currentLevel: currentLevel,
+                currentLevel,
                 gap: reqLevel - currentLevel
             };
         });

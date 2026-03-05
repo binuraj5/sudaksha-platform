@@ -38,9 +38,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(result);
     } catch (error) {
         console.error("Video analyze error:", error);
+        const isServiceDown =
+            (error as any)?.cause?.code === "ECONNREFUSED" ||
+            (error as Error)?.message === "fetch failed";
         return NextResponse.json(
-            { error: (error as Error).message || "Video analysis failed" },
-            { status: 500 }
+            { error: isServiceDown ? "Video analysis service is currently unavailable. Please try again later." : (error as Error).message || "Video analysis failed" },
+            { status: isServiceDown ? 503 : 500 }
         );
     }
 }

@@ -75,8 +75,11 @@ export function Sidebar() {
 
     if (isSwitcherApplicable) {
         if (viewMode === "ADMIN") {
-            // ADMIN MODE: Show ONLY Admin Menu (Hide My Profile in sidebar, as it's in the switcher)
-            displayNavigation = permittedNavigation.filter(item => item.id !== 'my-page-section');
+            // ADMIN MODE: flatten admin-menu-section so items render directly (no collapsible header)
+            const withoutPersonal = permittedNavigation.filter(item => item.id !== 'my-page-section');
+            displayNavigation = withoutPersonal.flatMap(item =>
+                item.id === 'admin-menu-section' ? (item.children ?? []) : [item]
+            );
         } else {
             // PERSONAL MODE: Show ONLY My Profile items, promoted to top level
             const myPageSection = permittedNavigation.find(item => item.id === 'my-page-section');
