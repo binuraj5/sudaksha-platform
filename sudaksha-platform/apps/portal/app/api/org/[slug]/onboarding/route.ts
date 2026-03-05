@@ -17,7 +17,19 @@ export async function POST(
 
     const { slug } = await params;
     const sessionRole = (session.user as any).role;
-    const isAdmin = ADMIN_ROLES.includes(sessionRole) || (session.user as any).userType === "TENANT_ADMIN";
+    const userType = (session.user as any).userType;
+    let isAdmin = ADMIN_ROLES.includes(sessionRole) || userType === "SUPER_ADMIN" || userType === "TENANT_ADMIN";
+
+    if (!isAdmin) {
+        const member = await prisma.member.findUnique({
+            where: { email: session.user.email! },
+            include: { managedUnits: { select: { id: true } } }
+        });
+        if (member && (ADMIN_ROLES.includes(member.role) || member.managedUnits.length > 0)) {
+            isAdmin = true;
+        }
+    }
+
     if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const tenant = await prisma.tenant.findUnique({ where: { slug }, select: { id: true, features: true } });

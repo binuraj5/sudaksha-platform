@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import { LogoUpload } from "./LogoUpload";
 
 export function BrandingSettings({ clientId }: { clientId: string }) {
+    const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -51,7 +53,7 @@ export function BrandingSettings({ clientId }: { clientId: string }) {
 
             if (res.ok) {
                 toast.success("Branding updated");
-                document.documentElement.style.setProperty('--primary', branding.primaryColor);
+                router.refresh();
             } else {
                 toast.error("Failed to save");
             }

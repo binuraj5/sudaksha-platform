@@ -53,6 +53,14 @@ export default async function OrgOnboardingPage({
         redirect(`/assessments/org/${slug}/dashboard`);
     }
 
+    // Mark as seen on first visit so the dashboard won't redirect back here again
+    if (!(tenant.features as any)?.onboardingSeen) {
+        await prisma.tenant.update({
+            where: { id: tenant.id },
+            data: { features: { ...(tenant.features as object ?? {}), onboardingSeen: true } },
+        });
+    }
+
     // Derive step completion from existing data
     const [orgUnitCount, memberCount, assessmentCount] = await Promise.all([
         prisma.organizationUnit.count({ where: { tenantId: tenant.id } }),
@@ -72,7 +80,7 @@ export default async function OrgOnboardingPage({
             description: "Add a description, website, and location for your organisation.",
             completed: hasProfile,
             actionLabel: "Edit Profile",
-            actionHref: `/assessments/clients/${tenant.id}/settings`,
+            actionHref: `/assessments/org/${slug}/settings`,
         },
         {
             id: "departments",
@@ -88,7 +96,7 @@ export default async function OrgOnboardingPage({
             description: "Invite employees or students to join your organisation.",
             completed: hasEmployees,
             actionLabel: "Invite Members",
-            actionHref: `/assessments/clients/${tenant.id}/employees`,
+            actionHref: `/assessments/org/${slug}/employees`,
         },
         {
             id: "assessment",

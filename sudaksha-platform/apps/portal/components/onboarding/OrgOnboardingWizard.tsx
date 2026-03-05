@@ -137,7 +137,7 @@ export function OrgOnboardingWizard({ slug, orgName, steps }: OrgOnboardingWizar
 
                             {/* Action */}
                             {!step.completed && (
-                                <Link href={step.actionHref}>
+                                <Link href={step.actionHref} target="_blank" rel="noopener noreferrer">
                                     <Button
                                         size="sm"
                                         variant="outline"
@@ -149,7 +149,7 @@ export function OrgOnboardingWizard({ slug, orgName, steps }: OrgOnboardingWizar
                                 </Link>
                             )}
                             {step.completed && (
-                                <Link href={step.actionHref}>
+                                <Link href={step.actionHref} target="_blank" rel="noopener noreferrer">
                                     <Button size="sm" variant="ghost" className="flex-shrink-0 text-xs text-emerald-600 hover:text-emerald-700">
                                         View
                                     </Button>

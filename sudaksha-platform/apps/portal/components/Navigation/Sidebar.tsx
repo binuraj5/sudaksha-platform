@@ -89,20 +89,6 @@ export function Sidebar() {
 
     return (
         <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col min-h-screen">
-            {/* Company logo and name */}
-            <div className="h-16 flex items-center gap-3 px-4 border-b border-gray-100">
-                <Link href="/" className="flex items-center gap-3 min-w-0 flex-1">
-                    {tenant?.logoUrl ? (
-                        <img src={tenant.logoUrl} alt={tenant.name || "Logo"} className="h-8 w-8 flex-shrink-0 rounded object-contain" />
-                    ) : (
-                        <div className="h-8 w-8 flex-shrink-0 rounded bg-indigo-100 flex items-center justify-center">
-                            <Building2 className="h-4 w-4 text-indigo-600" />
-                        </div>
-                    )}
-                    <span className="font-semibold text-sm text-gray-800 truncate">{tenant?.name ?? "SudAssess"}</span>
-                </Link>
-            </div>
-
             {/* Role Switcher (Only for Admin/Leads) */}
             {isSwitcherApplicable && (
                 <div className="mt-4">

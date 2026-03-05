@@ -72,10 +72,22 @@ export async function PATCH(
     const session = await getApiSession();
     const { clientId } = await params;
 
-    const u = session?.user as { role?: string; clientId?: string; tenantId?: string } | undefined;
+    const u = session?.user as { role?: string; clientId?: string; tenantId?: string; email?: string } | undefined;
     const allowedRoles = ['SUPER_ADMIN', 'TENANT_ADMIN', 'CLIENT_ADMIN'];
     const userTenantId = u?.clientId ?? u?.tenantId;
-    const canPatch = session && allowedRoles.includes(u?.role ?? '') && (u?.role === 'SUPER_ADMIN' || userTenantId === clientId);
+    let canPatch = !!(session && allowedRoles.includes(u?.role ?? '') && (u?.role === 'SUPER_ADMIN' || userTenantId === clientId));
+
+    // DB fallback: session role may be stale for tenant admins
+    if (!canPatch && session?.user?.email) {
+        const member = await prisma.member.findUnique({
+            where: { email: session.user.email },
+            select: { role: true, tenantId: true }
+        });
+        if (member && allowedRoles.includes(member.role) && member.tenantId === clientId) {
+            canPatch = true;
+        }
+    }
+
     if (!canPatch) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

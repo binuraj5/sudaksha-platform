@@ -49,11 +49,10 @@ export default async function TenantDashboard({
     }
 
     if (isAdmin) {
-        // Redirect new orgs to onboarding if not yet completed
-        const onboardingComplete = (tenant.features as any)?.onboardingComplete ?? false;
-        if (!onboardingComplete) {
+        // Redirect new orgs to onboarding once (stop after they've seen it)
+        const features = tenant.features as any;
+        if (!features?.onboardingComplete && !features?.onboardingSeen) {
             const memberCount = await prisma.member.count({ where: { tenantId: tenant.id } });
-            // Only show onboarding for brand-new orgs (≤1 member = just the admin)
             if (memberCount <= 1) {
                 redirect(`/assessments/org/${slug}/onboarding`);
             }
