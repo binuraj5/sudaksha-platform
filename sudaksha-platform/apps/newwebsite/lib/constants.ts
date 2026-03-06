@@ -1,7 +1,7 @@
 export const SITE_NAME = 'Sudaksha'
 export const SITE_TAGLINE = 'Talent Architecture & Organizational Development'
 export const SITE_DESCRIPTION =
-  'AI-powered competency assessment, organizational development, and talent architecture. Powered by SudAssess™.'
+  'AI-powered competency assessment, organizational development, and talent architecture. Powered by Samyak™.'
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sudaksha.com'
 
 export const BRAND_TAGLINE = 'Talent by Design. Performance by Science.'
@@ -20,7 +20,7 @@ export const IMPACT_STEPS = [
     stage: '02',
     title: 'Map',
     short: 'Chart the terrain from current to ideal.',
-    long: 'Using SudAssess™, we generate precise competency maps — individual, team, and organisational — so you know exactly where performance gaps exist and why.',
+    long: 'Using Samyak™, we generate precise competency maps — individual, team, and organisational — so you know exactly where performance gaps exist and why.',
   },
   {
     letter: 'P',
@@ -57,7 +57,7 @@ export const NAV_LINKS = [
   { label: 'Enterprise', href: '/enterprise' },
   { label: 'Institutions', href: '/institutions' },
   { label: 'Professionals', href: '/professionals' },
-  { label: 'SudAssess™', href: '/sudassess', highlight: true },
+  { label: 'Samyak™', href: '/samyak', highlight: true },
   { label: 'Thinking', href: '/thinking' },
   { label: 'About', href: '/about' },
 ] as const

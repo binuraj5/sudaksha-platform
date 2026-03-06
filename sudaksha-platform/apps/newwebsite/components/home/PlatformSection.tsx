@@ -19,7 +19,7 @@ export function PlatformSection() {
         <div>
           <SectionHeader
             eyebrow="The Platform"
-            title="SudAssess™"
+            title="Samyak™"
             subtitle="The engine that proves capability — not just measures it."
             align="left"
             light
@@ -43,7 +43,7 @@ export function PlatformSection() {
             <Link href="/contact?subject=demo" className="btn-orange">
               Request Demo
             </Link>
-            <Link href="/sudassess" className="btn-ghost-white">
+            <Link href="/samyak" className="btn-ghost-white">
               Learn More
             </Link>
           </div>

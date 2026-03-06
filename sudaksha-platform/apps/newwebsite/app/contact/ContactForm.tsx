@@ -7,7 +7,7 @@ const subjects = [
   { value: 'enterprise-demo', label: 'Enterprise Demo' },
   { value: 'institution-demo', label: 'Institution Demo' },
   { value: 'diagnostic', label: 'Diagnostic Call' },
-  { value: 'sudassess-demo', label: 'SudAssess™ Demo' },
+  { value: 'samyak-demo', label: 'Samyak™ Demo' },
   { value: 'partnership', label: 'Partnership' },
   { value: 'careers', label: 'Careers' },
   { value: 'demo', label: 'General Demo' },

@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
-import { portalLinks } from '@/lib/portal-links'
 import { NAV_LINKS } from '@/lib/constants'
 
 export function Navbar() {
@@ -61,16 +60,6 @@ export function Navbar() {
           })}
         </div>
 
-        {/* Desktop CTAs */}
-        <div className="hidden lg:flex items-center gap-3">
-          <a href={portalLinks.login} className="btn-ghost text-sm py-2 px-4">
-            Login
-          </a>
-          <a href={portalLinks.demo} className="btn-primary text-sm py-2 px-4">
-            Start Assessment →
-          </a>
-        </div>
-
         {/* Mobile hamburger */}
         <button
           className="lg:hidden p-2 rounded-md"
@@ -106,10 +95,6 @@ export function Navbar() {
               </Link>
             )
           })}
-          <div className="pt-3 flex flex-col gap-2">
-            <a href={portalLinks.login} className="btn-ghost text-sm text-center">Login</a>
-            <a href={portalLinks.demo} className="btn-primary text-sm text-center">Start Assessment →</a>
-          </div>
         </div>
       )}
     </header>

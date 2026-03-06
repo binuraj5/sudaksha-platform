@@ -6,8 +6,8 @@ import { SectionHeader } from '@/components/shared/SectionHeader'
 export const metadata: Metadata = {
   title: 'Enterprise | Sudaksha — Talent Architecture',
   description:
-    'Sudaksha for Enterprise: competency-based capability architecture for corporates. SudAssess™ multi-tenant platform with role-level ROI measurement across 18+ sectors.',
-  keywords: ['enterprise talent development', 'competency assessment', 'corporate OD', 'SudAssess enterprise'],
+    'Sudaksha for Enterprise: competency-based capability architecture for corporates. Samyak™ multi-tenant platform with role-level ROI measurement across 18+ sectors.',
+  keywords: ['enterprise talent development', 'competency assessment', 'corporate OD', 'Samyak enterprise'],
   openGraph: {
     title: 'Enterprise Talent Architecture — Stop Training. Start Transforming.',
     description: 'Sudaksha architects measurable capability for enterprises. From C-suite to frontline — diagnostic to ROI.',
@@ -100,7 +100,7 @@ export default function EnterprisePage() {
               },
               {
                 stage: '02', title: 'Competency Gap Analysis',
-                desc: 'SudAssess™ generates individual, team, and department-level gap maps. You see exactly where capability falls short of role requirements — by person, by level, by function.',
+                desc: 'Samyak™ generates individual, team, and department-level gap maps. You see exactly where capability falls short of role requirements — by person, by level, by function.',
               },
               {
                 stage: '03', title: 'Prescribed Interventions',
@@ -116,7 +116,7 @@ export default function EnterprisePage() {
               },
               {
                 stage: '06', title: 'ROI Measurement',
-                desc: 'Post-intervention, we run a remeasurement using SudAssess™. We compare against the baseline diagnostic and calculate the documented capability lift.',
+                desc: 'Post-intervention, we run a remeasurement using Samyak™. We compare against the baseline diagnostic and calculate the documented capability lift.',
               },
             ].map(step => (
               <div key={step.stage} className="rounded-xl p-6 bg-white border" style={{ borderColor: 'var(--border)' }}>
@@ -129,12 +129,12 @@ export default function EnterprisePage() {
         </div>
       </section>
 
-      {/* SudAssess features */}
+      {/* Samyak features */}
       <section className="py-20" style={{ background: 'var(--navy)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="The Platform"
-            title="SudAssess™ for Enterprise"
+            title="Samyak™ for Enterprise"
             light
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -161,7 +161,7 @@ export default function EnterprisePage() {
           <SectionHeader
             eyebrow="Platform Hierarchy"
             title="Role Levels We Serve"
-            subtitle="SudAssess™ Enterprise gives each level the access and intelligence they need — nothing more, nothing less."
+            subtitle="Samyak™ Enterprise gives each level the access and intelligence they need — nothing more, nothing less."
           />
           <div className="relative flex flex-col items-center gap-0">
             {roleHierarchy.map((r, i) => (
@@ -200,7 +200,7 @@ export default function EnterprisePage() {
               A government agency with 120+ ICT professionals needed a structured approach to technical competency development across multiple grade levels. The department faced growing complexity in digital infrastructure with no clear competency baseline to guide hiring, promotion, or development decisions.
             </p>
             <p className="font-body text-base leading-relaxed mb-4" style={{ color: 'var(--muted)' }}>
-              Sudaksha deployed the IMPACT Framework™: a full competency diagnostic across all ICT roles, a custom competency framework built to government standards, and a SudAssess™ deployment that assessed the entire department within a 3-week window.
+              Sudaksha deployed the IMPACT Framework™: a full competency diagnostic across all ICT roles, a custom competency framework built to government standards, and a Samyak™ deployment that assessed the entire department within a 3-week window.
             </p>
             <p className="font-body text-base leading-relaxed font-semibold" style={{ color: 'var(--dark)' }}>
               Outcome: The agency now has a documented competency baseline, a promotion-readiness matrix, and a structured L&D roadmap — all grounded in measurement, not manager opinion.

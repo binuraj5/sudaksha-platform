@@ -1,21 +1,6 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { portalLinks } from '@/lib/portal-links'
-
-function ButterflyLogo() {
-  return (
-    <svg width="38" height="34" viewBox="0 0 38 34" fill="none" aria-hidden="true">
-      <ellipse cx="12" cy="14" rx="12" ry="10" fill="#2196F3" opacity="0.9" transform="rotate(-20 12 14)" />
-      <ellipse cx="26" cy="10" rx="10" ry="7" fill="#F5A023" opacity="0.95" transform="rotate(15 26 10)" />
-      <ellipse cx="10" cy="22" rx="9" ry="7" fill="#1565C0" opacity="0.7" transform="rotate(10 10 22)" />
-      <ellipse cx="24" cy="20" rx="7" ry="5" fill="#FF9800" opacity="0.7" transform="rotate(-10 24 20)" />
-      <ellipse cx="18" cy="17" rx="2" ry="9" fill="#1A1A2E" opacity="0.6" />
-      <line x1="18" y1="8" x2="13" y2="2" stroke="#1A1A2E" strokeWidth="1.2" opacity="0.5" />
-      <line x1="18" y1="8" x2="23" y2="2" stroke="#1A1A2E" strokeWidth="1.2" opacity="0.5" />
-      <circle cx="13" cy="2" r="1.2" fill="#1A1A2E" opacity="0.5" />
-      <circle cx="23" cy="2" r="1.2" fill="#1A1A2E" opacity="0.5" />
-    </svg>
-  )
-}
 
 const footerLinks = {
   services: [
@@ -26,7 +11,7 @@ const footerLinks = {
     { label: 'IMPACT Framework™', href: '/what-we-do#impact' },
   ],
   platform: [
-    { label: 'SudAssess™', href: '/sudassess', internal: true },
+    { label: 'Samyak™', href: '/samyak', internal: true },
     { label: 'SCIP™ Profile', href: '/scip', internal: true },
     { label: 'Start Free Assessment', href: portalLinks.demo, internal: false },
     { label: 'Login to Portal', href: portalLinks.login, internal: false },
@@ -49,13 +34,13 @@ export function Footer() {
           {/* Brand column */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <ButterflyLogo />
-              <div>
-                <div className="font-display font-bold text-lg tracking-tight text-white">SUDAKSHA</div>
-                <div className="font-mono text-[9px] tracking-widest uppercase footer-link-muted">
-                  Talent Transformation
-                </div>
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Sudaksha"
+                width={140}
+                height={42}
+                style={{ height: '32px', width: 'auto', filter: 'brightness(0) invert(1)' }}
+              />
             </div>
             <p className="font-body text-sm leading-relaxed footer-link-muted">
               Talent by Design. Performance by Science.

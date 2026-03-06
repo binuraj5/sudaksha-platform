@@ -6,8 +6,8 @@ import { SectionHeader } from '@/components/shared/SectionHeader'
 export const metadata: Metadata = {
   title: 'Institutions | Sudaksha — Talent Architecture',
   description:
-    'Sudaksha for institutions: graduate employability as a measurable outcome. SudAssess™ student assessment, employability grading, and recruiter-ready reports.',
-  keywords: ['graduate employability', 'student assessment', 'institution talent', 'SudAssess education'],
+    'Sudaksha for institutions: graduate employability as a measurable outcome. Samyak™ student assessment, employability grading, and recruiter-ready reports.',
+  keywords: ['graduate employability', 'student assessment', 'institution talent', 'Samyak education'],
   openGraph: {
     title: 'Graduate Employability Architecture for Institutions',
     description: 'Your students deserve to be hired — not just graduated. Sudaksha makes employability measurable.',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 const pipeline = [
   { step: '01', title: 'Campus Onboarding', desc: 'Institution registered. Student cohorts mapped. Assessment parameters set.' },
-  { step: '02', title: 'Baseline Assessment', desc: 'All students complete the SudAssess™ employability diagnostic across competency domains.' },
+  { step: '02', title: 'Baseline Assessment', desc: 'All students complete the Samyak™ employability diagnostic across competency domains.' },
   { step: '03', title: 'Employability Grading', desc: 'Each student receives an Employability Readiness Score (ERS) and a detailed competency breakdown.' },
   { step: '04', title: 'Gap-Based Development', desc: 'Targeted workshops, online modules, and coaching prescribed based on individual gap profiles.' },
   { step: '05', title: 'Post-Intervention Remeasurement', desc: 'Students reassessed. Score improvement documented. Institution gets aggregate analytics.' },
@@ -165,9 +165,9 @@ export default function InstitutionsPage() {
             <div className="absolute left-8 top-0 bottom-0 w-0.5" style={{ background: 'var(--border)' }} />
             {[
               { week: 'Week 1–2', label: 'Scoping & Setup', desc: 'Institution briefing, cohort definition, platform configuration, student onboarding.' },
-              { week: 'Week 3–4', label: 'Diagnostic Assessment', desc: 'All students complete SudAssess™. Results processed. ERS generated per student.' },
+              { week: 'Week 3–4', label: 'Diagnostic Assessment', desc: 'All students complete Samyak™. Results processed. ERS generated per student.' },
               { week: 'Week 5–8', label: 'Gap-Based Intervention', desc: 'Workshops and coaching deployed based on cohort and individual gap profiles.' },
-              { week: 'Week 9–10', label: 'Remeasurement', desc: 'Post-intervention SudAssess™. Score comparison. Institution analytics report.' },
+              { week: 'Week 9–10', label: 'Remeasurement', desc: 'Post-intervention Samyak™. Score comparison. Institution analytics report.' },
               { week: 'Ongoing', label: 'Placement & Tracking', desc: 'Recruiter access, placement tracking, year-on-year benchmark reporting.' },
             ].map(t => (
               <div key={t.week} className="relative flex gap-6 mb-6 pl-16">

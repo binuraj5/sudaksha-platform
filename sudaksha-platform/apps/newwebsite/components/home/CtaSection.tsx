@@ -18,8 +18,8 @@ export function CtaSection() {
           <Link href="/contact?subject=diagnostic" className="btn-orange">
             Request a Diagnostic Call
           </Link>
-          <Link href="/sudassess" className="btn-ghost-white">
-            Explore SudAssess™
+          <Link href="/samyak" className="btn-ghost-white">
+            Explore Samyak™
           </Link>
         </div>
       </div>

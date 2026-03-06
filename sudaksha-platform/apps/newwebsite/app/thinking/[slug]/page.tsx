@@ -37,7 +37,7 @@ Without measurement, a competency framework is just vocabulary. With measurement
 
 Operationalise before you launch. Design the assessment instrument, the management dashboards, and the decision integration points before the framework is published. Make it impossible for managers to make talent decisions without referencing competency data.
 
-That is what SudAssess™ was built to do.
+That is what Samyak™ was built to do.
     `.trim(),
   },
   'irt-vs-classical-testing': {
@@ -58,7 +58,7 @@ Fixed-form assessments plateau in precision. After a certain number of items, ad
 
 More importantly, adaptive assessments feel more appropriate to the participant. Executives are not asked basic questions. Junior staff are not demoralised by items designed for senior roles. This reduces test anxiety, improves response quality, and produces more valid scores.
 
-SudAssess™ uses a 3-parameter logistic (3PL) IRT model — accounting for item difficulty, discrimination, and guessing — combined with a Maximum a Posteriori (MAP) ability estimator. The result is measurement precision equivalent to a 100-item fixed form achieved in 40–50 adaptive items.
+Samyak™ uses a 3-parameter logistic (3PL) IRT model — accounting for item difficulty, discrimination, and guessing — combined with a Maximum a Posteriori (MAP) ability estimator. The result is measurement precision equivalent to a 100-item fixed form achieved in 40–50 adaptive items.
     `.trim(),
   },
 }

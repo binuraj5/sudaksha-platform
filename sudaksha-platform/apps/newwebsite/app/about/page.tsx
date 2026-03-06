@@ -57,7 +57,7 @@ export default function AboutPage() {
               Sudaksha was founded in response to a persistent frustration: organisations invest heavily in people development, yet rarely measure whether that investment produced any real change in capability.
             </p>
             <p>
-              The founders came from organisational psychology, L&D leadership, and HR technology — and they shared a conviction that the industry&apos;s measurement problem was solvable. That conviction became SudAssess™.
+              The founders came from organisational psychology, L&D leadership, and HR technology — and they shared a conviction that the industry&apos;s measurement problem was solvable. That conviction became Samyak™.
             </p>
             <p>
               The platform was built to give practitioners what they had always needed: a rigorous, adaptive, multi-context assessment engine that could generate capability intelligence precise enough to make — and defend — real talent decisions.

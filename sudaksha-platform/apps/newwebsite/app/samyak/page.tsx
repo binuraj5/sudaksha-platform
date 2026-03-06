@@ -4,12 +4,12 @@ import { DashboardMockup } from '@/components/shared/DashboardMockup'
 import { SectionHeader } from '@/components/shared/SectionHeader'
 
 export const metadata: Metadata = {
-  title: 'SudAssess™ | Sudaksha — Talent Architecture',
+  title: 'Samyak™ | Sudaksha — Talent Architecture',
   description:
-    'SudAssess™: the AI-powered adaptive assessment engine built for enterprise, institutional, and individual capability measurement. IRT-based, multi-tenant, SCIP™-integrated.',
-  keywords: ['SudAssess', 'adaptive assessment', 'IRT', 'CAT', 'competency platform', 'talent assessment software'],
+    'Samyak™: the AI-powered adaptive assessment engine built for enterprise, institutional, and individual capability measurement. IRT-based, multi-tenant, SCIP™-integrated.',
+  keywords: ['Samyak', 'adaptive assessment', 'IRT', 'CAT', 'competency platform', 'talent assessment software'],
   openGraph: {
-    title: 'SudAssess™ — The Engine That Proves Capability',
+    title: 'Samyak™ — The Engine That Proves Capability',
     description: 'AI-powered adaptive assessment. Multi-tenant. IRT-based. Integrated with SCIP™. Built for enterprises, institutions, and professionals.',
     type: 'website',
   },
@@ -80,7 +80,7 @@ const pricingTiers = [
   },
 ]
 
-export default function SudAssessPage() {
+export default function SamyakPage() {
   return (
     <>
       {/* Hero */}
@@ -93,10 +93,10 @@ export default function SudAssessPage() {
               <span style={{ color: 'var(--orange)' }}>Proves Capability</span>
             </h1>
             <p className="mt-5 text-lg leading-relaxed" style={{ color: 'var(--lt-muted)' }}>
-              SudAssess™ is an AI-powered, adaptive assessment platform built for enterprises, institutions, and individual professionals. Not another quiz tool — a capability intelligence engine.
+              Samyak™ is an AI-powered, adaptive assessment platform built for enterprises, institutions, and individual professionals. Not another quiz tool — a capability intelligence engine.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/contact?subject=sudassess-demo" className="btn-orange">
+              <Link href="/contact?subject=samyak-demo" className="btn-orange">
                 Book a 30-Min Demo
               </Link>
               <Link href="/scip" className="btn-ghost-white">
@@ -192,7 +192,7 @@ export default function SudAssessPage() {
               Item Response Theory (IRT) models the probability of a correct response based on a person&apos;s latent ability and item difficulty. Computerised Adaptive Testing (CAT) uses this model in real time — selecting the next question based on your performance on the last one.
             </p>
             <p className="leading-relaxed">
-              The result: SudAssess™ achieves the same measurement precision as a 100-item fixed form in 40–50 items. Faster for participants. More accurate for decision-makers.
+              The result: Samyak™ achieves the same measurement precision as a 100-item fixed form in 40–50 items. Faster for participants. More accurate for decision-makers.
             </p>
           </div>
         </div>
@@ -204,10 +204,10 @@ export default function SudAssessPage() {
           <div className="rounded-2xl p-10 bg-white border" style={{ borderColor: 'var(--border)' }}>
             <span className="section-label justify-center">Built-In Integration</span>
             <h3 className="font-display text-2xl font-bold mt-2 mb-3" style={{ color: 'var(--dark)' }}>
-              SCIP™ is native to SudAssess™
+              SCIP™ is native to Samyak™
             </h3>
             <p className="font-body text-base leading-relaxed mb-6 max-w-2xl mx-auto" style={{ color: 'var(--muted)' }}>
-              The SCIP™ Career Intelligence Profile is not a third-party add-on. It is built into the SudAssess™ engine — individual users get SCIP™ intelligence automatically as part of their assessment experience.
+              The SCIP™ Career Intelligence Profile is not a third-party add-on. It is built into the Samyak™ engine — individual users get SCIP™ intelligence automatically as part of their assessment experience.
             </p>
             <Link href="/scip" className="btn-primary">
               Learn About SCIP™ →
@@ -250,7 +250,7 @@ export default function SudAssessPage() {
                   ))}
                 </ul>
                 <Link
-                  href="/contact?subject=sudassess-demo"
+                  href="/contact?subject=samyak-demo"
                   className={tier.highlight ? 'btn-primary text-center' : 'btn-ghost text-center'}
                 >
                   Get a Quote
@@ -265,12 +265,12 @@ export default function SudAssessPage() {
       <section className="py-20 text-center" style={{ background: 'var(--ink)' }}>
         <div className="max-w-2xl mx-auto px-4">
           <h2 className="font-display text-3xl font-bold text-white mb-4">
-            Ready to see SudAssess™ in action?
+            Ready to see Samyak™ in action?
           </h2>
           <p className="text-lg mb-8" style={{ color: 'var(--lt-muted)' }}>
             Book a 30-minute live demo with a Sudaksha platform consultant.
           </p>
-          <Link href="/contact?subject=sudassess-demo" className="btn-orange">
+          <Link href="/contact?subject=samyak-demo" className="btn-orange">
             Book a 30-Min Demo
           </Link>
         </div>

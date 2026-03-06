@@ -12,11 +12,11 @@ import { CtaSection } from '@/components/home/CtaSection'
 export const metadata: Metadata = {
   title: 'Sudaksha — Talent Architecture & Organizational Development',
   description:
-    'AI-powered competency assessment, organizational development, and talent architecture for enterprises, institutions, and professionals. Powered by SudAssess™ and SCIP™.',
-  keywords: ['talent architecture', 'competency mapping', 'OD', 'SudAssess', 'SCIP', 'organizational development'],
+    'AI-powered competency assessment, organizational development, and talent architecture for enterprises, institutions, and professionals. Powered by Samyak™ and SCIP™.',
+  keywords: ['talent architecture', 'competency mapping', 'OD', 'Samyak', 'SCIP', 'organizational development'],
   openGraph: {
     title: 'Sudaksha — Talent Architecture & Organizational Development',
-    description: 'We don\'t train people. We transform organizations. Science-backed capability architecture powered by SudAssess™.',
+    description: 'We don\'t train people. We transform organizations. Science-backed capability architecture powered by Samyak™.',
     type: 'website',
   },
 }

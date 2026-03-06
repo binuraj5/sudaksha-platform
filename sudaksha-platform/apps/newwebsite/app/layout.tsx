@@ -10,12 +10,12 @@ export const metadata: Metadata = {
     template: '%s | Sudaksha',
   },
   description:
-    'AI-powered competency assessment, organizational development, and talent transformation. Powered by SudAssess™.',
+    'AI-powered competency assessment, organizational development, and talent transformation. Powered by Samyak™.',
   keywords: [
     'talent transformation',
     'competency assessment',
     'organizational development',
-    'SudAssess',
+    'Samyak',
     'SCIP',
     'career intelligence',
     'workforce development',
