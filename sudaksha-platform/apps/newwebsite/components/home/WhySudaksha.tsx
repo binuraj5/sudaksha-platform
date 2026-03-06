@@ -46,10 +46,15 @@ export function WhySudaksha() {
           {usps.map(usp => (
             <div
               key={usp.title}
-              className="rounded-xl p-6 border transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-              style={{ borderColor: 'var(--border)' }}
+              className="card-hover rounded-2xl p-6"
+              style={{
+                background: 'var(--white)',
+                border: '1px solid var(--border)',
+              }}
             >
-              <div className="text-3xl mb-4">{usp.icon}</div>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4" style={{ background: 'var(--sky-pale)' }}>
+                {usp.icon}
+              </div>
               <h3 className="font-display text-lg font-bold mb-2" style={{ color: 'var(--dark)' }}>
                 {usp.title}
               </h3>

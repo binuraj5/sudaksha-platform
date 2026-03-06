@@ -24,15 +24,15 @@ export function PlatformSection() {
             align="left"
             light
           />
-          <ul className="space-y-3 mt-8">
+          <ul className="space-y-2.5 mt-8">
             {features.map(f => (
-              <li key={f} className="flex items-start gap-3">
+              <li key={f} className="flex items-center gap-3 px-4 py-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div
-                  className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5"
-                  style={{ background: 'var(--orange)' }}
+                  className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center"
+                  style={{ background: 'var(--gradient-orange)' }}
                 >
-                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                    <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
+                    <path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <span className="font-body text-sm leading-relaxed" style={{ color: 'var(--lt-muted)' }}>{f}</span>
@@ -49,9 +49,12 @@ export function PlatformSection() {
           </div>
         </div>
 
-        {/* Right */}
-        <div>
-          <DashboardMockup />
+        {/* Right — mockup with glow */}
+        <div className="relative">
+          <div className="absolute -inset-4 rounded-3xl" style={{ background: 'radial-gradient(ellipse at center, rgba(33,150,243,0.12) 0%, transparent 70%)' }} aria-hidden="true" />
+          <div className="relative" style={{ filter: 'drop-shadow(0 0 40px rgba(33,150,243,0.2))' }}>
+            <DashboardMockup />
+          </div>
         </div>
       </div>
     </section>

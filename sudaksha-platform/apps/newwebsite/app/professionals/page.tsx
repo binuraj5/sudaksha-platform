@@ -51,11 +51,15 @@ export default function ProfessionalsPage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20" style={{ background: 'var(--ink)' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="section-label !text-orange justify-center">For Professionals</span>
+      <section className="pt-32 pb-20 relative overflow-hidden" style={{ background: 'var(--ink)' }}>
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 25% 50%, rgba(33,150,243,0.18) 0%, transparent 65%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 50% at 80% 25%, rgba(245,160,35,0.1) 0%, transparent 65%)' }} />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="pill-tag justify-center mb-6 mx-auto w-fit">For Professionals</div>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold mt-4 leading-tight text-white">
-            You know where you are.<br />We help you get where<br />you want to be — faster.
+            You know where you are.<br />We help you get where<br />you want to be — <span className="gradient-text">faster.</span>
           </h1>
           <p className="mt-6 text-xl leading-relaxed max-w-3xl mx-auto" style={{ color: 'var(--lt-muted)' }}>
             Career decisions made on guesswork cost years. The SCIP™ Career Intelligence Profile replaces guesswork with a validated psychometric map of your capability and your potential.
@@ -64,7 +68,7 @@ export default function ProfessionalsPage() {
             <a href={portalLinks.individual} className="btn-orange">
               Start Your Career Profile →
             </a>
-            <Link href="/scip" className="btn-ghost-white">
+            <Link href="/scip" className="btn-glass">
               Learn About SCIP™
             </Link>
           </div>
@@ -170,7 +174,7 @@ export default function ProfessionalsPage() {
             <a href={portalLinks.individual} className="btn-orange">
               Start Your Career Profile →
             </a>
-            <Link href="/scip" className="btn-ghost-white">
+            <Link href="/scip" className="btn-glass">
               Learn About SCIP™
             </Link>
           </div>

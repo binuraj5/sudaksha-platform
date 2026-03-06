@@ -45,11 +45,15 @@ export default function EnterprisePage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20" style={{ background: 'var(--ink)' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="section-label !text-orange justify-center">For Enterprise</span>
+      <section className="pt-32 pb-20 relative overflow-hidden" style={{ background: 'var(--ink)' }}>
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 20% 50%, rgba(33,150,243,0.18) 0%, transparent 65%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 50% at 80% 20%, rgba(245,160,35,0.08) 0%, transparent 65%)' }} />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="pill-tag justify-center mb-6 mx-auto w-fit">For Enterprise</div>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold mt-4 leading-tight text-white">
-            Stop training people.<br />Start transforming your organisation.
+            Stop training people.<br /><span className="gradient-text">Start transforming.</span>
           </h1>
           <p className="mt-6 text-xl leading-relaxed max-w-3xl mx-auto" style={{ color: 'var(--lt-muted)' }}>
             Sudaksha delivers assessment-led organisational development for enterprises that need capability they can measure, defend, and scale.
@@ -58,7 +62,7 @@ export default function EnterprisePage() {
             <Link href="/contact?subject=enterprise-demo" className="btn-orange">
               Request Enterprise Demo
             </Link>
-            <a href={portalLinks.corporate} className="btn-ghost-white">
+            <a href={portalLinks.corporate} className="btn-glass">
               Start with an Assessment
             </a>
           </div>

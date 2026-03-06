@@ -40,49 +40,49 @@ function ImpactCard({ step, index }: { step: typeof IMPACT_STEPS[number]; index:
           height: '220px',
         }}
       >
-        {/* Front */}
+        {/* Front — glass card */}
         <div
-          className="absolute inset-0 rounded-xl p-5 flex flex-col"
-          style={{
-            backfaceVisibility: 'hidden',
-            background: 'var(--white)',
-            border: '1px solid var(--border)',
-          }}
+          className="glass-card absolute inset-0 p-5 flex flex-col"
+          style={{ backfaceVisibility: 'hidden' }}
         >
           <div className="flex items-start justify-between mb-4">
             <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center font-display text-2xl font-bold"
-              style={{ background: 'var(--sky-pale)', color: 'var(--royal)' }}
+              className="w-11 h-11 rounded-lg flex items-center justify-center font-display text-2xl font-bold text-white"
+              style={{ background: 'var(--gradient-brand)' }}
             >
               {step.letter}
             </div>
-            <span className="font-mono text-xs" style={{ color: 'var(--muted)' }}>
-              Stage {step.stage}
+            <span className="font-mono text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              {step.stage}
             </span>
           </div>
-          <h3 className="font-display text-lg font-bold mt-auto" style={{ color: 'var(--dark)' }}>
+          <h3 className="font-display text-base font-bold mt-auto text-white">
             {step.title}
           </h3>
-          <p className="font-body text-sm mt-1" style={{ color: 'var(--muted)' }}>
+          <p className="font-body text-sm mt-1" style={{ color: 'rgba(144,180,212,0.85)' }}>
             {step.short}
           </p>
-          <p className="font-mono text-[10px] mt-3" style={{ color: 'var(--lt-muted)' }}>
-            Click to learn more
+          <p className="font-mono text-[9px] mt-3" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            Tap to learn more
           </p>
         </div>
 
-        {/* Back */}
+        {/* Back — gradient */}
         <div
-          className="absolute inset-0 rounded-xl p-5 flex flex-col justify-center"
+          className="absolute inset-0 rounded-2xl p-5 flex flex-col justify-center"
           style={{
             backfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
-            background: 'var(--royal)',
+            background: 'var(--gradient-brand)',
           }}
         >
-          <div className="font-mono text-xs text-white/60 mb-2">Stage {step.stage} — {step.letter}</div>
-          <h3 className="font-display text-xl font-bold text-white mb-3">{step.title}</h3>
-          <p className="font-body text-sm leading-relaxed text-white/85">{step.long}</p>
+          <div className="font-mono text-[10px] mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            Stage {step.stage} — {step.letter}
+          </div>
+          <h3 className="font-display text-lg font-bold text-white mb-3">{step.title}</h3>
+          <p className="font-body text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
+            {step.long}
+          </p>
         </div>
       </div>
     </div>
@@ -91,12 +91,15 @@ function ImpactCard({ step, index }: { step: typeof IMPACT_STEPS[number]; index:
 
 export function ImpactFramework() {
   return (
-    <section id="impact" className="py-20" style={{ background: 'var(--sky-pale)' }}>
+    <section id="impact" className="py-20 relative" style={{ background: 'var(--navy)' }}>
+      {/* Subtle top gradient line */}
+      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(33,150,243,0.4), rgba(245,160,35,0.25), transparent)' }} aria-hidden="true" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeader
           eyebrow="Methodology"
           title="The IMPACT Framework™"
           subtitle="Every Sudaksha engagement follows a six-stage proprietary methodology that moves from diagnosis to measurable transformation."
+          light
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {IMPACT_STEPS.map((step, i) => (

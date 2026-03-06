@@ -5,12 +5,16 @@ import { SCIP_DIMENSIONS } from '@/lib/constants'
 
 export function ScipSection() {
   return (
-    <section className="py-20" style={{ background: 'var(--sky-pale)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-20 relative" style={{ background: 'var(--ink)' }}>
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 80% 50%, rgba(21,101,192,0.12) 0%, transparent 70%)' }} />
+      </div>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeader
           eyebrow="Psychometric Profile"
           title="The SCIP™ Career Intelligence Profile"
           subtitle="A four-dimensional psychometric profile that maps who you are to where you should be — backed by validated behavioural science."
+          light
         />
 
         {/* SCIP wheel + cards layout */}
@@ -43,14 +47,10 @@ export function ScipSection() {
             </div>
           </div>
 
-          {/* Dimension cards */}
+          {/* Dimension cards — glass */}
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {SCIP_DIMENSIONS.map(dim => (
-              <div
-                key={dim.code}
-                className="rounded-xl p-4 bg-white border"
-                style={{ borderColor: 'var(--border)' }}
-              >
+              <div key={dim.code} className="glass-card p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-sm font-bold text-white"
@@ -58,11 +58,11 @@ export function ScipSection() {
                   >
                     {dim.code}
                   </div>
-                  <h4 className="font-display font-semibold text-sm" style={{ color: 'var(--dark)' }}>
+                  <h4 className="font-display font-semibold text-sm text-white">
                     {dim.title}
                   </h4>
                 </div>
-                <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                <p className="font-body text-sm leading-relaxed" style={{ color: 'rgba(144,180,212,0.8)' }}>
                   {dim.desc}
                 </p>
               </div>
@@ -72,10 +72,10 @@ export function ScipSection() {
 
         {/* CTA */}
         <div className="mt-10 text-center flex flex-wrap gap-4 justify-center">
-          <a href={portalLinks.individual} className="btn-primary">
+          <a href={portalLinks.individual} className="btn-orange">
             Get Your SCIP™ Profile →
           </a>
-          <Link href="/scip" className="btn-ghost">
+          <Link href="/scip" className="btn-glass">
             Learn About SCIP™
           </Link>
         </div>

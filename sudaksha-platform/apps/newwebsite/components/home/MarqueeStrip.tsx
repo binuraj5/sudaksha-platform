@@ -15,7 +15,7 @@ export function MarqueeStrip() {
   return (
     <div
       className="py-4 overflow-hidden"
-      style={{ background: 'var(--orange)' }}
+      style={{ background: 'linear-gradient(90deg, #f5a023 0%, #e05e10 100%)' }}
     >
       <div
         className="flex gap-0 whitespace-nowrap"

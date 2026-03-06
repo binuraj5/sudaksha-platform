@@ -18,11 +18,15 @@ export default function ContactPage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-16" style={{ background: 'var(--ink)' }}>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="section-label !text-orange justify-center">Get In Touch</span>
+      <section className="pt-32 pb-16 relative overflow-hidden" style={{ background: 'var(--ink)' }}>
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 25% 50%, rgba(33,150,243,0.18) 0%, transparent 65%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 50% at 75% 20%, rgba(245,160,35,0.08) 0%, transparent 65%)' }} />
+        </div>
+        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="pill-tag justify-center mb-6 mx-auto w-fit">Get In Touch</div>
           <h1 className="font-display text-4xl sm:text-5xl font-bold mt-4 leading-tight text-white">
-            Let&apos;s talk capability.
+            Let&apos;s talk <span className="gradient-text">capability.</span>
           </h1>
           <p className="mt-5 text-lg" style={{ color: 'var(--lt-muted)' }}>
             Whether you are ready to start an engagement or just want to understand what assessment-led OD looks like — we want to hear from you.

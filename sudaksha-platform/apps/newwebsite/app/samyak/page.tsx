@@ -84,13 +84,17 @@ export default function SamyakPage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20" style={{ background: 'var(--ink)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="pt-32 pb-20 relative overflow-hidden" style={{ background: 'var(--ink)' }}>
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 15% 50%, rgba(33,150,243,0.18) 0%, transparent 65%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 50% at 80% 20%, rgba(245,160,35,0.1) 0%, transparent 65%)' }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <span className="section-label !text-orange">The Platform</span>
+            <div className="pill-tag mb-6 w-fit">The Platform</div>
             <h1 className="font-display text-4xl sm:text-5xl font-bold mt-4 leading-tight text-white">
               The Engine That<br />
-              <span style={{ color: 'var(--orange)' }}>Proves Capability</span>
+              <span className="gradient-text">Proves Capability</span>
             </h1>
             <p className="mt-5 text-lg leading-relaxed" style={{ color: 'var(--lt-muted)' }}>
               Samyak™ is an AI-powered, adaptive assessment platform built for enterprises, institutions, and individual professionals. Not another quiz tool — a capability intelligence engine.
@@ -99,7 +103,7 @@ export default function SamyakPage() {
               <Link href="/contact?subject=samyak-demo" className="btn-orange">
                 Book a 30-Min Demo
               </Link>
-              <Link href="/scip" className="btn-ghost-white">
+              <Link href="/scip" className="btn-glass">
                 Explore SCIP™ Integration
               </Link>
             </div>

@@ -43,7 +43,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-3 py-2 text-sm font-semibold font-body transition-colors duration-150"
+                className={`nav-link-item relative px-3 py-2 text-sm font-semibold font-body transition-colors duration-150${isActive ? ' !after:hidden' : ''}`}
                 style={{
                   color: isHighlight ? 'var(--orange)' : isActive ? 'var(--royal)' : 'var(--dark)',
                 }}

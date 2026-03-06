@@ -56,19 +56,26 @@ export default function ScipPage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20" style={{ background: 'var(--ink)' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="section-label !text-orange justify-center">Psychometric Profile</span>
+      <section className="pt-32 pb-20 relative overflow-hidden" style={{ background: 'var(--ink)' }}>
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 25% 50%, rgba(33,150,243,0.18) 0%, transparent 65%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 50% at 75% 20%, rgba(245,160,35,0.08) 0%, transparent 65%)' }} />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="pill-tag justify-center mb-6 mx-auto w-fit">Psychometric Profile</div>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold mt-4 leading-tight text-white">
-            Know yourself.<br />Design your career.
+            Know yourself.<br /><span className="gradient-text">Design your career.</span>
           </h1>
           <p className="mt-6 text-xl leading-relaxed max-w-3xl mx-auto" style={{ color: 'var(--lt-muted)' }}>
             The SCIP™ Career Intelligence Profile is not a personality type. It is a four-dimensional map of who you are, how you work, what drives you, and where you should go — backed by validated psychometric science.
           </p>
-          <div className="mt-8">
+          <div className="mt-8 flex flex-wrap gap-4 justify-center">
             <a href={portalLinks.individual} className="btn-orange">
               Get Your SCIP™ Profile →
             </a>
+            <Link href="/professionals" className="btn-glass">
+              For Professionals →
+            </Link>
           </div>
         </div>
       </section>

@@ -18,11 +18,15 @@ export default function AboutPage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20" style={{ background: 'var(--ink)' }}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="section-label !text-orange justify-center">About Us</span>
+      <section className="pt-32 pb-20 relative overflow-hidden" style={{ background: 'var(--ink)' }}>
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 25% 50%, rgba(33,150,243,0.18) 0%, transparent 65%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 50% at 75% 20%, rgba(245,160,35,0.08) 0%, transparent 65%)' }} />
+        </div>
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="pill-tag justify-center mb-6 mx-auto w-fit">About Us</div>
           <h1 className="font-display text-4xl sm:text-5xl font-bold mt-4 leading-tight text-white">
-            Built on one conviction:<br />capability can be proven.
+            Built on one conviction:<br /><span className="gradient-text">capability can be proven.</span>
           </h1>
           <p className="mt-6 text-lg leading-relaxed" style={{ color: 'var(--lt-muted)' }}>
             Sudaksha is a talent architecture and organisational development company. We use science-backed assessment to measure, develop, and prove capability — in enterprises, institutions, and individual professionals.

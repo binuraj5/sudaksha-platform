@@ -29,11 +29,15 @@ export default function InstitutionsPage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20" style={{ background: 'var(--ink)' }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="section-label !text-orange justify-center">For Institutions</span>
+      <section className="pt-32 pb-20 relative overflow-hidden" style={{ background: 'var(--ink)' }}>
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 30% 50%, rgba(245,160,35,0.15) 0%, transparent 65%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 50% at 75% 20%, rgba(33,150,243,0.1) 0%, transparent 65%)' }} />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="pill-tag justify-center mb-6 mx-auto w-fit">For Institutions</div>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold mt-4 leading-tight text-white">
-            Your students deserve to be hired —<br />not just graduated.
+            Your students deserve to be hired —<br /><span className="gradient-text">not just graduated.</span>
           </h1>
           <p className="mt-6 text-xl leading-relaxed max-w-3xl mx-auto" style={{ color: 'var(--lt-muted)' }}>
             Employability is not an outcome you can claim. It is one you must prove. Sudaksha makes graduate readiness measurable — for students, institutions, and recruiters.
@@ -42,7 +46,7 @@ export default function InstitutionsPage() {
             <Link href="/contact?subject=institution-demo" className="btn-orange">
               Book a Campus Assessment
             </Link>
-            <a href={portalLinks.institution} className="btn-ghost-white">
+            <a href={portalLinks.institution} className="btn-glass">
               Start a Student Assessment
             </a>
           </div>
@@ -198,7 +202,7 @@ export default function InstitutionsPage() {
             <Link href="/contact?subject=institution-demo" className="btn-orange">
               Book a Campus Assessment
             </Link>
-            <a href={portalLinks.institution} className="btn-ghost-white">
+            <a href={portalLinks.institution} className="btn-glass">
               Start a Student Assessment
             </a>
           </div>

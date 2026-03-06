@@ -22,9 +22,9 @@ module.exports = {
         'lt-muted':   '#90b4d4',
       },
       fontFamily: {
-        sans:    ['Arial', 'Verdana', 'Tahoma', '"Trebuchet MS"', 'sans-serif'],
-        display: ['Arial', 'Verdana', 'Tahoma', '"Trebuchet MS"', 'sans-serif'],
-        body:    ['Arial', 'Verdana', 'Tahoma', '"Trebuchet MS"', 'sans-serif'],
+        sans:    ['var(--font-inter)', 'Inter', 'Arial', 'Verdana', 'sans-serif'],
+        display: ['var(--font-inter)', 'Inter', 'Arial', 'Verdana', 'sans-serif'],
+        body:    ['var(--font-inter)', 'Inter', 'Arial', 'Verdana', 'sans-serif'],
         mono:    ['"Courier New"', 'Courier', 'monospace'],
       },
       animation: {

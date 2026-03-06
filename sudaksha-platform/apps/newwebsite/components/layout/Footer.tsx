@@ -28,8 +28,10 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer style={{ background: 'var(--navy)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <footer style={{ background: 'var(--ink)' }}>
+      {/* Gradient top border */}
+      <div style={{ height: '2px', background: 'linear-gradient(90deg, var(--royal) 0%, var(--bright) 40%, var(--orange) 100%)' }} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand column */}
           <div>

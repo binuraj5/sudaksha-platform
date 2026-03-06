@@ -96,25 +96,45 @@ function OrbitVisual() {
 export function HeroSection() {
   return (
     <section
-      className="min-h-screen flex items-center pt-16"
+      className="min-h-screen flex items-center pt-16 relative overflow-hidden"
       style={{ background: 'var(--ink)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      {/* Animated mesh gradient layers */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 80% 60% at 15% 40%, rgba(33,150,243,0.22) 0%, transparent 65%)',
+          animation: 'meshDrift 14s ease-in-out infinite',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 60% 50% at 85% 15%, rgba(245,160,35,0.1) 0%, transparent 65%)',
+          animation: 'meshDrift 20s ease-in-out infinite reverse',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 50% 70% at 65% 85%, rgba(21,101,192,0.14) 0%, transparent 65%)',
+          animation: 'meshDrift 17s ease-in-out infinite 4s',
+        }} />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left */}
         <div>
-          <span className="section-label !text-orange">Talent Architecture Platform</span>
-          <h1
-            className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] mt-4"
-            style={{ color: 'var(--white)' }}
-          >
-            We Transform
-            <span style={{ color: 'var(--orange)' }}> Careers.</span>
+          {/* Pill badge */}
+          <div className="pill-tag mb-6 w-fit">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" style={{ animation: 'pulse-dot 2s ease-in-out infinite' }} />
+            Talent Transformation Platform
+          </div>
+
+          <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight">
+            <span style={{ color: 'var(--white)' }}>We Transform</span>
+            <br />
+            <span className="gradient-text">Careers.</span>
           </h1>
-          <p
-            className="mt-6 text-lg leading-relaxed max-w-xl"
-            style={{ color: 'var(--lt-muted)' }}
-          >
-            Sudaksha architects measurable capability — through science-backed assessment, precise competency mapping, and organizational development that proves ROI.
+
+          <p className="mt-6 text-lg sm:text-xl leading-relaxed max-w-xl" style={{ color: 'var(--lt-muted)' }}>
+            Science-backed competency assessment, precise talent mapping, and organisational development that proves ROI — for enterprises, institutions, and individual professionals.
           </p>
 
           {/* CTAs */}
@@ -122,23 +142,21 @@ export function HeroSection() {
             <a href="#impact" className="btn-orange">
               Explore Our Approach →
             </a>
-            <a href={portalLinks.demo} className="btn-ghost-white">
+            <a href={portalLinks.demo} className="btn-glass">
               Start Free Assessment
             </a>
           </div>
 
           {/* Stats */}
-          <div className="mt-12 flex flex-wrap gap-8">
+          <div className="mt-12 flex flex-wrap gap-8 sm:gap-12">
             {[
               { value: 500, suffix: '+', label: 'Organizations' },
               { value: 94, suffix: '%', label: 'Measured ROI' },
               { value: 18, suffix: '+', label: 'Sectors' },
             ].map(stat => (
               <div key={stat.label}>
-                <div
-                  className="font-display text-3xl font-bold"
-                  style={{ color: 'var(--orange)' }}
-                >
+                <div className="w-8 h-0.5 mb-2 rounded-full" style={{ background: 'var(--gradient-orange)' }} />
+                <div className="font-display text-3xl sm:text-4xl font-bold" style={{ color: 'var(--white)' }}>
                   <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                 </div>
                 <div className="font-mono text-xs mt-1" style={{ color: 'var(--lt-muted)' }}>
