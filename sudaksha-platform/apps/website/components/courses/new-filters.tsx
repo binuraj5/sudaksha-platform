@@ -4,11 +4,10 @@ import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import {
-  Search, Filter, X, ChevronDown, ChevronUp,
-  DollarSign, Clock, Users, BookOpen, Award,
-  Star, TrendingUp, Calendar, Sparkles, CreditCard
+  Filter, ChevronDown,
+  Clock, Users, BookOpen, Award,
+  Star, TrendingUp, Sparkles, CreditCard
 } from 'lucide-react';
-import { PriceRangeSlider } from '../ui/price-range-slider';
 
 interface Filters {
   domain: 'IT' | 'Non-IT' | 'All';
@@ -164,9 +163,7 @@ export function NewFilters({
       filters.levels.length > 0 ||
       filters.types.length > 0 ||
       filters.modes.length > 0 ||
-      filters.features.length > 0 ||
-      filters.priceRange[0] > 0 ||
-      filters.priceRange[1] < 50000
+      filters.features.length > 0
     );
   }, [filters]);
 
@@ -178,7 +175,6 @@ export function NewFilters({
     count += filters.types.length;
     count += filters.modes.length;
     count += filters.features.length;
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 50000) count++;
     return count;
   }, [filters]);
 
@@ -356,23 +352,6 @@ export function NewFilters({
           </div>
         </FilterSection>
 
-        {/* Price Slider */}
-        <FilterSection title="💰 PRICE RANGE" icon={<DollarSign className="w-4 h-4" />}>
-          <div className="px-2">
-            <PriceRangeSlider
-              value={filters.priceRange}
-              onChange={(value) => handleFilterChange('priceRange', value)}
-              min={0}
-              max={50000}
-              step={1000}
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>₹{filters.priceRange[0].toLocaleString()}</span>
-              <span>₹{filters.priceRange[1].toLocaleString()}</span>
-            </div>
-          </div>
-        </FilterSection>
-
         {/* Sort Dropdown */}
         <FilterSection title="🔄 SORT" icon={<TrendingUp className="w-4 h-4" />}>
           <select
@@ -382,7 +361,6 @@ export function NewFilters({
           >
             <option value="popular">Most Popular</option>
             <option value="newest">Newest First</option>
-            <option value="price">Price: Low to High</option>
             <option value="rating">Highest Rated</option>
           </select>
         </FilterSection>

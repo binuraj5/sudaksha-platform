@@ -43,11 +43,8 @@ export function AudienceSelector() {
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             Find Your Perfect Path
           </h2>
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Find Your Perfect Path
-          </h2>
           <p className="text-xl text-gray-700 max-w-4xl mx-auto mb-8">
-            {AUDIENCE_CARDS[0].subtitle}
+            Whether you're an individual looking to grow, a corporate scaling your team, or an institution building careers — we have a solution for you.
           </p>
         </motion.div>
 
@@ -95,7 +92,7 @@ export function AudienceSelector() {
                         <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${getThemeClasses(card.theme)} flex items-center justify-center flex-shrink-0 mt-1`}>
                           <div className="w-2 h-2 bg-white rounded-full"></div>
                         </div>
-                        <span className="text-gray-900 font-bold text-lg">{card.title}</span>
+                        <span className="text-gray-700 text-base">{benefit}</span>
                       </motion.li>
                     ))}
                   </ul>

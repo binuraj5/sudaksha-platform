@@ -5,6 +5,7 @@
         "dev": "turbo run dev",
         "dev:website": "turbo run dev --filter=@sudaksha/website",
         "dev:portal": "turbo run dev --filter=@sudaksha/portal",
+        "dev:newwebsite": "turbo run dev --filter=@sudaksha/newwebsite",
         "build": "turbo run build",
         "lint": "turbo run lint"
     },

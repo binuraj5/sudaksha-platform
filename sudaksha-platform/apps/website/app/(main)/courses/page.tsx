@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, Suspense, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Search, Grid, List, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { CourseCard } from '@/components/courses/course-card';
@@ -26,12 +25,12 @@ function CoursesPageContent() {
   const [filters, setFilters] = useState({
     domain: 'All' as 'IT' | 'Non-IT' | 'All',
     industries: [] as string[],
-    levels: [] as string[], // Changed from hardcoded enum to string array to match master data
+    levels: [] as string[],
     types: [] as string[],
     modes: [] as ('Live Online' | 'Offline' | 'Hybrid')[],
     features: [] as string[],
-    priceRange: [0, 50000] as [number, number],
-    sort: 'popular' as 'popular' | 'newest' | 'price' | 'rating'
+    priceRange: [0, 50000] as [number, number], // kept for type compat, not shown in UI
+    sort: 'popular' as 'popular' | 'newest' | 'rating'
   });
 
   // Master Data State
@@ -73,7 +72,7 @@ function CoursesPageContent() {
     duration: { min: 0, max: 1000 },
     price: { min: filters.priceRange[0], max: filters.priceRange[1] },
     rating: 0,
-    sort: (filters.sort === 'popular' ? 'popularity' : filters.sort === 'price' ? 'price-low' : filters.sort) as any
+    sort: (filters.sort === 'popular' ? 'popularity' : filters.sort) as any
   });
 
   const courses = data?.pages.flatMap(page => page.courses) || [];
@@ -254,7 +253,7 @@ function CoursesPageContent() {
                     ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
                     : 'space-y-4'
                     }`}>
-                    {courses.map((course, index) => (
+                    {courses.map((course) => (
                       <CourseCard
                         key={course.id}
                         course={course}

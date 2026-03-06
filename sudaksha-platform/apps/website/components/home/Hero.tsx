@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { ArrowRight, Users, TrendingUp, Building, Target, CheckCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export function Hero() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
@@ -96,13 +96,13 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.6 }}
               className="flex flex-col sm:flex-row gap-3"
             >
-              <button className="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
+              <Link href="/courses" className="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
                 Explore Programs
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </button>
-              <button className="px-6 py-3 bg-white border-2 border-blue-500 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-300 flex items-center justify-center">
+              </Link>
+              <Link href="/consult" className="px-6 py-3 bg-white border-2 border-blue-500 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-300 flex items-center justify-center">
                 Book Free Consultation
-              </button>
+              </Link>
             </motion.div>
 
             {/* Trust Badge */}

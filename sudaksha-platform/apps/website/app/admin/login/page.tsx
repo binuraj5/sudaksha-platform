@@ -3,7 +3,6 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { Eye, EyeOff } from "lucide-react";
 
 function AdminLoginContent() {
@@ -22,33 +21,16 @@ function AdminLoginContent() {
         setLoading(true);
 
         try {
-            // We also copied /api/auth/login from portal. We can use that or NextAuth signIn
-            // Since it's /admin/login for super admins, we try NextAuth first.
-            const res = await signIn("credentials", {
-                redirect: false,
-                email,
-                password,
-            });
-
-            if (res?.error) {
-                setError("Invalid email or password");
-                setLoading(false);
-                return;
-            }
-
-            // If we got here, NextAuth succeeded via the standard cookie routing
-            // But /admin/login typically uses a custom JWT session for the admin space?
-            // Wait, in middleware: `const adminCookie = req.cookies.get('admin_session');`
-            // For `/admin/login`, let's ALSO hit the /api/auth/login endpoint which sets that cookie
-            const customRes = await fetch("/api/auth/login", {
+            // Admin login uses a custom admin_session cookie — NOT NextAuth
+            const res = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
 
-            if (!customRes.ok) {
-                const data = await customRes.json();
-                setError(data.error || "Admin login failed");
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                setError(data.error || "Invalid email or password");
                 setLoading(false);
                 return;
             }
@@ -56,7 +38,7 @@ function AdminLoginContent() {
             router.push(callbackUrl);
             router.refresh();
         } catch (err) {
-            console.error("Login catch error:", err);
+            console.error("Login error:", err);
             setError("Network error. Please try again.");
             setLoading(false);
         }
