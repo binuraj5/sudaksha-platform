@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams } from 'next/navigation';
-import {
-  Filter, ChevronDown,
-  Clock, Users, BookOpen, Award,
-  Star, TrendingUp, Sparkles, CreditCard
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, X } from 'lucide-react';
 
 interface Filters {
   domain: 'IT' | 'Non-IT' | 'All';
@@ -25,119 +19,90 @@ interface NewFiltersProps {
   onFilterChange: (key: keyof Filters, value: any) => void;
   onClearFilters: () => void;
   className?: string;
-  // Dynamic Options
   availableIndustries?: string[];
   availableCourseTypes?: string[];
   availableLevels?: string[];
 }
 
-const specialFeatures = [
-  { id: 'popular', label: 'Most Popular', icon: Star },
-  { id: 'new', label: 'New', icon: Sparkles },
-  { id: 'placement', label: 'Placement', icon: Users },
-  { id: 'emi', label: 'EMI', icon: CreditCard }
-];
-
-// Toggle Switch Component
-const ToggleSwitch = ({
-  active,
-  onClick,
-  children,
-  size = 'default',
-  color = 'blue'
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  size?: 'small' | 'default' | 'large';
-  color?: 'blue' | 'green' | 'gray';
-}) => {
-  const sizeClasses = {
-    small: 'w-8 h-8 text-xs',
-    default: 'w-11 h-11 text-sm',
-    large: 'w-14 h-14 text-base'
-  };
-
-  const colorClasses = {
-    blue: active ? 'bg-blue-500 text-white ring-2 ring-blue-500/50 shadow-blue-500/50' : 'bg-gray-100 text-gray-600',
-    green: active ? 'bg-green-500 text-white ring-2 ring-green-500/50 shadow-green-500/50' : 'bg-gray-100 text-gray-600',
-    gray: active ? 'bg-gray-500 text-white ring-2 ring-gray-500/50 shadow-gray-500/50' : 'bg-gray-100 text-gray-600'
-  };
-
-  return (
-    <motion.button
-      onClick={onClick}
-      className={`
-        ${sizeClasses[size]} 
-        ${colorClasses[color]}
-        rounded-full flex items-center justify-center font-medium
-        backdrop-blur-md transition-all duration-200
-        hover:scale-105 active:scale-95
-        shadow-lg hover:shadow-xl
-        border border-white/20
-      `}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      {children}
-    </motion.button>
-  );
-};
-
-// Filter Section Component
-const FilterSection = ({
+function SectionHeader({
   title,
-  icon,
-  children,
-  defaultExpanded = true
+  expanded,
+  onToggle,
+  count,
 }: {
   title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-  defaultExpanded?: boolean;
-}) => {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-
+  expanded: boolean;
+  onToggle: () => void;
+  count?: number;
+}) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-6"
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center justify-between py-2 text-left"
     >
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all"
-      >
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className="font-semibold text-gray-800">{title}</span>
-        </div>
-        <motion.div
-          animate={{ rotate: expanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronDown className="w-4 h-4 text-gray-600" />
-        </motion.div>
-      </button>
-
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <div className="p-4 bg-white/50 backdrop-blur-sm rounded-b-lg border border-t-0 border-gray-200">
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+      <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+        {title}
+        {count ? (
+          <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full font-medium">{count}</span>
+        ) : null}
+      </span>
+      {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+    </button>
   );
-};
+}
+
+function Pill({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+        active
+          ? 'bg-blue-600 text-white border-blue-600'
+          : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function CheckRow({
+  label,
+  checked,
+  onClick,
+}: {
+  label: string;
+  checked: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <label
+      onClick={onClick}
+      className="flex items-center gap-2 py-1 cursor-pointer group"
+    >
+      <span
+        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+          checked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 group-hover:border-blue-400'
+        }`}
+      >
+        {checked && (
+          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
+            <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span className={`text-sm ${checked ? 'text-blue-700 font-medium' : 'text-gray-600'}`}>{label}</span>
+    </label>
+  );
+}
 
 export function NewFilters({
   filters,
@@ -146,231 +111,141 @@ export function NewFilters({
   className = '',
   availableIndustries = [],
   availableCourseTypes = [],
-  availableLevels = ['Beginner', 'Intermediate', 'Advanced']
+  availableLevels = ['Beginner', 'Intermediate', 'Advanced'],
 }: NewFiltersProps) {
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    new Set(['domain', 'level', 'mode'])
+  );
 
-  const handleFilterChange = useCallback(async (key: keyof Filters, value: any) => {
-    setIsUpdating(true);
-    onFilterChange(key, value);
-    setTimeout(() => setIsUpdating(false), 100);
-  }, [onFilterChange]);
+  const toggle = useCallback((section: string) => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      next.has(section) ? next.delete(section) : next.add(section);
+      return next;
+    });
+  }, []);
 
-  const hasActiveFilters = useMemo(() => {
-    return (
-      filters.domain !== 'All' ||
-      filters.industries.length > 0 ||
-      filters.levels.length > 0 ||
-      filters.types.length > 0 ||
-      filters.modes.length > 0 ||
-      filters.features.length > 0
-    );
+  const toggleArray = useCallback(
+    (key: keyof Filters, value: string) => {
+      const current = filters[key] as string[];
+      const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+      onFilterChange(key, next);
+    },
+    [filters, onFilterChange]
+  );
+
+  const activeCount = useMemo(() => {
+    let n = 0;
+    if (filters.domain !== 'All') n++;
+    n += filters.industries.length + filters.levels.length + filters.types.length + filters.modes.length + filters.features.length;
+    return n;
   }, [filters]);
 
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (filters.domain !== 'All') count++;
-    count += filters.industries.length;
-    count += filters.levels.length;
-    count += filters.types.length;
-    count += filters.modes.length;
-    count += filters.features.length;
-    return count;
-  }, [filters]);
+  const isOpen = (s: string) => openSections.has(s);
 
   return (
-    <div className={`bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 relative ${className} ${isUpdating ? 'pointer-events-none opacity-75' : ''}`}>
-      {/* Loading Overlay */}
-      {isUpdating && (
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
-          <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm ${className}`}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200/50 bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-2xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-blue-600" />
-            <h3 className="font-bold text-gray-900 text-lg">Filters</h3>
-            {activeFilterCount > 0 && (
-              <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                {activeFilterCount}
-              </span>
-            )}
-          </div>
-          {hasActiveFilters && (
-            <button
-              onClick={onClearFilters}
-              className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
-            >
-              Clear All
-            </button>
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-gray-500" />
+          <span className="font-semibold text-gray-800 text-sm">Filters</span>
+          {activeCount > 0 && (
+            <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">{activeCount}</span>
           )}
         </div>
+        {activeCount > 0 && (
+          <button onClick={onClearFilters} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 font-medium">
+            <X className="w-3 h-3" /> Clear all
+          </button>
+        )}
       </div>
 
-      <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-        {/* Domain Toggles */}
-        <FilterSection title="🏷️ DOMAIN" icon={<BookOpen className="w-4 h-4" />}>
-          <div className="flex gap-3 justify-center">
-            <ToggleSwitch
-              active={filters.domain === 'IT'}
-              onClick={() => handleFilterChange('domain', 'IT')}
-              color="blue"
-              size="large"
-            >
-              IT
-            </ToggleSwitch>
-            <ToggleSwitch
-              active={filters.domain === 'Non-IT'}
-              onClick={() => handleFilterChange('domain', 'Non-IT')}
-              color="green"
-              size="large"
-            >
-              Non-IT
-            </ToggleSwitch>
-            <ToggleSwitch
-              active={filters.domain === 'All'}
-              onClick={() => handleFilterChange('domain', 'All')}
-              color="gray"
-              size="large"
-            >
-              All
-            </ToggleSwitch>
-          </div>
-        </FilterSection>
-
-        {/* Industry Focus Grid */}
-        <FilterSection title="🏭 INDUSTRY FOCUS" icon={<Users className="w-4 h-4" />}>
-          <div className="grid grid-cols-3 gap-2">
-            {availableIndustries.map(industry => (
-              <ToggleSwitch
-                key={industry}
-                active={filters.industries.includes(industry)}
-                onClick={() => {
-                  const newIndustries = filters.industries.includes(industry)
-                    ? filters.industries.filter(i => i !== industry)
-                    : [...filters.industries, industry];
-                  handleFilterChange('industries', newIndustries);
-                }}
-                size="small"
-              >
-                {industry}
-              </ToggleSwitch>
-            ))}
-          </div>
-        </FilterSection>
+      <div className="px-4 divide-y divide-gray-100">
+        {/* Domain */}
+        <div className="py-3">
+          <SectionHeader title="Domain" expanded={isOpen('domain')} onToggle={() => toggle('domain')} count={filters.domain !== 'All' ? 1 : 0} />
+          {isOpen('domain') && (
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {(['All', 'IT', 'Non-IT'] as const).map((d) => (
+                <Pill key={d} label={d} active={filters.domain === d} onClick={() => onFilterChange('domain', d)} />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Career Level */}
-        <FilterSection title="🎯 CAREER LEVEL" icon={<Award className="w-4 h-4" />}>
-          <div className="flex flex-col gap-3">
-            {availableLevels.map(level => (
-              <ToggleSwitch
-                key={level}
-                active={filters.levels.includes(level)}
-                onClick={() => {
-                  const newLevels = filters.levels.includes(level)
-                    ? filters.levels.filter(l => l !== level)
-                    : [...filters.levels, level];
-                  handleFilterChange('levels', newLevels);
-                }}
-                size="default"
-              >
-                {level}
-              </ToggleSwitch>
-            ))}
-          </div>
-        </FilterSection>
-
-        {/* Course Type Grid */}
-        <FilterSection title="🔧 COURSE TYPE" icon={<BookOpen className="w-4 h-4" />}>
-          <div className="grid grid-cols-3 gap-2">
-            {availableCourseTypes.map(type => (
-              <ToggleSwitch
-                key={type}
-                active={filters.types.includes(type)}
-                onClick={() => {
-                  const newTypes = filters.types.includes(type)
-                    ? filters.types.filter(t => t !== type)
-                    : [...filters.types, type];
-                  handleFilterChange('types', newTypes);
-                }}
-                size="small"
-              >
-                {type}
-              </ToggleSwitch>
-            ))}
-          </div>
-        </FilterSection>
+        <div className="py-3">
+          <SectionHeader title="Career Level" expanded={isOpen('level')} onToggle={() => toggle('level')} count={filters.levels.length || undefined} />
+          {isOpen('level') && (
+            <div className="mt-1 space-y-0.5">
+              {availableLevels.map((lvl) => (
+                <CheckRow key={lvl} label={lvl} checked={filters.levels.includes(lvl)} onClick={() => toggleArray('levels', lvl)} />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Delivery Mode */}
-        <FilterSection title="📡 DELIVERY MODE" icon={<Clock className="w-4 h-4" />}>
-          <div className="flex gap-3 justify-center">
-            {(['Live Online', 'Offline', 'Hybrid'] as const).map(mode => (
-              <ToggleSwitch
-                key={mode}
-                active={filters.modes.includes(mode)}
-                onClick={() => {
-                  const newModes = filters.modes.includes(mode)
-                    ? filters.modes.filter(m => m !== mode)
-                    : [...filters.modes, mode];
-                  handleFilterChange('modes', newModes);
-                }}
-                size="default"
-              >
-                {mode}
-              </ToggleSwitch>
-            ))}
+        <div className="py-3">
+          <SectionHeader title="Delivery Mode" expanded={isOpen('mode')} onToggle={() => toggle('mode')} count={filters.modes.length || undefined} />
+          {isOpen('mode') && (
+            <div className="mt-1 space-y-0.5">
+              {(['Live Online', 'Offline', 'Hybrid'] as const).map((m) => (
+                <CheckRow key={m} label={m} checked={filters.modes.includes(m)} onClick={() => toggleArray('modes', m)} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Industry Focus */}
+        {availableIndustries.length > 0 && (
+          <div className="py-3">
+            <SectionHeader title="Industry" expanded={isOpen('industry')} onToggle={() => toggle('industry')} count={filters.industries.length || undefined} />
+            {isOpen('industry') && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {availableIndustries.map((ind) => (
+                  <Pill key={ind} label={ind} active={filters.industries.includes(ind)} onClick={() => toggleArray('industries', ind)} />
+                ))}
+              </div>
+            )}
           </div>
-        </FilterSection>
+        )}
 
-        {/* Special Features */}
-        <FilterSection title="⭐ SPECIAL FEATURES" icon={<Star className="w-4 h-4" />}>
-          <div className="grid grid-cols-2 gap-3">
-            {specialFeatures.map(feature => {
-              const Icon = feature.icon;
-              return (
-                <ToggleSwitch
-                  key={feature.id}
-                  active={filters.features.includes(feature.id)}
-                  onClick={() => {
-                    const newFeatures = filters.features.includes(feature.id)
-                      ? filters.features.filter(f => f !== feature.id)
-                      : [...filters.features, feature.id];
-                    handleFilterChange('features', newFeatures);
-                  }}
-                  size="default"
-                >
-                  <div className="flex items-center gap-1">
-                    <Icon className="w-3 h-3" />
-                    <span className="text-xs">{feature.label}</span>
-                  </div>
-                </ToggleSwitch>
-              );
-            })}
+        {/* Course Type */}
+        {availableCourseTypes.length > 0 && (
+          <div className="py-3">
+            <SectionHeader title="Course Type" expanded={isOpen('type')} onToggle={() => toggle('type')} count={filters.types.length || undefined} />
+            {isOpen('type') && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {availableCourseTypes.map((t) => (
+                  <Pill key={t} label={t} active={filters.types.includes(t)} onClick={() => toggleArray('types', t)} />
+                ))}
+              </div>
+            )}
           </div>
-        </FilterSection>
+        )}
 
-        {/* Sort Dropdown */}
-        <FilterSection title="🔄 SORT" icon={<TrendingUp className="w-4 h-4" />}>
-          <select
-            value={filters.sort}
-            onChange={(e) => handleFilterChange('sort', e.target.value)}
-            className="w-full p-3 rounded-lg border border-gray-300 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="popular">Most Popular</option>
-            <option value="newest">Newest First</option>
-            <option value="rating">Highest Rated</option>
-          </select>
-        </FilterSection>
-      </div>
-
-      {/* Apply Button */}
-      <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-b-2xl border-t border-gray-200/50">
-        <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
-          Apply Filters
-        </button>
+        {/* Sort */}
+        <div className="py-3">
+          <SectionHeader title="Sort By" expanded={isOpen('sort')} onToggle={() => toggle('sort')} />
+          {isOpen('sort') && (
+            <div className="mt-1 space-y-0.5">
+              {[
+                { value: 'popular', label: 'Most Popular' },
+                { value: 'newest', label: 'Newest First' },
+                { value: 'rating', label: 'Highest Rated' },
+              ].map((opt) => (
+                <CheckRow
+                  key={opt.value}
+                  label={opt.label}
+                  checked={filters.sort === opt.value}
+                  onClick={() => onFilterChange('sort', opt.value)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

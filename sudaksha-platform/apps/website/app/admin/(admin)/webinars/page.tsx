@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Edit, Trash2, Eye, Filter, Calendar, Users, Clock, Video } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Filter, Calendar, Users, Clock, Video, Loader2, Eye } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Webinar {
   id: string;
@@ -28,23 +29,6 @@ interface Webinar {
   updatedAt: string;
 }
 
-const MOCK_WEBINARS: Webinar[] = [
-  {
-    id: '1', title: 'Introduction to Cloud Computing', slug: 'intro-cloud-computing',
-    description: 'Learn the fundamentals of cloud computing and major cloud platforms.',
-    speaker: 'Dr. Rajesh Kumar', date: '2026-03-20', time: '15:00', duration: 120,
-    timezone: 'IST', status: 'UPCOMING', registeredCount: 156, maxAttendees: 200,
-    category: 'Technology', featured: true, createdAt: '2026-01-20', updatedAt: '2026-01-20',
-  },
-  {
-    id: '2', title: 'Career Growth in IT Industry', slug: 'career-growth-it',
-    description: 'Strategies for career advancement in the IT sector.',
-    speaker: 'Priya Sharma', date: '2026-03-25', time: '18:00', duration: 60,
-    timezone: 'IST', status: 'UPCOMING', registeredCount: 234, maxAttendees: 300,
-    category: 'Career', featured: false, createdAt: '2026-01-25', updatedAt: '2026-01-25',
-  },
-];
-
 export default function WebinarsPage() {
   const [webinars, setWebinars] = useState<Webinar[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,20 +37,20 @@ export default function WebinarsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingWebinar, setEditingWebinar] = useState<Webinar | null>(null);
 
-  useEffect(() => {
-    const fetchWebinars = async () => {
-      try {
-        const response = await fetch('/api/webinars');
-        const data = await response.json();
-        setWebinars(data.webinars || MOCK_WEBINARS);
-      } catch {
-        setWebinars(MOCK_WEBINARS);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchWebinars();
-  }, []);
+  useEffect(() => { loadWebinars(); }, []);
+
+  const loadWebinars = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/admin/webinars');
+      const data = await res.json();
+      setWebinars(data.webinars || []);
+    } catch {
+      toast.error('Failed to load webinars');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredWebinars = webinars.filter(w => {
     const matchesSearch = w.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -75,18 +59,51 @@ export default function WebinarsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleDeleteWebinar = (id: string) => {
-    if (confirm('Delete this webinar?')) setWebinars(prev => prev.filter(w => w.id !== id));
+  const handleStatusToggle = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'CANCELLED' ? 'UPCOMING' : 'CANCELLED';
+    try {
+      const res = await fetch(`/api/admin/webinars/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(newStatus === 'CANCELLED' ? 'Webinar cancelled' : 'Webinar restored to Upcoming');
+      await loadWebinars();
+    } catch {
+      toast.error('Failed to update webinar status');
+    }
   };
 
-  const handleSave = (data: Partial<Webinar>) => {
-    if (editingWebinar) {
-      setWebinars(prev => prev.map(w => w.id === editingWebinar.id ? { ...w, ...data } : w));
-    } else {
-      setWebinars(prev => [...prev, { id: Date.now().toString(), ...data } as Webinar]);
+  const handleDeleteWebinar = async (id: string) => {
+    if (!confirm('Delete this webinar?')) return;
+    try {
+      const res = await fetch(`/api/admin/webinars/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      toast.success('Webinar deleted');
+      await loadWebinars();
+    } catch {
+      toast.error('Failed to delete webinar');
     }
-    setShowAddForm(false);
-    setEditingWebinar(null);
+  };
+
+  const handleSave = async (data: Partial<Webinar>) => {
+    try {
+      const url = editingWebinar ? `/api/admin/webinars/${editingWebinar.id}` : '/api/admin/webinars';
+      const method = editingWebinar ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(editingWebinar ? 'Webinar updated' : 'Webinar created');
+      setShowAddForm(false);
+      setEditingWebinar(null);
+      await loadWebinars();
+    } catch {
+      toast.error('Failed to save webinar');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -157,7 +174,7 @@ export default function WebinarsPage() {
         <CardHeader><CardTitle>All Webinars</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">Loading webinars...</div>
+            <div className="flex items-center justify-center py-12 text-gray-500 gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Loading...</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -213,10 +230,18 @@ export default function WebinarsPage() {
                         </div>
                       </td>
                       <td className="p-2">
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline"><Eye className="h-4 w-4" /></Button>
+                        <div className="flex gap-1 flex-wrap">
+                          {webinar.status !== 'CANCELLED' ? (
+                            <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleStatusToggle(webinar.id, webinar.status)} title="Cancel webinar">
+                              Cancel
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline" className="text-green-600 border-green-200 hover:bg-green-50" onClick={() => handleStatusToggle(webinar.id, webinar.status)} title="Restore to Upcoming">
+                              Restore
+                            </Button>
+                          )}
                           <Button size="sm" variant="outline" onClick={() => { setEditingWebinar(webinar); setShowAddForm(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDeleteWebinar(webinar.id)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button size="sm" variant="outline" className="text-red-500" onClick={() => handleDeleteWebinar(webinar.id)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </td>
                     </tr>

@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Edit, Trash2, Eye, Filter, Download, Sparkles } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Filter, Download, Sparkles, Globe, GlobeLock, ArchiveRestore } from 'lucide-react';
+import { toast } from 'sonner';
 import { AICourseGenerator } from '@/components/admin/course-form/AICourseGenerator';
 import AdminCourseForm from '@/components/courses/admin-course-form';
 
@@ -16,6 +17,7 @@ export default function CoursesPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
 
   useEffect(() => {
     fetchCourses();
@@ -24,7 +26,8 @@ export default function CoursesPage() {
   const fetchCourses = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/courses?pageSize=100');
+      const res = await fetch('/api/admin/courses');
+      if (!res.ok) return;
       const data = await res.json();
       if (data.courses) setCourses(data.courses);
     } catch (error) {
@@ -34,7 +37,10 @@ export default function CoursesPage() {
     }
   };
 
-  const filteredCourses = courses.filter(course =>
+  const activeCourses = courses.filter(c => c.status !== 'ARCHIVED');
+  const archivedCourses = courses.filter(c => c.status === 'ARCHIVED');
+
+  const currentList = (activeTab === 'archived' ? archivedCourses : activeCourses).filter(course =>
     course.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     course.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     course.courseType?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -42,28 +48,90 @@ export default function CoursesPage() {
 
   const handleSaveCourse = async (courseData: Partial<any>) => {
     try {
-      if (editingCourse) {
-        setCourses(prev => prev.map(c => c.id === editingCourse.id ? { ...c, ...courseData } : c));
-      } else {
-        setCourses(prev => [...prev, { id: Date.now().toString(), ...courseData }]);
+      const isEdit = !!editingCourse?.id && !editingCourse._aiGenerated;
+      const url = isEdit ? `/api/admin/courses/${editingCourse.id}` : '/api/admin/courses';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(courseData),
+      });
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        toast.error(result.error || 'Failed to save course');
+        return;
       }
+
+      toast.success(isEdit ? 'Course updated successfully' : 'Course created successfully');
       setShowAddForm(false);
       setEditingCourse(null);
       fetchCourses();
     } catch (error) {
       console.error('Error saving course:', error);
+      toast.error('Unexpected error saving course');
     }
   };
 
   const handleAIGeneratedCourse = (courseData: any) => {
-    setEditingCourse(courseData);
+    // Mark as AI-generated so handleSaveCourse knows to use POST (not PUT)
+    setEditingCourse({ ...courseData, _aiGenerated: true });
     setShowAIGenerator(false);
     setShowAddForm(true);
   };
 
-  const handleDeleteCourse = async (courseId: string) => {
-    if (confirm('Are you sure you want to delete this course?')) {
-      setCourses(prev => prev.filter(c => c.id !== courseId));
+  const handleArchiveCourse = async (courseId: string) => {
+    if (!confirm('Archive this course? It will be hidden from the website but can be restored later.')) return;
+    try {
+      const res = await fetch(`/api/admin/courses/${courseId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Course archived');
+        fetchCourses();
+      } else {
+        toast.error('Failed to archive course');
+      }
+    } catch {
+      toast.error('Failed to archive course');
+    }
+  };
+
+  const handlePublishToggle = async (courseId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+    try {
+      const res = await fetch(`/api/admin/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        toast.error(result.error || 'Failed to update status');
+        return;
+      }
+      toast.success(newStatus === 'PUBLISHED' ? 'Course published — now visible on website' : 'Course unpublished — hidden from website');
+      fetchCourses();
+    } catch {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleRestoreCourse = async (courseId: string) => {
+    try {
+      const res = await fetch(`/api/admin/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'DRAFT' }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        toast.error(result.error || 'Failed to restore course');
+        return;
+      }
+      toast.success('Course restored to Drafts');
+      fetchCourses();
+    } catch {
+      toast.error('Failed to restore course');
     }
   };
 
@@ -134,21 +202,37 @@ export default function CoursesPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="p-3">
-          <p className="text-xs font-medium text-gray-600">Total Courses</p>
-          <p className="text-xl font-bold text-indigo-600 mt-1">{courses.length}</p>
+          <p className="text-xs font-medium text-gray-600">Active Courses</p>
+          <p className="text-xl font-bold text-indigo-600 mt-1">{activeCourses.length}</p>
         </Card>
         <Card className="p-3">
           <p className="text-xs font-medium text-gray-600">Published</p>
-          <p className="text-xl font-bold text-green-600 mt-1">{courses.filter(c => c.isPublished).length}</p>
+          <p className="text-xl font-bold text-green-600 mt-1">{courses.filter(c => c.status === 'PUBLISHED').length}</p>
         </Card>
         <Card className="p-3">
           <p className="text-xs font-medium text-gray-600">Drafts</p>
-          <p className="text-xl font-bold text-orange-600 mt-1">{courses.filter(c => !c.isPublished).length}</p>
+          <p className="text-xl font-bold text-orange-600 mt-1">{courses.filter(c => c.status === 'DRAFT').length}</p>
         </Card>
         <Card className="p-3">
-          <p className="text-xs font-medium text-gray-600">With Trainers</p>
-          <p className="text-xl font-bold text-blue-600 mt-1">{courses.filter(c => c.trainer?.name).length}</p>
+          <p className="text-xs font-medium text-gray-600">Archived</p>
+          <p className="text-xl font-bold text-gray-500 mt-1">{archivedCourses.length}</p>
         </Card>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 border-b">
+        <button
+          onClick={() => setActiveTab('active')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'active' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          Active ({activeCourses.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('archived')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'archived' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+        >
+          Archived ({archivedCourses.length})
+        </button>
       </div>
 
       <div className="flex gap-4">
@@ -161,19 +245,11 @@ export default function CoursesPage() {
             className="pl-10"
           />
         </div>
-        <Button variant="outline">
-          <Filter className="h-4 w-4 mr-2" />
-          Filters
-        </Button>
-        <Button variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Courses</CardTitle>
+          <CardTitle>{activeTab === 'archived' ? 'Archived Courses' : 'All Courses'}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -192,7 +268,7 @@ export default function CoursesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCourses.map((course) => (
+                  {currentList.map((course) => (
                     <tr key={course.id} className="border-b hover:bg-gray-50">
                       <td className="p-2">
                         <div className="font-medium">{course.name}</div>
@@ -208,30 +284,98 @@ export default function CoursesPage() {
                         <span className="text-sm text-gray-600">{course.trainer?.name ?? '—'}</span>
                       </td>
                       <td className="p-2">
-                        <Badge variant={course.isPublished ? 'default' : 'secondary'}>
-                          {course.isPublished ? 'Published' : 'Draft'}
+                        <Badge
+                          variant={course.status === 'PUBLISHED' ? 'default' : course.status === 'ARCHIVED' ? 'outline' : 'secondary'}
+                          className={course.status === 'PUBLISHED' ? 'bg-green-100 text-green-800 border-green-200' : course.status === 'ARCHIVED' ? 'text-gray-400' : ''}
+                        >
+                          {course.status ?? 'DRAFT'}
                         </Badge>
                       </td>
                       <td className="p-2">
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={`/courses/${course.slug}`} target="_blank">
-                              <Eye className="h-4 w-4" />
-                            </a>
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => { setEditingCourse(course); setShowAddForm(true); }}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDeleteCourse(course.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex gap-1 flex-wrap">
+                          {activeTab === 'archived' ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              onClick={() => handleRestoreCourse(course.id)}
+                              title="Restore to Drafts"
+                            >
+                              <ArchiveRestore className="h-4 w-4 mr-1" />
+                              Restore
+                            </Button>
+                          ) : (
+                            <>
+                              {course.status === 'PUBLISHED' ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                                  onClick={() => handlePublishToggle(course.id, course.status)}
+                                  title="Unpublish — hide from website"
+                                >
+                                  <GlobeLock className="h-4 w-4 mr-1" />
+                                  Unpublish
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600 border-green-200 hover:bg-green-50"
+                                  onClick={() => handlePublishToggle(course.id, course.status)}
+                                  title="Publish — make visible on website"
+                                >
+                                  <Globe className="h-4 w-4 mr-1" />
+                                  Publish
+                                </Button>
+                              )}
+                              <Button size="sm" variant="outline" asChild title="Preview on website">
+                                <a href={`/courses/${course.slug}`} target="_blank">
+                                  <Eye className="h-4 w-4" />
+                                </a>
+                              </Button>
+                              <Button size="sm" variant="outline" title="Edit" onClick={async () => {
+                                try {
+                                  const res = await fetch(`/api/admin/courses/${course.id}`);
+                                  const data = await res.json();
+                                  if (data.success && data.course) {
+                                    const c = data.course;
+                                    setEditingCourse({
+                                      ...c,
+                                      durationHours: c.duration,
+                                      curriculum: c.moduleBreakdown ?? [],
+                                      domain: c.categoryType,
+                                    });
+                                  } else {
+                                    setEditingCourse(course);
+                                  }
+                                } catch {
+                                  setEditingCourse(course);
+                                }
+                                setShowAddForm(true);
+                              }}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-500 border-red-200 hover:bg-red-50"
+                                title="Archive course"
+                                onClick={() => handleArchiveCourse(course.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
                   ))}
-                  {filteredCourses.length === 0 && !isLoading && (
+                  {currentList.length === 0 && !isLoading && (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-gray-500">No courses found</td>
+                      <td colSpan={6} className="text-center py-8 text-gray-500">
+                        {activeTab === 'archived' ? 'No archived courses' : 'No courses found'}
+                      </td>
                     </tr>
                   )}
                 </tbody>

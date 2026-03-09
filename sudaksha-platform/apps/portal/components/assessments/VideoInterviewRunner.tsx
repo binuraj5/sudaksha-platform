@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Video, VideoOff, Loader2, AlertCircle, CheckCircle2, RotateCcw } from "lucide-react";
+import { Video, VideoOff, Loader2, AlertCircle, CheckCircle2, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 
 export interface VideoConfig {
@@ -48,6 +48,10 @@ export function VideoInterviewRunner({
     const [scores, setScores] = useState<Array<{ overall_score: number; feedback: string }>>([]);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
+    // TTS state
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
     // Media refs
     const mediaRef = useRef<MediaRecorder | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
@@ -56,7 +60,7 @@ export function VideoInterviewRunner({
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const isLastQuestion = currentQuestionIndex >= questionCount - 1;
-    const currentQuestion = questions[currentQuestionIndex] || "";
+    const currentQuestion = questions[currentQuestionIndex] ?? "";
 
     // Load AI-generated questions on mount
     useEffect(() => {
@@ -116,7 +120,48 @@ export function VideoInterviewRunner({
         };
     }, [recordingState]);
 
+    // ── TTS helpers ──────────────────────────────────────────────────────────
+    const stopAudio = useCallback(() => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
+        setIsSpeaking(false);
+    }, []);
+
+    const speakText = useCallback(async (text: string) => {
+        if (!text) return;
+        stopAudio();
+        setIsSpeaking(true);
+        try {
+            const res = await fetch("/api/ai/tts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text }),
+            });
+            const data = await res.json();
+            if (!data.audio) { setIsSpeaking(false); return; }
+            const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
+            audioRef.current = audio;
+            audio.onended = () => setIsSpeaking(false);
+            audio.onerror = () => setIsSpeaking(false);
+            await audio.play().catch(() => setIsSpeaking(false));
+        } catch {
+            setIsSpeaking(false);
+        }
+    }, [stopAudio]);
+
+    // Auto-speak current question whenever it changes (and questions are loaded)
+    useEffect(() => {
+        if (loading || questions.length === 0) return;
+        const q = questions[currentQuestionIndex];
+        if (q) speakText(q);
+        return stopAudio;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentQuestionIndex, loading, questions.length]);
+
     const startRecording = useCallback(async () => {
+        stopAudio(); // stop TTS before recording
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             streamRef.current = stream;
@@ -323,9 +368,35 @@ export function VideoInterviewRunner({
                 <CardContent className="space-y-6 pt-6">
                     {/* Question */}
                     <div className="p-4 bg-white border-2 border-blue-100 rounded-xl shadow-sm">
-                        <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-2">
-                            Interview Question
-                        </p>
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-bold uppercase tracking-widest text-blue-600">
+                                Interview Question
+                            </p>
+                            <button
+                                onClick={() => isSpeaking ? stopAudio() : speakText(currentQuestion)}
+                                className="flex items-center gap-1.5 text-xs font-medium text-blue-500 hover:text-blue-700 transition-colors"
+                                title={isSpeaking ? "Stop" : "Replay question"}
+                                disabled={recordingState !== "idle"}
+                            >
+                                {isSpeaking ? (
+                                    <><VolumeX className="h-4 w-4" /> Stop</>
+                                ) : (
+                                    <><Volume2 className="h-4 w-4" /> Replay</>
+                                )}
+                            </button>
+                        </div>
+                        {isSpeaking && (
+                            <div className="flex items-center gap-1.5 mb-2">
+                                {[0, 1, 2, 3, 4].map((i) => (
+                                    <div
+                                        key={i}
+                                        className="w-1 bg-blue-400 rounded-full animate-bounce"
+                                        style={{ height: "12px", animationDelay: `${i * 100}ms` }}
+                                    />
+                                ))}
+                                <span className="text-xs text-blue-500 ml-1">Speaking...</span>
+                            </div>
+                        )}
                         <p className="font-semibold text-gray-900 text-lg leading-relaxed">
                             {currentQuestion}
                         </p>
@@ -385,6 +456,7 @@ export function VideoInterviewRunner({
                         <div className="text-sm text-muted-foreground bg-blue-50 rounded-lg p-3 space-y-1">
                             <p className="font-medium text-blue-900">Before recording:</p>
                             <ul className="list-disc list-inside space-y-1 text-xs">
+                                <li>The interviewer will read the question aloud — listen carefully</li>
                                 <li>Find a quiet, well-lit environment</li>
                                 <li>Ensure your camera and microphone are working</li>
                                 <li>You have {formatDuration(maxSecs)} per response</li>

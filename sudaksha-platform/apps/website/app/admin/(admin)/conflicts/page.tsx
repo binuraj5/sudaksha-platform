@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, AlertTriangle, CheckCircle, XCircle, Clock, User, Calendar, BookOpen, Filter } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle, XCircle, Clock, User, Calendar, BookOpen, RefreshCw, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Conflict {
   id: string;
@@ -25,45 +26,6 @@ interface Conflict {
   batchName?: string;
 }
 
-const MOCK_CONFLICTS: Conflict[] = [
-  {
-    id: '1', type: 'TRAINER', severity: 'HIGH', status: 'OPEN',
-    title: 'Trainer Double-Booked',
-    description: 'Dr. Rajesh Kumar is scheduled for two sessions simultaneously on March 20, 2026.',
-    affectedItems: ['Cloud Computing Batch A', 'DevOps Fundamentals Batch B'],
-    detectedAt: '2026-03-05T10:30:00', courseId: 'c1', courseName: 'Cloud Computing',
-    batchId: 'b1', batchName: 'Batch A',
-  },
-  {
-    id: '2', type: 'SCHEDULE', severity: 'MEDIUM', status: 'OPEN',
-    title: 'Overlapping Batch Schedules',
-    description: 'Two batches have overlapping time slots in the same virtual classroom.',
-    affectedItems: ['Python Basics - Batch C', 'Data Science - Batch D'],
-    detectedAt: '2026-03-05T11:00:00', batchId: 'b2', batchName: 'Batch C',
-  },
-  {
-    id: '3', type: 'ENROLLMENT', severity: 'LOW', status: 'OPEN',
-    title: 'Over-enrollment Detected',
-    description: 'React Masterclass batch has exceeded max capacity by 5 students.',
-    affectedItems: ['React Masterclass - Batch E'],
-    detectedAt: '2026-03-04T14:20:00', courseName: 'React Masterclass',
-  },
-  {
-    id: '4', type: 'RESOURCE', severity: 'CRITICAL', status: 'ESCALATED',
-    title: 'Missing Course Materials',
-    description: 'AWS Certification course is missing 3 required modules before batch start date.',
-    affectedItems: ['AWS Certification - Batch F'],
-    detectedAt: '2026-03-03T09:15:00', courseName: 'AWS Certification',
-  },
-  {
-    id: '5', type: 'SCHEDULE', severity: 'LOW', status: 'RESOLVED',
-    title: 'Holiday Schedule Conflict',
-    description: 'Session scheduled on a national holiday. Batch rescheduled successfully.',
-    affectedItems: ['Java Enterprise - Batch G'],
-    detectedAt: '2026-03-01T08:00:00', resolvedAt: '2026-03-02T10:00:00', resolvedBy: 'Admin',
-  },
-];
-
 export default function ConflictsPage() {
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,20 +35,26 @@ export default function ConflictsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedConflict, setSelectedConflict] = useState<Conflict | null>(null);
 
-  useEffect(() => {
-    const fetchConflicts = async () => {
-      try {
-        const response = await fetch('/api/admin/conflicts');
-        const data = await response.json();
-        setConflicts(data.conflicts || MOCK_CONFLICTS);
-      } catch {
-        setConflicts(MOCK_CONFLICTS);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchConflicts();
-  }, []);
+  useEffect(() => { loadConflicts(); }, []);
+
+  const loadConflicts = async () => {
+    setIsLoading(true);
+    try {
+      const [conflictsRes, actionsRes] = await Promise.all([
+        fetch('/api/admin/conflicts'),
+        fetch('/api/admin/conflicts/action'),
+      ]);
+      const [conflictsData, actionsData] = await Promise.all([conflictsRes.json(), actionsRes.json()]);
+      const statusMap: Record<string, string> = actionsData.statusMap ?? {};
+      const raw: Conflict[] = conflictsData.conflicts ?? [];
+      // Overlay persisted statuses
+      setConflicts(raw.map(c => statusMap[c.id] ? { ...c, status: statusMap[c.id] as Conflict['status'] } : c));
+    } catch {
+      toast.error('Failed to load conflicts');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredConflicts = conflicts.filter(c => {
     const matchesSearch = c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,21 +65,37 @@ export default function ConflictsPage() {
     return matchesSearch && matchesSeverity && matchesStatus && matchesType;
   });
 
+  const persistAction = async (id: string, action: string, title: string) => {
+    try {
+      await fetch('/api/admin/conflicts/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conflictId: id, action, title }),
+      });
+    } catch { /* best-effort */ }
+  };
+
   const handleResolve = (id: string) => {
+    const c = conflicts.find(x => x.id === id);
     setConflicts(prev => prev.map(c => c.id === id
       ? { ...c, status: 'RESOLVED', resolvedAt: new Date().toISOString(), resolvedBy: 'Admin' }
       : c
     ));
+    persistAction(id, 'RESOLVED', c?.title ?? id);
     if (selectedConflict?.id === id) setSelectedConflict(null);
   };
 
   const handleDismiss = (id: string) => {
+    const c = conflicts.find(x => x.id === id);
     setConflicts(prev => prev.map(c => c.id === id ? { ...c, status: 'DISMISSED' } : c));
+    persistAction(id, 'DISMISSED', c?.title ?? id);
     if (selectedConflict?.id === id) setSelectedConflict(null);
   };
 
   const handleEscalate = (id: string) => {
+    const c = conflicts.find(x => x.id === id);
     setConflicts(prev => prev.map(c => c.id === id ? { ...c, status: 'ESCALATED' } : c));
+    persistAction(id, 'ESCALATED', c?.title ?? id);
     if (selectedConflict?.id === id) setSelectedConflict(null);
   };
 
@@ -167,8 +151,8 @@ export default function ConflictsPage() {
           <h1 className="text-2xl font-bold">Conflict Detection</h1>
           <p className="text-gray-600 mt-1">Monitor and resolve scheduling and resource conflicts</p>
         </div>
-        <Button variant="outline" onClick={() => setConflicts([...MOCK_CONFLICTS])}>
-          Refresh
+        <Button variant="outline" onClick={loadConflicts} disabled={isLoading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />Refresh
         </Button>
       </div>
 
@@ -220,7 +204,7 @@ export default function ConflictsPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8 text-gray-500">Loading conflicts...</div>
+        <div className="flex items-center justify-center py-12 text-gray-500 gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Loading...</div>
       ) : (
         <div className="space-y-3">
           {filteredConflicts.length === 0 ? (

@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Edit, Trash2, Eye, Filter, Download, Mail, Calendar } from 'lucide-react';
+import { Search, Edit, Mail, Calendar, Loader2, Download, Eye, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface User {
   id: string; name: string; email: string;
@@ -17,12 +18,6 @@ interface User {
   enrolledCourses?: number; completedCourses?: number;
 }
 
-const MOCK_USERS: User[] = [
-  { id: '1', name: 'John Doe', email: 'john.doe@example.com', role: 'STUDENT', status: 'ACTIVE', accountType: 'INDIVIDUAL', createdAt: '2026-01-15', lastLogin: '2026-02-05', enrolledCourses: 3, completedCourses: 1 },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'STUDENT', status: 'ACTIVE', accountType: 'INDIVIDUAL', createdAt: '2026-01-20', lastLogin: '2026-02-04', enrolledCourses: 2, completedCourses: 2 },
-  { id: '3', name: 'Admin User', email: 'admin@sudaksha.com', role: 'ADMIN', status: 'ACTIVE', accountType: 'INDIVIDUAL', createdAt: '2026-01-01', lastLogin: '2026-02-05', enrolledCourses: 0, completedCourses: 0 },
-];
-
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,20 +27,20 @@ export default function UsersPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('/api/admin/users');
-        const data = await response.json();
-        setUsers(data.success && data.data ? data.data : MOCK_USERS);
-      } catch {
-        setUsers(MOCK_USERS);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUsers();
-  }, []);
+  useEffect(() => { loadUsers(); }, []);
+
+  const loadUsers = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/admin/users');
+      const data = await res.json();
+      setUsers(data.users || data.data || []);
+    } catch {
+      toast.error('Failed to load users');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,15 +51,13 @@ export default function UsersPage() {
   });
 
   const handleDeleteUser = (userId: string) => {
-    if (confirm('Delete this user?')) setUsers(prev => prev.filter(u => u.id !== userId));
+    // Users are managed via the SSO system; show a message instead
+    toast.info('User deletion is managed via the SSO system');
   };
 
   const handleSave = (userData: Partial<User>) => {
-    if (editingUser) {
-      setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...userData } : u));
-    } else {
-      setUsers(prev => [...prev, { id: Date.now().toString(), createdAt: new Date().toISOString().split('T')[0], ...userData } as User]);
-    }
+    // User creation is managed via the SSO system; read-only view
+    toast.info('User creation is managed via the SSO system');
     setShowAddForm(false);
     setEditingUser(null);
   };
@@ -110,9 +103,7 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold">Users Management</h1>
           <p className="text-gray-600 mt-1">Manage user accounts and permissions</p>
         </div>
-        <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setShowAddForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />Add New User
-        </Button>
+        <span className="text-sm text-gray-500">Read-only — users managed via SSO</span>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -146,7 +137,7 @@ export default function UsersPage() {
         <CardHeader><CardTitle>All Users</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">Loading users...</div>
+            <div className="flex items-center justify-center py-12 text-gray-500 gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Loading...</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">

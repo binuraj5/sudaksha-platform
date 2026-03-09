@@ -6,21 +6,35 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const search = searchParams.get("search") || "";
-  const track = searchParams.get("track") || ""; // Technology | Domain | Behavioural | Cognitive
   const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
   const pageSize = Math.min(24, parseInt(searchParams.get("pageSize") || "12"));
 
-  // Map track filter to courseType values stored in DB
-  const trackToCourseTypes: Record<string, string[]> = {
-    Technology: ["TECHNICAL", "TECHNOLOGY", "IT", "SOFTWARE_DEVELOPMENT", "CLOUD_DEVOPS", "DATA_ANALYTICS", "CYBERSECURITY", "AI_ML"],
-    Domain: ["DOMAIN", "FUNCTIONAL", "INDUSTRY_SPECIFIC", "BUSINESS", "NON_IT"],
-    Behavioural: ["BEHAVIOURAL", "BEHAVIORAL", "SOFT_SKILLS", "LEADERSHIP", "COMMUNICATION"],
-    Cognitive: ["COGNITIVE", "ANALYTICAL", "PROBLEM_SOLVING", "CRITICAL_THINKING", "APTITUDE"],
+  // Multi-value filters (comma-separated)
+  const courseTypes = searchParams.get("courseTypes")?.split(",").filter(Boolean) || [];
+  const targetLevels = searchParams.get("targetLevels")?.split(",").filter(Boolean) || [];
+  const industries = searchParams.get("industries")?.split(",").filter(Boolean) || [];
+  const deliveryModes = searchParams.get("deliveryModes")?.split(",").filter(Boolean) || [];
+  const categories = searchParams.get("categories")?.split(",").filter(Boolean) || [];
+
+  // Domain: IT | Non-IT | All (maps to categoryType in DB)
+  const domain = searchParams.get("domain") || "All";
+
+  // Sort: popularity | newest | rating
+  const sort = searchParams.get("sort") || "popularity";
+
+  // Map delivery mode labels to DB enum values
+  const modeMap: Record<string, string> = {
+    "Live Online": "ONLINE",
+    "Offline": "OFFLINE",
+    "Hybrid": "HYBRID",
+    "ONLINE": "ONLINE",
+    "OFFLINE": "OFFLINE",
+    "HYBRID": "HYBRID",
   };
 
   try {
     const where: any = {
-      isPublished: true,
+      status: "PUBLISHED",
     };
 
     if (search) {
@@ -31,13 +45,34 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    if (track && trackToCourseTypes[track]) {
-      where.OR = [
-        ...(where.OR || []),
-        { courseType: { in: trackToCourseTypes[track] } },
-        { category: { in: trackToCourseTypes[track] } },
-      ];
+    if (domain === "IT") where.categoryType = "IT";
+    else if (domain === "Non-IT") where.categoryType = "NON_IT";
+
+    if (courseTypes.length > 0) {
+      where.courseType = { in: courseTypes };
     }
+
+    if (categories.length > 0) {
+      where.category = { in: categories };
+    }
+
+    if (targetLevels.length > 0) {
+      where.targetLevel = { in: targetLevels };
+    }
+
+    if (industries.length > 0) {
+      where.industry = { in: industries };
+    }
+
+    if (deliveryModes.length > 0) {
+      const dbModes = deliveryModes.map(m => modeMap[m] || m).filter(Boolean);
+      if (dbModes.length > 0) where.deliveryMode = { in: dbModes };
+    }
+
+    const orderBy: any[] =
+      sort === "newest" ? [{ createdAt: "desc" }] :
+      sort === "rating" ? [{ rating: "desc" }, { createdAt: "desc" }] :
+      [{ rating: "desc" }, { createdAt: "desc" }]; // popularity default
 
     const [courses, total] = await Promise.all([
       prisma.course.findMany({
@@ -56,9 +91,12 @@ export async function GET(req: NextRequest) {
           skillTags: true,
           certification: true,
           maxStudents: true,
+          industry: true,
+          targetLevel: true,
+          categoryType: true,
           trainer: { select: { name: true } },
         },
-        orderBy: [{ rating: "desc" }, { createdAt: "desc" }],
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

@@ -31,8 +31,13 @@ export function AICourseGenerator({ onSuccess }: AICourseGeneratorProps) {
                     fetch('/api/admin/master-data?type=level')
                 ]);
 
+                const parse = async (res: Response) => {
+                    if (!res.ok) return { success: false, data: [] };
+                    try { return await res.json(); } catch { return { success: false, data: [] }; }
+                };
+
                 const [categories, domains, courseTypes, levels] = await Promise.all([
-                    catRes.json(), domRes.json(), typeRes.json(), lvlRes.json()
+                    parse(catRes), parse(domRes), parse(typeRes), parse(lvlRes)
                 ]);
 
                 setMasterData({

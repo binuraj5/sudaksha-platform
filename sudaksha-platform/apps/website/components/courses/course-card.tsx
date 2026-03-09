@@ -292,11 +292,8 @@ export function CourseCard({
             </div>
           </div>
 
-          {/* Price and CTA */}
-          <div className="mt-6 pt-4 border-t flex items-center justify-between gap-3">
-            <div className="text-xl font-bold text-blue-600">
-              ₹{course.price.toLocaleString('en-IN')}
-            </div>
+          {/* CTA */}
+          <div className="mt-6 pt-4 border-t flex items-center justify-end gap-3">
             <div className="flex gap-2">
               <Link
                 href={`/courses/${course.slug || course.id}`}

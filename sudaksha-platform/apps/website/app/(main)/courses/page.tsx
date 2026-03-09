@@ -72,7 +72,8 @@ function CoursesPageContent() {
     duration: { min: 0, max: 1000 },
     price: { min: filters.priceRange[0], max: filters.priceRange[1] },
     rating: 0,
-    sort: (filters.sort === 'popular' ? 'popularity' : filters.sort) as any
+    sort: (filters.sort === 'popular' ? 'popularity' : filters.sort) as any,
+    domain: filters.domain === 'All' ? undefined : [filters.domain] as any,
   });
 
   const courses = data?.pages.flatMap(page => page.courses) || [];

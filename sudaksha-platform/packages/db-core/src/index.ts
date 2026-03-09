@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/client';
 
 const globalForPrismaCore = globalThis as unknown as {
   prismaCore: PrismaClient | undefined;
@@ -34,7 +34,7 @@ export {
   Industry,
   CourseStatus,
   BatchMode
-} from '@prisma/client';
+} from '../generated/client';
 
 export type {
   Role,
@@ -42,4 +42,4 @@ export type {
   AssessmentModel,
   CourseDivision,
   Trainer
-} from '@prisma/client';
+} from '../generated/client';

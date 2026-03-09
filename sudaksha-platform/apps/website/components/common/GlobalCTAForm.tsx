@@ -57,15 +57,26 @@ export function GlobalCTAForm({
         setIsSubmitting(true);
 
         try {
+            // Fetch public IP + geo data
+            let geoData: Record<string, string> = {};
+            try {
+                const geoRes = await fetch('https://ip-api.com/json/?fields=status,country,regionName,city,isp,query', { signal: AbortSignal.timeout(3000) });
+                const geo = await geoRes.json();
+                if (geo.status === 'success') {
+                    geoData = { publicIp: geo.query, city: geo.city, region: geo.regionName, country: geo.country, isp: geo.isp };
+                }
+            } catch { /* geo lookup is best-effort */ }
+
             // Collect metadata
             const metadata = {
                 timestamp: new Date().toISOString(),
-                location: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 device: navigator.userAgent,
                 pageName: document.title,
                 pageUrl: window.location.href,
                 ctaButton: sourceButton,
-                subject: ctaSubject
+                subject: ctaSubject,
+                ...geoData,
             };
 
             const response = await fetch('/api/forms/submit', {
@@ -105,7 +116,7 @@ export function GlobalCTAForm({
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+                    className="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-y-auto max-h-[90vh]"
                 >
                     {/* Close Button */}
                     <button

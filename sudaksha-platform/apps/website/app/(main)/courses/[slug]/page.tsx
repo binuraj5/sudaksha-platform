@@ -51,13 +51,14 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
     }
   });
 
-  if (!courseData) {
+  if (!courseData || courseData.status !== 'PUBLISHED') {
     notFound();
   }
 
   // Map database data to component format
   const course = {
     id: courseData.id,
+    slug: courseData.slug,
     title: courseData.name,
     description: courseData.description,
     durationHours: courseData.duration,
@@ -89,20 +90,43 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
           : String(item)
       )
       : [],
-    prerequisites: courseData.prerequisites, // String
-    modules: courseData.modules.map(module => ({
-      id: module.id,
-      title: module.title,
-      description: module.description,
-      duration: module.duration,
-      chapters: module.lessons.map(lesson => ({
-        id: lesson.id,
-        title: lesson.title,
-        description: lesson.description,
-        duration: lesson.duration || 15, // Default to 15m if missing
-        resources: []
-      }))
-    }))
+    prerequisites: courseData.prerequisites,
+    // Use structured Module relation if available, otherwise fall back to moduleBreakdown JSON
+    modules: courseData.modules.length > 0
+      ? courseData.modules.map(module => ({
+          id: module.id,
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          chapters: module.lessons.map(lesson => ({
+            id: lesson.id,
+            title: lesson.title,
+            description: lesson.description,
+            duration: lesson.duration || 15,
+            resources: []
+          }))
+        }))
+      : (Array.isArray(courseData.moduleBreakdown) ? (courseData.moduleBreakdown as any[]) : []).map((mod: any, i: number) => {
+          const chapters = (Array.isArray(mod.chapters) ? mod.chapters : []).map((ch: any, j: number) => ({
+            id: `mb-${i}-${j}`,
+            title: typeof ch === 'string' ? ch : ch.title || `Chapter ${j + 1}`,
+            description: '',
+            // chapter.duration stored in hours → display in minutes
+            duration: typeof ch === 'object' && ch.duration ? Math.round(Number(ch.duration) * 60) : 15,
+            resources: []
+          }));
+          // module.duration = sum of chapter hours (displayed as "X Hours")
+          const totalHours = (Array.isArray(mod.chapters) ? mod.chapters : []).reduce(
+            (sum: number, ch: any) => sum + (typeof ch === 'object' && ch.duration ? Number(ch.duration) : 0), 0
+          );
+          return {
+            id: `mb-${i}`,
+            title: mod.title || mod.module || `Module ${i + 1}`,
+            description: mod.description || '',
+            duration: totalHours || null,
+            chapters,
+          };
+        })
   };
 
   return <CourseViewClient course={course} />;

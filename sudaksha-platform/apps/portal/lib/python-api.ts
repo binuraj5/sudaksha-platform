@@ -23,25 +23,52 @@ export async function transcribeAudioPython(audioFile: File): Promise<{ text: st
     return response.json();
 }
 
+// Shared helper: detect connection-refused errors
+function isServiceDown(err: unknown): boolean {
+    const msg = (err as any)?.cause?.code ?? (err as any)?.code ?? "";
+    return msg === "ECONNREFUSED" || msg === "ENOTFOUND" || msg === "ECONNRESET";
+}
+
 export async function startVoiceInterview(params: {
     competencyName: string;
     targetLevel: string;
     questionCount?: number;
 }): Promise<{ session_id: string; initial_question: string; question_number: number }> {
-    const response = await fetch(`${PYTHON_API_URL}/api/voice/start-interview`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            competency_name: params.competencyName,
-            target_level: params.targetLevel,
-            question_count: params.questionCount ?? 5,
-        }),
-    });
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error((err as { detail?: string }).detail || "Failed to start interview");
+    try {
+        const response = await fetch(`${PYTHON_API_URL}/api/voice/start-interview`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                competency_name: params.competencyName,
+                target_level: params.targetLevel,
+                question_count: params.questionCount ?? 5,
+            }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error((err as { detail?: string }).detail || "Failed to start interview");
+        }
+        return response.json();
+    } catch (err) {
+        if (!isServiceDown(err)) throw err;
+        // OpenAI fallback when Python service is down
+        const count = params.questionCount ?? 5;
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                { role: "system", content: "You are an expert interview designer. Return ONLY a JSON object." },
+                { role: "user", content: `Generate ${count} behavioural interview questions for a ${params.targetLevel} level candidate assessed on the competency "${params.competencyName}". Return JSON: { "questions": ["Q1", "Q2", ...] }` },
+            ],
+            response_format: { type: "json_object" },
+        });
+        const parsed = JSON.parse(completion.choices[0].message.content ?? "{}");
+        const questions: string[] = Array.isArray(parsed.questions) ? parsed.questions : [`Tell me about your experience with ${params.competencyName}.`];
+        return {
+            session_id: `gpt-session-${Date.now()}`,
+            initial_question: questions[0],
+            question_number: 1,
+        };
     }
-    return response.json();
 }
 
 export async function processVoiceResponse(params: {
@@ -49,26 +76,51 @@ export async function processVoiceResponse(params: {
     question: string;
     transcript: string;
     questionNumber: number;
+    totalQuestions?: number;
 }): Promise<{
     follow_up_question: string | null;
     is_complete: boolean;
     next_question_number: number;
 }> {
-    const response = await fetch(`${PYTHON_API_URL}/api/voice/respond`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            session_id: params.sessionId,
-            question: params.question,
-            transcript: params.transcript,
-            question_number: params.questionNumber,
-        }),
-    });
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error((err as { detail?: string }).detail || "Failed to process response");
+    try {
+        const response = await fetch(`${PYTHON_API_URL}/api/voice/respond`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                session_id: params.sessionId,
+                question: params.question,
+                transcript: params.transcript,
+                question_number: params.questionNumber,
+            }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error((err as { detail?: string }).detail || "Failed to process response");
+        }
+        return response.json();
+    } catch (err) {
+        if (!isServiceDown(err)) throw err;
+        // OpenAI fallback — generate a follow-up question based on the transcript
+        const total = params.totalQuestions ?? 5;
+        const isComplete = params.questionNumber >= total;
+        if (isComplete) {
+            return { follow_up_question: null, is_complete: true, next_question_number: params.questionNumber + 1 };
+        }
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                { role: "system", content: "You are an expert interviewer. Return ONLY a JSON object with a single follow-up question." },
+                { role: "user", content: `The candidate was asked: "${params.question}" and responded: "${params.transcript}". Generate a relevant follow-up interview question. Return JSON: { "follow_up_question": "..." }` },
+            ],
+            response_format: { type: "json_object" },
+        });
+        const parsed = JSON.parse(completion.choices[0].message.content ?? "{}");
+        return {
+            follow_up_question: parsed.follow_up_question ?? null,
+            is_complete: false,
+            next_question_number: params.questionNumber + 1,
+        };
     }
-    return response.json();
 }
 
 export async function evaluateVoiceInterview(params: {
@@ -86,21 +138,45 @@ export async function evaluateVoiceInterview(params: {
     strengths: string[];
     weaknesses: string[];
 }> {
-    const response = await fetch(`${PYTHON_API_URL}/api/voice/evaluate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            competency_name: params.competencyName,
-            target_level: params.targetLevel,
-            transcript: params.transcript,
-            indicators: params.indicators ?? [],
-        }),
-    });
-    if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error((err as { detail?: string }).detail || "Failed to evaluate interview");
+    try {
+        const response = await fetch(`${PYTHON_API_URL}/api/voice/evaluate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                competency_name: params.competencyName,
+                target_level: params.targetLevel,
+                transcript: params.transcript,
+                indicators: params.indicators ?? [],
+            }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error((err as { detail?: string }).detail || "Failed to evaluate interview");
+        }
+        return response.json();
+    } catch (err) {
+        if (!isServiceDown(err)) throw err;
+        // OpenAI fallback evaluation
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                { role: "system", content: "You are an expert HR assessor. Return ONLY a JSON object with numeric scores (0-100) and feedback." },
+                { role: "user", content: `Evaluate this voice interview for the competency "${params.competencyName}" at ${params.targetLevel} level.\n\nTranscript:\n${params.transcript}\n\nReturn JSON: { "overall_score": 0-100, "content_quality": 0-100, "communication_clarity": 0-100, "confidence": 0-100, "professionalism": 0-100, "feedback": "...", "strengths": ["..."], "weaknesses": ["..."] }` },
+            ],
+            response_format: { type: "json_object" },
+        });
+        const p = JSON.parse(completion.choices[0].message.content ?? "{}");
+        return {
+            overall_score: Number(p.overall_score ?? 70),
+            content_quality: Number(p.content_quality ?? 70),
+            communication_clarity: Number(p.communication_clarity ?? 70),
+            confidence: Number(p.confidence ?? 70),
+            professionalism: Number(p.professionalism ?? 70),
+            feedback: p.feedback ?? "Your interview has been evaluated.",
+            strengths: Array.isArray(p.strengths) ? p.strengths : [],
+            weaknesses: Array.isArray(p.weaknesses) ? p.weaknesses : [],
+        };
     }
-    return response.json();
 }
 
 export async function startVideoInterviewPython(params: {

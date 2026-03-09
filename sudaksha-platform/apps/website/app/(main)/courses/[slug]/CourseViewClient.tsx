@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Clock, Users, Award, TrendingUp, BookOpen, Target, CheckCircle,
   Star, Calendar, DollarSign, PlayCircle, Download, Share2, Heart,
-  CreditCard, Banknote, ChevronDown, ChevronUp, MapPin, Monitor, Layers, Wrench, FileText
+  CreditCard, Banknote, ChevronDown, ChevronUp, MapPin, Monitor, Layers, Wrench, FileText,
+  ArrowLeft
 } from 'lucide-react';
 import { GlobalCTAForm } from '@/components/common/GlobalCTAForm';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,6 +33,16 @@ export default function CourseViewClient({ course }: CourseViewClientProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+      {/* Back to Courses */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <Link href="/courses" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Courses
+          </Link>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="relative bg-navy-900 text-white overflow-hidden pb-16 pt-20 lg:pt-24 lg:pb-24">
         {/* Abstract Background pattern */}
@@ -74,9 +86,14 @@ export default function CourseViewClient({ course }: CourseViewClientProps) {
               >
                 Enroll Now
               </button>
-              <button className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl font-semibold text-lg backdrop-blur-sm transition-all">
+              <a
+                href={`/api/courses/${course.slug}/curriculum-pdf`}
+                download
+                className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl font-semibold text-lg backdrop-blur-sm transition-all flex items-center gap-2"
+              >
+                <Download className="w-5 h-5" />
                 Download Syllabus
-              </button>
+              </a>
             </div>
           </div>
 
@@ -224,12 +241,8 @@ export default function CourseViewClient({ course }: CourseViewClientProps) {
               {/* Main Card */}
               <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all hover:-translate-y-1">
                 <div className="p-6 bg-gradient-to-b from-blue-50 to-white">
-                  <div className="flex items-end gap-2 mb-2">
-                    <span className="text-4xl font-bold text-navy-900">{course.price || '₹35,000'}</span>
-                    <span className="text-gray-400 line-through mb-1.5 text-sm">{course.originalPrice || '₹55,000'}</span>
-                  </div>
                   <p className="text-green-600 font-medium text-sm mb-6 flex items-center gap-1">
-                    <TrendingUp className="w-4 h-4" /> 85% seats filled for next batch
+                    <TrendingUp className="w-4 h-4" /> Limited seats — register your interest now
                   </p>
 
                   <button

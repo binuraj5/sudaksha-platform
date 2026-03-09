@@ -1,0 +1,182 @@
+{
+  "category": [
+    {
+      "id": "cat-4",
+      "name": "Cybersecurity"
+    },
+    {
+      "id": "cat-5",
+      "name": "AI & Machine Learning"
+    },
+    {
+      "id": "cat-6",
+      "name": "Business & Management"
+    },
+    {
+      "id": "cat-7",
+      "name": "Finance & Accounting"
+    },
+    {
+      "id": "cat-8",
+      "name": "Marketing & Sales"
+    },
+    {
+      "id": "cat-9",
+      "name": "HR & People Management"
+    },
+    {
+      "id": "cat-10",
+      "name": "Leadership & Soft Skills"
+    },
+    {
+      "id": "cat-11",
+      "name": "Project Management"
+    },
+    {
+      "id": "cat-12",
+      "name": "Design & UX"
+    }
+  ],
+  "industry": [
+    {
+      "id": "ind-1",
+      "name": "Technology"
+    },
+    {
+      "id": "ind-2",
+      "name": "Healthcare"
+    },
+    {
+      "id": "ind-3",
+      "name": "Finance & Banking"
+    },
+    {
+      "id": "ind-4",
+      "name": "Manufacturing"
+    },
+    {
+      "id": "ind-5",
+      "name": "Retail & E-Commerce"
+    },
+    {
+      "id": "ind-6",
+      "name": "Education"
+    },
+    {
+      "id": "ind-7",
+      "name": "Government & Public Sector"
+    },
+    {
+      "id": "ind-8",
+      "name": "Telecommunications"
+    },
+    {
+      "id": "ind-9",
+      "name": "Consulting"
+    },
+    {
+      "id": "ind-10",
+      "name": "Generic/All Industries"
+    }
+  ],
+  "level": [
+    {
+      "id": "lvl-1",
+      "name": "Beginner"
+    },
+    {
+      "id": "lvl-2",
+      "name": "Intermediate"
+    },
+    {
+      "id": "lvl-3",
+      "name": "Advanced"
+    },
+    {
+      "id": "lvl-4",
+      "name": "Expert"
+    },
+    {
+      "id": "lvl-5",
+      "name": "All Levels"
+    }
+  ],
+  "skill": [
+    {
+      "id": "sk-1",
+      "name": "Python"
+    },
+    {
+      "id": "sk-2",
+      "name": "JavaScript"
+    },
+    {
+      "id": "sk-3",
+      "name": "React"
+    },
+    {
+      "id": "sk-4",
+      "name": "AWS"
+    },
+    {
+      "id": "sk-5",
+      "name": "SQL"
+    },
+    {
+      "id": "sk-6",
+      "name": "Machine Learning"
+    },
+    {
+      "id": "sk-7",
+      "name": "Project Management"
+    },
+    {
+      "id": "sk-8",
+      "name": "Leadership"
+    },
+    {
+      "id": "sk-9",
+      "name": "Communication"
+    },
+    {
+      "id": "sk-10",
+      "name": "Data Analysis"
+    }
+  ],
+  "domain": [
+    {
+      "id": "dom-1",
+      "name": "IT"
+    },
+    {
+      "id": "dom-2",
+      "name": "Non-IT"
+    },
+    {
+      "id": "dom-3",
+      "name": "All"
+    }
+  ],
+  "courseType": [
+    {
+      "id": "ct-1",
+      "name": "Technology"
+    },
+    {
+      "id": "ct-2",
+      "name": "Functional"
+    },
+    {
+      "id": "ct-3",
+      "name": "Process"
+    },
+    {
+      "id": "ct-4",
+      "name": "Behavioral"
+    },
+    {
+      "id": "ct-5",
+      "name": "Personal"
+    }
+  ]
+}

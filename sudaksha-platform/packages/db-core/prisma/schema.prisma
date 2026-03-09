@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/client"
 }
 
 datasource db {
@@ -64,7 +65,7 @@ model Course {
   language                     String                   @default("English")
   maxStudents                  Int?
   certification                Boolean                  @default(false)
-  trainerId                    String
+  trainerId                    String?
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
   prerequisites                String?
@@ -165,7 +166,7 @@ model Course {
   trainerExperienceRequired    String?
   trainerPool                  Json?
   newBatches                   Batch[]
-  trainer                      Trainer                  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  trainer                      Trainer?                 @relation(fields: [trainerId], references: [id], onDelete: SetNull)
   batches                      CourseBatch[]
   courseFaqs                   CourseFaq[]
   includedFeatures             CourseFeature[]

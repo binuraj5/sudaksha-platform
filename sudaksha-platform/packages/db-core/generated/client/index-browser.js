@@ -1,0 +1,2435 @@
+
+Object.defineProperty(exports, "__esModule", { value: true });
+
+const {
+  Decimal,
+  objectEnumValues,
+  makeStrictEnum,
+  Public,
+  getRuntime,
+  skip
+} = require('./runtime/index-browser.js')
+
+
+const Prisma = {}
+
+exports.Prisma = Prisma
+exports.$Enums = {}
+
+/**
+ * Prisma Client JS version: 5.22.0
+ * Query Engine version: 605197351a3c8bdd595af2d2a9bc3025bca48ea2
+ */
+Prisma.prismaVersion = {
+  client: "5.22.0",
+  engine: "605197351a3c8bdd595af2d2a9bc3025bca48ea2"
+}
+
+Prisma.PrismaClientKnownRequestError = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`PrismaClientKnownRequestError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)};
+Prisma.PrismaClientUnknownRequestError = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`PrismaClientUnknownRequestError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.PrismaClientRustPanicError = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`PrismaClientRustPanicError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.PrismaClientInitializationError = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`PrismaClientInitializationError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.PrismaClientValidationError = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`PrismaClientValidationError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.NotFoundError = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`NotFoundError is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.Decimal = Decimal
+
+/**
+ * Re-export of sql-template-tag
+ */
+Prisma.sql = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`sqltag is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.empty = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`empty is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.join = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`join is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.raw = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`raw is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.validator = Public.validator
+
+/**
+* Extensions
+*/
+Prisma.getExtensionContext = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`Extensions.getExtensionContext is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+Prisma.defineExtension = () => {
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(`Extensions.defineExtension is unable to run in this browser environment, or has been bundled for the browser (running in ${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report`,
+)}
+
+/**
+ * Shorthand utilities for JSON filtering
+ */
+Prisma.DbNull = objectEnumValues.instances.DbNull
+Prisma.JsonNull = objectEnumValues.instances.JsonNull
+Prisma.AnyNull = objectEnumValues.instances.AnyNull
+
+Prisma.NullTypes = {
+  DbNull: objectEnumValues.classes.DbNull,
+  JsonNull: objectEnumValues.classes.JsonNull,
+  AnyNull: objectEnumValues.classes.AnyNull
+}
+
+
+
+/**
+ * Enums
+ */
+
+exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
+  Serializable: 'Serializable'
+});
+
+exports.Prisma.TrainerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  bio: 'bio',
+  expertise: 'expertise',
+  experience: 'experience',
+  rating: 'rating',
+  imageUrl: 'imageUrl',
+  linkedinUrl: 'linkedinUrl',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isPublished: 'isPublished',
+  availableForCourses: 'availableForCourses',
+  certifications: 'certifications',
+  currentCompany: 'currentCompany',
+  currentDesignation: 'currentDesignation',
+  firstName: 'firstName',
+  industriesWorked: 'industriesWorked',
+  lastName: 'lastName',
+  preferredBatchTypes: 'preferredBatchTypes',
+  primaryExpertise: 'primaryExpertise',
+  profileImageUrl: 'profileImageUrl',
+  secondaryExpertise: 'secondaryExpertise',
+  title: 'title',
+  totalIndustryExperienceYears: 'totalIndustryExperienceYears',
+  totalReviews: 'totalReviews',
+  totalStudentsTaught: 'totalStudentsTaught',
+  totalTeachingExperienceYears: 'totalTeachingExperienceYears'
+};
+
+exports.Prisma.CourseScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  deliveryMode: 'deliveryMode',
+  industry: 'industry',
+  isSelfPaced: 'isSelfPaced',
+  enrollmentUrl: 'enrollmentUrl',
+  description: 'description',
+  shortDescription: 'shortDescription',
+  duration: 'duration',
+  price: 'price',
+  rating: 'rating',
+  status: 'status',
+  audienceLevel: 'audienceLevel',
+  skillTags: 'skillTags',
+  learningObjectives: 'learningObjectives',
+  moduleBreakdown: 'moduleBreakdown',
+  imageUrl: 'imageUrl',
+  videoUrl: 'videoUrl',
+  language: 'language',
+  maxStudents: 'maxStudents',
+  certification: 'certification',
+  trainerId: 'trainerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  prerequisites: 'prerequisites',
+  certificateProvider: 'certificateProvider',
+  certificateType: 'certificateType',
+  corporateAvailable: 'corporateAvailable',
+  cpeCredits: 'cpeCredits',
+  customizationAvailable: 'customizationAvailable',
+  durationDays: 'durationDays',
+  durationHours: 'durationHours',
+  durationWeeks: 'durationWeeks',
+  hasCaseStudies: 'hasCaseStudies',
+  hasPersonalActivities: 'hasPersonalActivities',
+  hasProcessFrameworks: 'hasProcessFrameworks',
+  hasProjects: 'hasProjects',
+  industryRecognition: 'industryRecognition',
+  maxBatchSize: 'maxBatchSize',
+  minBatchSize: 'minBatchSize',
+  newDeliveryModes: 'newDeliveryModes',
+  onsiteAvailable: 'onsiteAvailable',
+  prerequisiteText: 'prerequisiteText',
+  publishedAt: 'publishedAt',
+  requiredExperience: 'requiredExperience',
+  sessionsPerWeek: 'sessionsPerWeek',
+  subCategory: 'subCategory',
+  targetAudience: 'targetAudience',
+  targetRoles: 'targetRoles',
+  technicalRequirements: 'technicalRequirements',
+  title: 'title',
+  category: 'category',
+  categoryType: 'categoryType',
+  targetLevel: 'targetLevel',
+  courseType: 'courseType',
+  assessmentsJson: 'assessmentsJson',
+  averagePlacementRate: 'averagePlacementRate',
+  averageSalaryHikePercent: 'averageSalaryHikePercent',
+  averageSalaryMax: 'averageSalaryMax',
+  averageSalaryMin: 'averageSalaryMin',
+  basePrice: 'basePrice',
+  batchType: 'batchType',
+  capstoneProjectDescription: 'capstoneProjectDescription',
+  capstoneProjectDurationHours: 'capstoneProjectDurationHours',
+  capstoneProjectTitle: 'capstoneProjectTitle',
+  careerPaths: 'careerPaths',
+  categoryPrimary: 'categoryPrimary',
+  categorySecondary: 'categorySecondary',
+  certificationName: 'certificationName',
+  classDurationMinutes: 'classDurationMinutes',
+  courseCode: 'courseCode',
+  courseTypeDisplay: 'courseTypeDisplay',
+  currency: 'currency',
+  currentBatchEnrolled: 'currentBatchEnrolled',
+  deliveryModeJson: 'deliveryModeJson',
+  discountedPrice: 'discountedPrice',
+  earlyBirdDiscount: 'earlyBirdDiscount',
+  emiAvailable: 'emiAvailable',
+  emiOptions: 'emiOptions',
+  experienceRequired: 'experienceRequired',
+  featuredOrder: 'featuredOrder',
+  finishingSchoolProgram: 'finishingSchoolProgram',
+  groupDiscount: 'groupDiscount',
+  hoursPerWeek: 'hoursPerWeek',
+  industrySpecific: 'industrySpecific',
+  industryVertical: 'industryVertical',
+  isCorporateOnly: 'isCorporateOnly',
+  isFeatured: 'isFeatured',
+  isIndividualAvailable: 'isIndividualAvailable',
+  isNew: 'isNew',
+  isTrending: 'isTrending',
+  lmsCourseId: 'lmsCourseId',
+  lmsLastSyncAt: 'lmsLastSyncAt',
+  longDescription: 'longDescription',
+  metaDescription: 'metaDescription',
+  metaKeywords: 'metaKeywords',
+  metaTitle: 'metaTitle',
+  miniProjects: 'miniProjects',
+  miniProjectsCount: 'miniProjectsCount',
+  ogImageUrl: 'ogImageUrl',
+  overallRating: 'overallRating',
+  placementSupport: 'placementSupport',
+  prerequisiteSkills: 'prerequisiteSkills',
+  primaryTrainerId: 'primaryTrainerId',
+  ratingDistribution: 'ratingDistribution',
+  scheduleDetails: 'scheduleDetails',
+  skillsGained: 'skillsGained',
+  statusDisplay: 'statusDisplay',
+  targetAudienceDisplay: 'targetAudienceDisplay',
+  technologyDomain: 'technologyDomain',
+  toolsCovered: 'toolsCovered',
+  topHiringCompanies: 'topHiringCompanies',
+  totalClasses: 'totalClasses',
+  totalDurationWeeks: 'totalDurationWeeks',
+  totalHours: 'totalHours',
+  totalLessons: 'totalLessons',
+  totalModules: 'totalModules',
+  totalReviews: 'totalReviews',
+  totalStudentsTrained: 'totalStudentsTrained',
+  trainerExperienceRequired: 'trainerExperienceRequired',
+  trainerPool: 'trainerPool'
+};
+
+exports.Prisma.FinishingSchoolScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  industry: 'industry',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  categoryType: 'categoryType'
+};
+
+exports.Prisma.CourseModuleScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  order: 'order',
+  duration: 'duration',
+  courseId: 'courseId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  handsOnLabs: 'handsOnLabs',
+  learningObjectives: 'learningObjectives',
+  moduleDescription: 'moduleDescription',
+  moduleDurationHours: 'moduleDurationHours',
+  moduleNumber: 'moduleNumber',
+  moduleTitle: 'moduleTitle',
+  topicsCovered: 'topicsCovered'
+};
+
+exports.Prisma.CourseLessonScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  content: 'content',
+  videoUrl: 'videoUrl',
+  duration: 'duration',
+  order: 'order',
+  isFree: 'isFree',
+  moduleId: 'moduleId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lessonDescription: 'lessonDescription',
+  lessonDurationMinutes: 'lessonDurationMinutes',
+  lessonNumber: 'lessonNumber',
+  lessonTitle: 'lessonTitle',
+  lessonType: 'lessonType',
+  resources: 'resources'
+};
+
+exports.Prisma.CourseBatchScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  courseId: 'courseId',
+  trainerId: 'trainerId',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  schedule: 'schedule',
+  mode: 'mode',
+  maxStudents: 'maxStudents',
+  currentStudents: 'currentStudents',
+  price: 'price',
+  status: 'status',
+  location: 'location',
+  meetingUrl: 'meetingUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  assignedTrainerId: 'assignedTrainerId',
+  batchCode: 'batchCode',
+  batchType: 'batchType',
+  classroomLocation: 'classroomLocation',
+  deliveryMode: 'deliveryMode',
+  enrolledStudents: 'enrolledStudents',
+  onlinePlatform: 'onlinePlatform',
+  scheduleDetails: 'scheduleDetails',
+  timezone: 'timezone',
+  waitlistCount: 'waitlistCount'
+};
+
+exports.Prisma.CourseReviewScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  studentName: 'studentName',
+  studentEmail: 'studentEmail',
+  rating: 'rating',
+  comment: 'comment',
+  verified: 'verified',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  batchId: 'batchId',
+  cons: 'cons',
+  contentQualityRating: 'contentQualityRating',
+  courseCompletedDate: 'courseCompletedDate',
+  isFeatured: 'isFeatured',
+  isVerified: 'isVerified',
+  placementSupportRating: 'placementSupportRating',
+  pros: 'pros',
+  reviewDate: 'reviewDate',
+  reviewStatus: 'reviewStatus',
+  reviewText: 'reviewText',
+  reviewTitle: 'reviewTitle',
+  studentCompany: 'studentCompany',
+  studentDesignation: 'studentDesignation',
+  studentId: 'studentId',
+  studentPhotoUrl: 'studentPhotoUrl',
+  supportRating: 'supportRating',
+  trainerRating: 'trainerRating',
+  valueForMoneyRating: 'valueForMoneyRating'
+};
+
+exports.Prisma.CoursePrerequisiteScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  prerequisiteType: 'prerequisiteType',
+  prerequisiteTitle: 'prerequisiteTitle',
+  prerequisiteDescription: 'prerequisiteDescription',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CourseFaqScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  question: 'question',
+  answer: 'answer',
+  category: 'category',
+  sortOrder: 'sortOrder',
+  isFeatured: 'isFeatured',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CourseMediaScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  mediaType: 'mediaType',
+  mediaUrl: 'mediaUrl',
+  mediaTitle: 'mediaTitle',
+  mediaDescription: 'mediaDescription',
+  thumbnailUrl: 'thumbnailUrl',
+  isPrimary: 'isPrimary',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CourseOutcomeScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  batchId: 'batchId',
+  totalStudents: 'totalStudents',
+  studentsPlaced: 'studentsPlaced',
+  placementRate: 'placementRate',
+  averageSalary: 'averageSalary',
+  minSalary: 'minSalary',
+  maxSalary: 'maxSalary',
+  placementCompanies: 'placementCompanies',
+  averagePreAssessmentScore: 'averagePreAssessmentScore',
+  averagePostAssessmentScore: 'averagePostAssessmentScore',
+  skillImprovementPercent: 'skillImprovementPercent',
+  completionRate: 'completionRate',
+  projectSubmissionRate: 'projectSubmissionRate',
+  dataPeriod: 'dataPeriod',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.IndustrySpecificCourseScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  industryVertical: 'industryVertical',
+  industryChallengesAddressed: 'industryChallengesAddressed',
+  complianceCertifications: 'complianceCertifications',
+  technologyStackFocus: 'technologyStackFocus',
+  domainKnowledgeIncluded: 'domainKnowledgeIncluded',
+  industryCaseStudies: 'industryCaseStudies',
+  sampleProjects: 'sampleProjects',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CommunicationScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  subject: 'subject',
+  message: 'message',
+  status: 'status',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  campaignId: 'campaignId',
+  recipients: 'recipients',
+  sentAt: 'sentAt',
+  stats: 'stats'
+};
+
+exports.Prisma.CommunicationTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  type: 'type',
+  subject: 'subject',
+  content: 'content',
+  variables: 'variables',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CommunicationCampaignScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  subject: 'subject',
+  content: 'content',
+  type: 'type',
+  status: 'status',
+  scheduledAt: 'scheduledAt',
+  sentAt: 'sentAt',
+  recipientsCount: 'recipientsCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CTAEventScalarFieldEnum = {
+  id: 'id',
+  ctaId: 'ctaId',
+  userId: 'userId',
+  sessionId: 'sessionId',
+  eventType: 'eventType',
+  pageUrl: 'pageUrl',
+  formName: 'formName',
+  buttonName: 'buttonName',
+  eventData: 'eventData',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AuditLogScalarFieldEnum = {
+  idEntity: 'idEntity',
+  action: 'action',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  details: 'details',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  entityName: 'entityName',
+  severity: 'severity',
+  status: 'status',
+  userName: 'userName'
+};
+
+exports.Prisma.BlogScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  excerpt: 'excerpt',
+  content: 'content',
+  author: 'author',
+  authorImage: 'authorImage',
+  category: 'category',
+  tags: 'tags',
+  imageUrl: 'imageUrl',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  viewCount: 'viewCount',
+  readTime: 'readTime',
+  featured: 'featured',
+  seoTitle: 'seoTitle',
+  seoDescription: 'seoDescription',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WebinarScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  description: 'description',
+  speaker: 'speaker',
+  speakerBio: 'speakerBio',
+  speakerImage: 'speakerImage',
+  date: 'date',
+  time: 'time',
+  duration: 'duration',
+  timezone: 'timezone',
+  imageUrl: 'imageUrl',
+  meetingUrl: 'meetingUrl',
+  recordingUrl: 'recordingUrl',
+  status: 'status',
+  maxAttendees: 'maxAttendees',
+  registeredCount: 'registeredCount',
+  category: 'category',
+  tags: 'tags',
+  featured: 'featured',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WebinarRegistrationScalarFieldEnum = {
+  id: 'id',
+  webinarId: 'webinarId',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  company: 'company',
+  attended: 'attended',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.FormSubmissionScalarFieldEnum = {
+  id: 'id',
+  formType: 'formType',
+  formName: 'formName',
+  pageUrl: 'pageUrl',
+  pageName: 'pageName',
+  formData: 'formData',
+  userAgent: 'userAgent',
+  ipAddress: 'ipAddress',
+  sessionId: 'sessionId',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LearningOutcomeScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  outcome: 'outcome',
+  order: 'order',
+  category: 'category',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BatchScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  batchName: 'batchName',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  sessionTimings: 'sessionTimings',
+  platform: 'platform',
+  recordingAccess: 'recordingAccess',
+  timezone: 'timezone',
+  venueName: 'venueName',
+  venueAddress: 'venueAddress',
+  city: 'city',
+  state: 'state',
+  country: 'country',
+  facilities: 'facilities',
+  availableSeats: 'availableSeats',
+  totalSeats: 'totalSeats',
+  status: 'status',
+  registrationDeadline: 'registrationDeadline',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CourseInstructorScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  name: 'name',
+  title: 'title',
+  bio: 'bio',
+  photoUrl: 'photoUrl',
+  yearsExperience: 'yearsExperience',
+  industryExperience: 'industryExperience',
+  expertise: 'expertise',
+  certifications: 'certifications',
+  education: 'education',
+  companiesWorked: 'companiesWorked',
+  linkedinUrl: 'linkedinUrl',
+  websiteUrl: 'websiteUrl',
+  totalStudentsTaught: 'totalStudentsTaught',
+  totalCoursesDelivered: 'totalCoursesDelivered',
+  averageRating: 'averageRating',
+  isPrimary: 'isPrimary',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CourseFeatureScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  feature: 'feature',
+  icon: 'icon',
+  order: 'order',
+  category: 'category',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.DeliverableScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  title: 'title',
+  description: 'description',
+  type: 'type',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RelatedCourseScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  relatedCourseId: 'relatedCourseId',
+  relationType: 'relationType',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EnrollmentScalarFieldEnum = {
+  id: 'id',
+  batchId: 'batchId',
+  userId: 'userId',
+  enrollmentDate: 'enrollmentDate',
+  status: 'status',
+  amountPaid: 'amountPaid',
+  paymentDate: 'paymentDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MasterCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MasterIndustryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MasterDepartmentScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MasterCourseTypeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MasterLevelScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MasterDomainScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  password: 'password',
+  name: 'name',
+  role: 'role',
+  clientId: 'clientId',
+  employeeId: 'employeeId',
+  department: 'department',
+  departmentId: 'departmentId',
+  projectId: 'projectId',
+  accountType: 'accountType',
+  isActive: 'isActive',
+  emailVerified: 'emailVerified',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  assignedRoleId: 'assignedRoleId',
+  failedAttempts: 'failedAttempts',
+  lockoutUntil: 'lockoutUntil',
+  userType: 'userType'
+};
+
+exports.Prisma.AssessorProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  employeeId: 'employeeId',
+  departmentUnit: 'departmentUnit',
+  currentDesignation: 'currentDesignation',
+  reportingManager: 'reportingManager',
+  dateOfJoining: 'dateOfJoining',
+  yearsInCurrentRole: 'yearsInCurrentRole',
+  educationalQual: 'educationalQual',
+  professionalCerts: 'professionalCerts',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComponentQuestionScalarFieldEnum = {
+  id: 'id',
+  componentId: 'componentId',
+  questionText: 'questionText',
+  questionType: 'questionType',
+  points: 'points',
+  timeLimit: 'timeLimit',
+  order: 'order',
+  options: 'options',
+  correctAnswer: 'correctAnswer',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  linkedIndicators: 'linkedIndicators',
+  explanation: 'explanation',
+  metadata: 'metadata'
+};
+
+exports.Prisma.AssessmentModelScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  sourceType: 'sourceType',
+  roleId: 'roleId',
+  targetLevel: 'targetLevel',
+  visibility: 'visibility',
+  clientId: 'clientId',
+  version: 'version',
+  isActive: 'isActive',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  tenantId: 'tenantId',
+  code: 'code',
+  passingScore: 'passingScore',
+  durationMinutes: 'durationMinutes',
+  maxAttempts: 'maxAttempts',
+  randomizeQuestions: 'randomizeQuestions',
+  showResultsImmediately: 'showResultsImmediately',
+  status: 'status',
+  isTemplate: 'isTemplate',
+  metadata: 'metadata',
+  publishedAt: 'publishedAt',
+  publishedToGlobal: 'publishedToGlobal',
+  globalPublishStatus: 'globalPublishStatus',
+  globalPublishRequestedBy: 'globalPublishRequestedBy',
+  globalPublishRequestedAt: 'globalPublishRequestedAt',
+  globalPublishApprovedBy: 'globalPublishApprovedBy',
+  globalPublishApprovedAt: 'globalPublishApprovedAt',
+  completionPercentage: 'completionPercentage'
+};
+
+exports.Prisma.AssessmentModelComponentScalarFieldEnum = {
+  id: 'id',
+  modelId: 'modelId',
+  order: 'order',
+  isRequired: 'isRequired',
+  isTimed: 'isTimed',
+  customDuration: 'customDuration',
+  difficultyAdaptation: 'difficultyAdaptation',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  competencyId: 'competencyId',
+  indicatorIds: 'indicatorIds',
+  targetLevel: 'targetLevel',
+  weight: 'weight',
+  isFromLibrary: 'isFromLibrary',
+  libraryComponentId: 'libraryComponentId',
+  componentType: 'componentType',
+  status: 'status',
+  completionPercentage: 'completionPercentage',
+  estimatedDuration: 'estimatedDuration',
+  config: 'config'
+};
+
+exports.Prisma.UserAssessmentModelScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  modelId: 'modelId',
+  assignmentType: 'assignmentType',
+  assignedBy: 'assignedBy',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  submittedAt: 'submittedAt',
+  completionPercentage: 'completionPercentage',
+  currentComponentId: 'currentComponentId',
+  overallScore: 'overallScore',
+  passed: 'passed',
+  certificateUrl: 'certificateUrl',
+  attemptNumber: 'attemptNumber',
+  maxAttemptsAllowed: 'maxAttemptsAllowed',
+  totalTimeSpent: 'totalTimeSpent',
+  metadata: 'metadata',
+  lastActivityAt: 'lastActivityAt',
+  sessionToken: 'sessionToken',
+  checkpointData: 'checkpointData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProjectAssessmentModelScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  modelId: 'modelId',
+  assignedBy: 'assignedBy',
+  assignmentDate: 'assignmentDate',
+  dueDate: 'dueDate',
+  assignmentLevel: 'assignmentLevel',
+  departmentId: 'departmentId',
+  managerId: 'managerId',
+  isMandatory: 'isMandatory',
+  allowRetake: 'allowRetake',
+  maxAttempts: 'maxAttempts',
+  notifyUsers: 'notifyUsers',
+  totalAssigned: 'totalAssigned',
+  totalCompleted: 'totalCompleted',
+  averageScore: 'averageScore',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProjectUserAssessmentScalarFieldEnum = {
+  id: 'id',
+  projectAssignmentId: 'projectAssignmentId',
+  userId: 'userId',
+  status: 'status',
+  notifiedAt: 'notifiedAt',
+  acknowledgedAt: 'acknowledgedAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  submittedAt: 'submittedAt',
+  completionPercentage: 'completionPercentage',
+  currentComponentId: 'currentComponentId',
+  overallScore: 'overallScore',
+  passed: 'passed',
+  attemptNumber: 'attemptNumber',
+  totalTimeSpent: 'totalTimeSpent',
+  reviewedBy: 'reviewedBy',
+  reviewedAt: 'reviewedAt',
+  managerComments: 'managerComments',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserAssessmentComponentScalarFieldEnum = {
+  id: 'id',
+  userAssessmentModelId: 'userAssessmentModelId',
+  projectUserAssessmentId: 'projectUserAssessmentId',
+  componentId: 'componentId',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  score: 'score',
+  maxScore: 'maxScore',
+  percentage: 'percentage',
+  passed: 'passed',
+  timeSpent: 'timeSpent',
+  timeLimitUsed: 'timeLimitUsed',
+  attemptNumber: 'attemptNumber',
+  aiEvaluationResults: 'aiEvaluationResults',
+  aiConfidenceScore: 'aiConfidenceScore',
+  sectionIndex: 'sectionIndex',
+  retryCount: 'retryCount',
+  sectionError: 'sectionError',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComponentQuestionResponseScalarFieldEnum = {
+  id: 'id',
+  userComponentId: 'userComponentId',
+  questionId: 'questionId',
+  responseData: 'responseData',
+  isCorrect: 'isCorrect',
+  pointsAwardded: 'pointsAwardded',
+  maxPoints: 'maxPoints',
+  aiEvaluation: 'aiEvaluation',
+  aiScore: 'aiScore',
+  aiFinished: 'aiFinished',
+  humanReviewRequired: 'humanReviewRequired',
+  humanReviewed: 'humanReviewed',
+  humanReviewedBy: 'humanReviewedBy',
+  humanReviewedAt: 'humanReviewedAt',
+  humanFeedback: 'humanFeedback',
+  timeSpent: 'timeSpent',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TenantScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  type: 'type',
+  email: 'email',
+  phone: 'phone',
+  address: 'address',
+  logo: 'logo',
+  brandColor: 'brandColor',
+  isActive: 'isActive',
+  plan: 'plan',
+  subscriptionStart: 'subscriptionStart',
+  subscriptionEnd: 'subscriptionEnd',
+  maxMembers: 'maxMembers',
+  maxActivities: 'maxActivities',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy',
+  features: 'features',
+  subscriptionTier: 'subscriptionTier'
+};
+
+exports.Prisma.TenantSettingsScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  primaryColor: 'primaryColor',
+  secondaryColor: 'secondaryColor',
+  logoUrl: 'logoUrl',
+  faviconUrl: 'faviconUrl',
+  customDomain: 'customDomain',
+  enableOrgUnits: 'enableOrgUnits',
+  enableManagers: 'enableManagers',
+  enableCustomTemplates: 'enableCustomTemplates',
+  emailFromName: 'emailFromName',
+  emailFromAddress: 'emailFromAddress',
+  smtpConfig: 'smtpConfig',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  city: 'city',
+  country: 'country',
+  description: 'description',
+  district: 'district',
+  lineOfBusiness: 'lineOfBusiness',
+  phone: 'phone',
+  state: 'state',
+  timezone: 'timezone',
+  website: 'website'
+};
+
+exports.Prisma.SubscriptionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  planType: 'planType',
+  userCount: 'userCount',
+  billingPeriod: 'billingPeriod',
+  features: 'features',
+  basePrice: 'basePrice',
+  addonsPrice: 'addonsPrice',
+  discountPercent: 'discountPercent',
+  totalPrice: 'totalPrice',
+  currency: 'currency',
+  stripeCustomerId: 'stripeCustomerId',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  stripePriceId: 'stripePriceId',
+  status: 'status',
+  currentPeriodStart: 'currentPeriodStart',
+  currentPeriodEnd: 'currentPeriodEnd',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  assessmentsUsedThisPeriod: 'assessmentsUsedThisPeriod',
+  assessmentsIncluded: 'assessmentsIncluded',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InvoiceScalarFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  tenantId: 'tenantId',
+  invoiceNumber: 'invoiceNumber',
+  amountDue: 'amountDue',
+  amountPaid: 'amountPaid',
+  currency: 'currency',
+  status: 'status',
+  dueDate: 'dueDate',
+  paidAt: 'paidAt',
+  stripeInvoiceId: 'stripeInvoiceId',
+  stripePaymentIntentId: 'stripePaymentIntentId',
+  lineItems: 'lineItems',
+  pdfUrl: 'pdfUrl',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.UsageRecordScalarFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  tenantId: 'tenantId',
+  invoiceId: 'invoiceId',
+  resourceType: 'resourceType',
+  resourceId: 'resourceId',
+  quantity: 'quantity',
+  unitPrice: 'unitPrice',
+  totalPrice: 'totalPrice',
+  recordedAt: 'recordedAt',
+  billedAt: 'billedAt'
+};
+
+exports.Prisma.FeatureActivationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  featureKey: 'featureKey',
+  activatedAt: 'activatedAt',
+  activatedBy: 'activatedBy',
+  expiresAt: 'expiresAt',
+  isActive: 'isActive'
+};
+
+exports.Prisma.MemberScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  type: 'type',
+  role: 'role',
+  email: 'email',
+  password: 'password',
+  name: 'name',
+  externalId: 'externalId',
+  orgUnitId: 'orgUnitId',
+  isActive: 'isActive',
+  emailVerified: 'emailVerified',
+  phone: 'phone',
+  avatar: 'avatar',
+  bio: 'bio',
+  profileType: 'profileType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  aspirationalRoleId: 'aspirationalRoleId',
+  careerFormData: 'careerFormData',
+  currentRoleId: 'currentRoleId',
+  previousRoles: 'previousRoles',
+  selfAssignedCompetencies: 'selfAssignedCompetencies',
+  enrollmentNumber: 'enrollmentNumber',
+  employeeId: 'employeeId',
+  hasGraduated: 'hasGraduated',
+  graduationDate: 'graduationDate',
+  facultyType: 'facultyType',
+  designation: 'designation',
+  developmentPlan: 'developmentPlan',
+  firstName: 'firstName',
+  invitationAcceptedAt: 'invitationAcceptedAt',
+  invitationSentAt: 'invitationSentAt',
+  invitationToken: 'invitationToken',
+  joiningDate: 'joiningDate',
+  lastName: 'lastName',
+  memberCode: 'memberCode',
+  metadata: 'metadata',
+  reportingToId: 'reportingToId',
+  status: 'status'
+};
+
+exports.Prisma.OrganizationUnitScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  type: 'type',
+  name: 'name',
+  code: 'code',
+  description: 'description',
+  parentId: 'parentId',
+  managerId: 'managerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isActive: 'isActive'
+};
+
+exports.Prisma.ActivityScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  type: 'type',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  status: 'status',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  yearBegin: 'yearBegin',
+  yearEnd: 'yearEnd',
+  division: 'division',
+  semesterCount: 'semesterCount',
+  yearCount: 'yearCount',
+  deletedAt: 'deletedAt',
+  deletedBy: 'deletedBy',
+  code: 'code',
+  metadata: 'metadata',
+  ownerId: 'ownerId'
+};
+
+exports.Prisma.ActivityMemberScalarFieldEnum = {
+  id: 'id',
+  activityId: 'activityId',
+  memberId: 'memberId',
+  role: 'role',
+  joinedAt: 'joinedAt',
+  leftAt: 'leftAt'
+};
+
+exports.Prisma.ActivityOrgUnitScalarFieldEnum = {
+  id: 'id',
+  activityId: 'activityId',
+  orgUnitId: 'orgUnitId',
+  createdAt: 'createdAt',
+  relationship: 'relationship'
+};
+
+exports.Prisma.CurriculumNodeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  type: 'type',
+  name: 'name',
+  code: 'code',
+  description: 'description',
+  parentId: 'parentId',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ActivityCurriculumScalarFieldEnum = {
+  id: 'id',
+  activityId: 'activityId',
+  curriculumNodeId: 'curriculumNodeId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MemberAssessmentScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  activityId: 'activityId',
+  assessmentModelId: 'assessmentModelId',
+  assignmentType: 'assignmentType',
+  assignedBy: 'assignedBy',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  submittedAt: 'submittedAt',
+  completionPercentage: 'completionPercentage',
+  overallScore: 'overallScore',
+  passed: 'passed',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ActivityAssessmentScalarFieldEnum = {
+  id: 'id',
+  activityId: 'activityId',
+  assessmentModelId: 'assessmentModelId',
+  assignedBy: 'assignedBy',
+  dueDate: 'dueDate',
+  isMandatory: 'isMandatory',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ClientScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  email: 'email',
+  phone: 'phone',
+  address: 'address',
+  logo: 'logo',
+  brandColor: 'brandColor',
+  plan: 'plan',
+  isActive: 'isActive',
+  subscriptionStart: 'subscriptionStart',
+  subscriptionEnd: 'subscriptionEnd',
+  maxProjects: 'maxProjects',
+  maxUsers: 'maxUsers',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.ClientSettingsScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  primaryColor: 'primaryColor',
+  secondaryColor: 'secondaryColor',
+  logoUrl: 'logoUrl',
+  faviconUrl: 'faviconUrl',
+  customDomain: 'customDomain',
+  enableDepartments: 'enableDepartments',
+  enableManagers: 'enableManagers',
+  enableCustomTemplates: 'enableCustomTemplates',
+  emailFromName: 'emailFromName',
+  emailFromAddress: 'emailFromAddress',
+  smtpConfig: 'smtpConfig',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProjectScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.DepartmentScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name',
+  code: 'code',
+  description: 'description',
+  headOfDepartment: 'headOfDepartment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProjectManagerScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  projectId: 'projectId',
+  role: 'role',
+  canApprove: 'canApprove',
+  canViewReports: 'canViewReports',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DepartmentManagerScalarFieldEnum = {
+  id: 'id',
+  managerId: 'managerId',
+  departmentId: 'departmentId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RuntimeGeneratedQuestionScalarFieldEnum = {
+  id: 'id',
+  assessmentSessionId: 'assessmentSessionId',
+  respondentId: 'respondentId',
+  questionText: 'questionText',
+  questionType: 'questionType',
+  difficulty: 'difficulty',
+  competencyArea: 'competencyArea',
+  options: 'options',
+  correctAnswer: 'correctAnswer',
+  generatedAt: 'generatedAt',
+  presentedAt: 'presentedAt',
+  answeredAt: 'answeredAt',
+  userResponse: 'userResponse',
+  isCorrect: 'isCorrect',
+  score: 'score',
+  aiJustification: 'aiJustification',
+  feedback: 'feedback',
+  adaptiveContext: 'adaptiveContext'
+};
+
+exports.Prisma.RoleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  code: 'code',
+  description: 'description',
+  overallLevel: 'overallLevel',
+  department: 'department',
+  industries: 'industries',
+  keyResponsibilities: 'keyResponsibilities',
+  requiredExperience: 'requiredExperience',
+  educationRequired: 'educationRequired',
+  isActive: 'isActive',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  tenantId: 'tenantId',
+  status: 'status',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy',
+  rejectionReason: 'rejectionReason',
+  visibility: 'visibility',
+  allowedLevels: 'allowedLevels',
+  createdByUserId: 'createdByUserId',
+  deletedAt: 'deletedAt',
+  departmentId: 'departmentId',
+  globalApprovedAt: 'globalApprovedAt',
+  globalApprovedBy: 'globalApprovedBy',
+  globalRejectionReason: 'globalRejectionReason',
+  globalSubmissionStatus: 'globalSubmissionStatus',
+  globalSubmittedAt: 'globalSubmittedAt',
+  globalSubmittedBy: 'globalSubmittedBy',
+  scope: 'scope',
+  teamId: 'teamId'
+};
+
+exports.Prisma.CompetencyScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  category: 'category',
+  industries: 'industries',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  usageCount: 'usageCount',
+  lastUsedAt: 'lastUsedAt',
+  tenantId: 'tenantId',
+  status: 'status',
+  allowedLevels: 'allowedLevels',
+  createdByUserId: 'createdByUserId',
+  deletedAt: 'deletedAt',
+  departmentId: 'departmentId',
+  globalApprovedAt: 'globalApprovedAt',
+  globalApprovedBy: 'globalApprovedBy',
+  globalRejectionReason: 'globalRejectionReason',
+  globalSubmissionStatus: 'globalSubmissionStatus',
+  globalSubmittedAt: 'globalSubmittedAt',
+  globalSubmittedBy: 'globalSubmittedBy',
+  scope: 'scope',
+  teamId: 'teamId'
+};
+
+exports.Prisma.CompetencyIndicatorScalarFieldEnum = {
+  id: 'id',
+  competencyId: 'competencyId',
+  level: 'level',
+  type: 'type',
+  text: 'text',
+  order: 'order',
+  weight: 'weight',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RoleCompetencyScalarFieldEnum = {
+  id: 'id',
+  roleId: 'roleId',
+  competencyId: 'competencyId',
+  requiredLevel: 'requiredLevel',
+  weight: 'weight',
+  isCritical: 'isCritical',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComponentLibraryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  createdBy: 'createdBy',
+  name: 'name',
+  description: 'description',
+  componentType: 'componentType',
+  competencyId: 'competencyId',
+  targetLevel: 'targetLevel',
+  visibility: 'visibility',
+  usageCount: 'usageCount',
+  rating: 'rating',
+  questions: 'questions',
+  metadata: 'metadata',
+  publishedToGlobal: 'publishedToGlobal',
+  globalPublishApprovedBy: 'globalPublishApprovedBy',
+  globalPublishApprovedAt: 'globalPublishApprovedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComponentSuggestionScalarFieldEnum = {
+  id: 'id',
+  competencyCategory: 'competencyCategory',
+  targetLevel: 'targetLevel',
+  suggestedType: 'suggestedType',
+  priority: 'priority',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PanelScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description',
+  durationMinutes: 'durationMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PanelMemberScalarFieldEnum = {
+  id: 'id',
+  panelId: 'panelId',
+  userId: 'userId',
+  role: 'role',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PanelInterviewScalarFieldEnum = {
+  id: 'id',
+  candidateId: 'candidateId',
+  panelId: 'panelId',
+  memberAssessmentId: 'memberAssessmentId',
+  componentId: 'componentId',
+  scheduledTime: 'scheduledTime',
+  durationMinutes: 'durationMinutes',
+  meetingLink: 'meetingLink',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  completedAt: 'completedAt'
+};
+
+exports.Prisma.PanelEvaluationScalarFieldEnum = {
+  id: 'id',
+  panelInterviewId: 'panelInterviewId',
+  panelistId: 'panelistId',
+  panelMemberId: 'panelMemberId',
+  scores: 'scores',
+  feedback: 'feedback',
+  recommendation: 'recommendation',
+  submittedAt: 'submittedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AdaptiveComponentLibraryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  createdBy: 'createdBy',
+  name: 'name',
+  description: 'description',
+  competencyId: 'competencyId',
+  targetLevel: 'targetLevel',
+  config: 'config',
+  visibility: 'visibility',
+  usageCount: 'usageCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AdaptiveSessionScalarFieldEnum = {
+  id: 'id',
+  memberAssessmentId: 'memberAssessmentId',
+  componentId: 'componentId',
+  memberId: 'memberId',
+  competencyId: 'competencyId',
+  currentAbility: 'currentAbility',
+  initialAbility: 'initialAbility',
+  targetLevel: 'targetLevel',
+  questionsAsked: 'questionsAsked',
+  questionsCorrect: 'questionsCorrect',
+  status: 'status',
+  config: 'config',
+  startedAt: 'startedAt',
+  lastActivityAt: 'lastActivityAt',
+  completedAt: 'completedAt',
+  finalScore: 'finalScore',
+  abilityEstimate: 'abilityEstimate'
+};
+
+exports.Prisma.AdaptiveQuestionScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  questionText: 'questionText',
+  questionType: 'questionType',
+  options: 'options',
+  correctAnswer: 'correctAnswer',
+  explanation: 'explanation',
+  difficulty: 'difficulty',
+  sequenceNumber: 'sequenceNumber',
+  generationPrompt: 'generationPrompt',
+  generatedAt: 'generatedAt',
+  candidateAnswer: 'candidateAnswer',
+  isCorrect: 'isCorrect',
+  timeTakenSeconds: 'timeTakenSeconds',
+  answeredAt: 'answeredAt',
+  pointsAwarded: 'pointsAwarded',
+  maxPoints: 'maxPoints'
+};
+
+exports.Prisma.GlobalPublishRequestScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  requestedBy: 'requestedBy',
+  requestedAt: 'requestedAt',
+  status: 'status',
+  reviewedBy: 'reviewedBy',
+  reviewedAt: 'reviewedAt',
+  reviewComments: 'reviewComments'
+};
+
+exports.Prisma.ApprovalRequestScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  type: 'type',
+  entityId: 'entityId',
+  status: 'status',
+  comments: 'comments',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  modificationNotes: 'modificationNotes',
+  modifiedData: 'modifiedData',
+  originalData: 'originalData',
+  rejectionReason: 'rejectionReason',
+  requesterId: 'requesterId',
+  reviewerId: 'reviewerId'
+};
+
+exports.Prisma.RoleAssignmentRequestScalarFieldEnum = {
+  id: 'id',
+  memberId: 'memberId',
+  tenantId: 'tenantId',
+  requestedRoleName: 'requestedRoleName',
+  description: 'description',
+  totalExperienceYears: 'totalExperienceYears',
+  context: 'context',
+  status: 'status',
+  assignedRoleId: 'assignedRoleId',
+  processedBy: 'processedBy',
+  processedAt: 'processedAt',
+  rejectionReason: 'rejectionReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  roleCreatedAt: 'roleCreatedAt',
+  departmentId: 'departmentId',
+  departmentOtherText: 'departmentOtherText',
+  industryId: 'industryId',
+  industryOtherText: 'industryOtherText'
+};
+
+exports.Prisma.CompetencyDevelopmentRequestScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  status: 'status',
+  userId: 'userId',
+  tenantId: 'tenantId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  resolvedAt: 'resolvedAt'
+};
+
+exports.Prisma.ApprovalHistoryScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  approverRole: 'approverRole',
+  approverUserId: 'approverUserId',
+  action: 'action',
+  actionAt: 'actionAt',
+  comments: 'comments',
+  iterationNumber: 'iterationNumber',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RecommendationRuleScalarFieldEnum = {
+  id: 'id',
+  category: 'category',
+  triggerContext: 'triggerContext',
+  recommendationText: 'recommendationText',
+  rationale: 'rationale',
+  autoApplyValues: 'autoApplyValues',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isActive: 'isActive'
+};
+
+exports.Prisma.RecommendationUsageScalarFieldEnum = {
+  id: 'id',
+  ruleId: 'ruleId',
+  userId: 'userId',
+  context: 'context',
+  action: 'action',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SurveyScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description',
+  purpose: 'purpose',
+  targetAudience: 'targetAudience',
+  scoringEnabled: 'scoringEnabled',
+  scoringMethod: 'scoringMethod',
+  metadata: 'metadata',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  status: 'status'
+};
+
+exports.Prisma.SurveyQuestionScalarFieldEnum = {
+  id: 'id',
+  surveyId: 'surveyId',
+  questionText: 'questionText',
+  questionType: 'questionType',
+  options: 'options',
+  order: 'order',
+  isRequired: 'isRequired',
+  points: 'points',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SurveyAssignmentScalarFieldEnum = {
+  id: 'id',
+  surveyId: 'surveyId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  assignedAt: 'assignedAt',
+  dueDate: 'dueDate',
+  reminderSettings: 'reminderSettings'
+};
+
+exports.Prisma.SurveyResponseScalarFieldEnum = {
+  id: 'id',
+  surveyId: 'surveyId',
+  memberId: 'memberId',
+  score: 'score',
+  completedAt: 'completedAt',
+  metadata: 'metadata'
+};
+
+exports.Prisma.SurveyAnswerScalarFieldEnum = {
+  id: 'id',
+  responseId: 'responseId',
+  questionId: 'questionId',
+  answerData: 'answerData',
+  points: 'points'
+};
+
+exports.Prisma.CodeSubmissionScalarFieldEnum = {
+  id: 'id',
+  challengeId: 'challengeId',
+  problemId: 'problemId',
+  memberId: 'memberId',
+  code: 'code',
+  language: 'language',
+  status: 'status',
+  score: 'score',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ReportTemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  type: 'type',
+  config: 'config',
+  isSystem: 'isSystem',
+  tenantId: 'tenantId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReportScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  templateId: 'templateId',
+  userId: 'userId',
+  name: 'name',
+  filters: 'filters',
+  generatedAt: 'generatedAt',
+  expiresAt: 'expiresAt',
+  fileUrl: 'fileUrl',
+  status: 'status',
+  memberId: 'memberId'
+};
+
+exports.Prisma.ReportScheduleScalarFieldEnum = {
+  id: 'id',
+  reportId: 'reportId',
+  frequency: 'frequency',
+  recipients: 'recipients',
+  isActive: 'isActive',
+  lastRunAt: 'lastRunAt',
+  nextRunAt: 'nextRunAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AdminUserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  passwordHash: 'passwordHash',
+  twoFactorSecret: 'twoFactorSecret',
+  isActive: 'isActive',
+  lastLoginAt: 'lastLoginAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GlobalApprovalRequestScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  tenantId: 'tenantId',
+  submittedBy: 'submittedBy',
+  submittedAt: 'submittedAt',
+  status: 'status',
+  reviewedBy: 'reviewedBy',
+  reviewedAt: 'reviewedAt',
+  reviewNotes: 'reviewNotes',
+  entitySnapshot: 'entitySnapshot'
+};
+
+exports.Prisma.SortOrder = {
+  asc: 'asc',
+  desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+exports.TrainerStatus = exports.$Enums.TrainerStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  ON_LEAVE: 'ON_LEAVE'
+};
+
+exports.BatchMode = exports.$Enums.BatchMode = {
+  ONLINE: 'ONLINE',
+  OFFLINE: 'OFFLINE',
+  HYBRID: 'HYBRID'
+};
+
+exports.CourseStatus = exports.$Enums.CourseStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.AudienceLevel = exports.$Enums.AudienceLevel = {
+  BEGINNER: 'BEGINNER',
+  INTERMEDIATE: 'INTERMEDIATE',
+  ADVANCED: 'ADVANCED',
+  ALL_LEVELS: 'ALL_LEVELS'
+};
+
+exports.BatchTypeDisplay = exports.$Enums.BatchTypeDisplay = {
+  WEEKDAY: 'WEEKDAY',
+  WEEKEND: 'WEEKEND',
+  INTENSIVE: 'INTENSIVE',
+  FLEXIBLE: 'FLEXIBLE',
+  SELF_PACED: 'SELF_PACED'
+};
+
+exports.CategoryPrimary = exports.$Enums.CategoryPrimary = {
+  IT: 'IT',
+  NON_IT: 'NON_IT',
+  FUNCTIONAL: 'FUNCTIONAL',
+  PERSONAL_DEVELOPMENT: 'PERSONAL_DEVELOPMENT',
+  INDUSTRY_SPECIFIC: 'INDUSTRY_SPECIFIC'
+};
+
+exports.CourseTypeDisplay = exports.$Enums.CourseTypeDisplay = {
+  PREMADE: 'PREMADE',
+  CURATED: 'CURATED',
+  CUSTOM: 'CUSTOM',
+  FINISHING_SCHOOL: 'FINISHING_SCHOOL'
+};
+
+exports.CourseStatusDisplay = exports.$Enums.CourseStatusDisplay = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  COMING_SOON: 'COMING_SOON',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.TargetAudienceDisplay = exports.$Enums.TargetAudienceDisplay = {
+  FRESHERS: 'FRESHERS',
+  JUNIOR: 'JUNIOR',
+  MID: 'MID',
+  SENIOR: 'SENIOR',
+  LEADERSHIP: 'LEADERSHIP',
+  CAREER_SWITCHER: 'CAREER_SWITCHER',
+  ALL_LEVELS: 'ALL_LEVELS'
+};
+
+exports.DeliveryMode = exports.$Enums.DeliveryMode = {
+  ONLINE_LIVE: 'ONLINE_LIVE',
+  OFFLINE: 'OFFLINE',
+  HYBRID: 'HYBRID'
+};
+
+exports.LessonType = exports.$Enums.LessonType = {
+  THEORY: 'THEORY',
+  HANDS_ON: 'HANDS_ON',
+  PROJECT: 'PROJECT',
+  ASSESSMENT: 'ASSESSMENT',
+  LIVE_DEMO: 'LIVE_DEMO'
+};
+
+exports.BatchStatus = exports.$Enums.BatchStatus = {
+  UPCOMING: 'UPCOMING',
+  ONGOING: 'ONGOING',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.BatchDeliveryMode = exports.$Enums.BatchDeliveryMode = {
+  LIVE_ONLINE: 'LIVE_ONLINE',
+  CLASSROOM: 'CLASSROOM',
+  HYBRID: 'HYBRID'
+};
+
+exports.ReviewStatus = exports.$Enums.ReviewStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+exports.PrerequisiteType = exports.$Enums.PrerequisiteType = {
+  MANDATORY: 'MANDATORY',
+  RECOMMENDED: 'RECOMMENDED',
+  GOOD_TO_HAVE: 'GOOD_TO_HAVE'
+};
+
+exports.CourseMediaType = exports.$Enums.CourseMediaType = {
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  BROCHURE: 'BROCHURE',
+  SAMPLE_PROJECT: 'SAMPLE_PROJECT',
+  CURRICULUM_PDF: 'CURRICULUM_PDF'
+};
+
+exports.IndustryVertical = exports.$Enums.IndustryVertical = {
+  FINTECH: 'FINTECH',
+  ECOMMERCE: 'ECOMMERCE',
+  HEALTHCARE: 'HEALTHCARE',
+  PHARMA: 'PHARMA',
+  LOGISTICS: 'LOGISTICS',
+  EDTECH: 'EDTECH',
+  GOVERNMENT: 'GOVERNMENT',
+  DEFENCE: 'DEFENCE',
+  AVIATION: 'AVIATION',
+  TRAVEL: 'TRAVEL',
+  RETAIL: 'RETAIL',
+  REAL_ESTATE: 'REAL_ESTATE'
+};
+
+exports.CommunicationType = exports.$Enums.CommunicationType = {
+  CONTACT_FORM: 'CONTACT_FORM',
+  ENROLLMENT_INQUIRY: 'ENROLLMENT_INQUIRY',
+  LIVE_CHAT: 'LIVE_CHAT',
+  NEWSLETTER: 'NEWSLETTER',
+  OTHER: 'OTHER'
+};
+
+exports.CommunicationStatus = exports.$Enums.CommunicationStatus = {
+  PENDING: 'PENDING',
+  READ: 'READ',
+  RESPONDED: 'RESPONDED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.BlogStatus = exports.$Enums.BlogStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.WebinarStatus = exports.$Enums.WebinarStatus = {
+  UPCOMING: 'UPCOMING',
+  LIVE: 'LIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.FeatureCategory = exports.$Enums.FeatureCategory = {
+  DELIVERY: 'DELIVERY',
+  MATERIALS: 'MATERIALS',
+  SUPPORT: 'SUPPORT',
+  ACCESS: 'ACCESS',
+  CERTIFICATION: 'CERTIFICATION',
+  EXTRAS: 'EXTRAS'
+};
+
+exports.DeliverableType = exports.$Enums.DeliverableType = {
+  PROJECT: 'PROJECT',
+  CASE_STUDY: 'CASE_STUDY',
+  PROCESS_DOCUMENT: 'PROCESS_DOCUMENT',
+  DEVELOPMENT_PLAN: 'DEVELOPMENT_PLAN',
+  ASSESSMENT: 'ASSESSMENT',
+  TOOLKIT: 'TOOLKIT',
+  FRAMEWORK: 'FRAMEWORK'
+};
+
+exports.RelationType = exports.$Enums.RelationType = {
+  PREREQUISITE: 'PREREQUISITE',
+  NEXT_STEP: 'NEXT_STEP',
+  COMPLEMENTARY: 'COMPLEMENTARY',
+  ALTERNATIVE: 'ALTERNATIVE',
+  BUNDLE: 'BUNDLE'
+};
+
+exports.EnrollmentStatus = exports.$Enums.EnrollmentStatus = {
+  CONFIRMED: 'CONFIRMED',
+  WAITLIST: 'WAITLIST',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED'
+};
+
+exports.UserRole = exports.$Enums.UserRole = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  CLIENT_ADMIN: 'CLIENT_ADMIN',
+  PROJECT_MANAGER: 'PROJECT_MANAGER',
+  MANAGER: 'MANAGER',
+  ASSESSOR: 'ASSESSOR',
+  ADMIN: 'ADMIN',
+  DEPT_HEAD: 'DEPT_HEAD',
+  TEAM_LEAD: 'TEAM_LEAD',
+  EMPLOYEE: 'EMPLOYEE',
+  INDIVIDUAL: 'INDIVIDUAL'
+};
+
+exports.AccountType = exports.$Enums.AccountType = {
+  INDIVIDUAL: 'INDIVIDUAL',
+  CLIENT_ADMIN: 'CLIENT_ADMIN',
+  CLIENT_USER: 'CLIENT_USER'
+};
+
+exports.UserType = exports.$Enums.UserType = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  TENANT: 'TENANT',
+  INDIVIDUAL: 'INDIVIDUAL'
+};
+
+exports.QuestionType = exports.$Enums.QuestionType = {
+  MULTIPLE_CHOICE: 'MULTIPLE_CHOICE',
+  TRUE_FALSE: 'TRUE_FALSE',
+  CODING_CHALLENGE: 'CODING_CHALLENGE',
+  ESSAY: 'ESSAY',
+  SCENARIO_BASED: 'SCENARIO_BASED',
+  VIDEO_RESPONSE: 'VIDEO_RESPONSE',
+  FILE_UPLOAD: 'FILE_UPLOAD',
+  DRAG_DROP: 'DRAG_DROP',
+  MATCHING: 'MATCHING',
+  FILL_IN_BLANK: 'FILL_IN_BLANK',
+  VOICE_RESPONSE: 'VOICE_RESPONSE'
+};
+
+exports.ModelSourceType = exports.$Enums.ModelSourceType = {
+  ROLE_BASED: 'ROLE_BASED',
+  COMPETENCY_BASED: 'COMPETENCY_BASED',
+  CUSTOM: 'CUSTOM',
+  TEMPLATE: 'TEMPLATE'
+};
+
+exports.ProficiencyLevel = exports.$Enums.ProficiencyLevel = {
+  JUNIOR: 'JUNIOR',
+  MIDDLE: 'MIDDLE',
+  SENIOR: 'SENIOR',
+  EXPERT: 'EXPERT'
+};
+
+exports.AssessmentStatus = exports.$Enums.AssessmentStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED',
+  SUBMITTED: 'SUBMITTED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  REVIEWED: 'REVIEWED',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.AssignmentType = exports.$Enums.AssignmentType = {
+  SELF_SELECTED: 'SELF_SELECTED',
+  RECOMMENDED: 'RECOMMENDED',
+  ASSIGNED: 'ASSIGNED'
+};
+
+exports.AssignmentLevel = exports.$Enums.AssignmentLevel = {
+  PROJECT: 'PROJECT',
+  DEPARTMENT: 'DEPARTMENT',
+  MANAGER: 'MANAGER',
+  INDIVIDUAL: 'INDIVIDUAL'
+};
+
+exports.TenantType = exports.$Enums.TenantType = {
+  CORPORATE: 'CORPORATE',
+  INSTITUTION: 'INSTITUTION',
+  SYSTEM: 'SYSTEM'
+};
+
+exports.TenantPlan = exports.$Enums.TenantPlan = {
+  STARTER: 'STARTER',
+  PROFESSIONAL: 'PROFESSIONAL',
+  ENTERPRISE: 'ENTERPRISE',
+  CUSTOM: 'CUSTOM'
+};
+
+exports.SubscriptionTier = exports.$Enums.SubscriptionTier = {
+  STARTER: 'STARTER',
+  GROWTH: 'GROWTH',
+  BUSINESS: 'BUSINESS',
+  ENTERPRISE: 'ENTERPRISE'
+};
+
+exports.BillingPeriod = exports.$Enums.BillingPeriod = {
+  MONTHLY: 'MONTHLY',
+  QUARTERLY: 'QUARTERLY',
+  SEMI_ANNUAL: 'SEMI_ANNUAL',
+  ANNUAL: 'ANNUAL'
+};
+
+exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
+  ACTIVE: 'ACTIVE',
+  CANCELED: 'CANCELED',
+  PAST_DUE: 'PAST_DUE',
+  TRIALING: 'TRIALING',
+  INACTIVE: 'INACTIVE'
+};
+
+exports.InvoiceStatus = exports.$Enums.InvoiceStatus = {
+  DRAFT: 'DRAFT',
+  OPEN: 'OPEN',
+  PAID: 'PAID',
+  VOID: 'VOID',
+  UNCOLLECTIBLE: 'UNCOLLECTIBLE'
+};
+
+exports.MemberType = exports.$Enums.MemberType = {
+  EMPLOYEE: 'EMPLOYEE',
+  STUDENT: 'STUDENT',
+  INDIVIDUAL: 'INDIVIDUAL'
+};
+
+exports.MemberRole = exports.$Enums.MemberRole = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  TENANT_ADMIN: 'TENANT_ADMIN',
+  MANAGER: 'MANAGER',
+  ASSESSOR: 'ASSESSOR',
+  DEPT_HEAD: 'DEPT_HEAD',
+  TEAM_LEAD: 'TEAM_LEAD',
+  CLASS_TEACHER: 'CLASS_TEACHER',
+  EMPLOYEE: 'EMPLOYEE',
+  INDIVIDUAL: 'INDIVIDUAL'
+};
+
+exports.MemberStatus = exports.$Enums.MemberStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  INVITED: 'INVITED'
+};
+
+exports.UnitType = exports.$Enums.UnitType = {
+  DEPARTMENT: 'DEPARTMENT',
+  TEAM: 'TEAM',
+  COLLEGE: 'COLLEGE',
+  COURSE_UNIT: 'COURSE_UNIT',
+  CLASS: 'CLASS',
+  DIVISION: 'DIVISION'
+};
+
+exports.ActivityType = exports.$Enums.ActivityType = {
+  PROJECT: 'PROJECT',
+  CURRICULUM: 'CURRICULUM',
+  BOOTCAMP: 'BOOTCAMP',
+  INITIATIVE: 'INITIATIVE',
+  COURSE: 'COURSE'
+};
+
+exports.ActivityStatus = exports.$Enums.ActivityStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED',
+  ARCHIVED: 'ARCHIVED',
+  PLANNED: 'PLANNED',
+  ON_HOLD: 'ON_HOLD'
+};
+
+exports.CourseDivision = exports.$Enums.CourseDivision = {
+  SEMESTER: 'SEMESTER',
+  YEAR: 'YEAR',
+  BOTH: 'BOTH'
+};
+
+exports.CurriculumType = exports.$Enums.CurriculumType = {
+  PROGRAM: 'PROGRAM',
+  DEGREE: 'DEGREE',
+  SEMESTER: 'SEMESTER',
+  DEPARTMENT: 'DEPARTMENT',
+  SUBJECT: 'SUBJECT',
+  TOPIC: 'TOPIC'
+};
+
+exports.ClientPlan = exports.$Enums.ClientPlan = {
+  STARTER: 'STARTER',
+  PROFESSIONAL: 'PROFESSIONAL',
+  ENTERPRISE: 'ENTERPRISE',
+  CUSTOM: 'CUSTOM'
+};
+
+exports.ProjectStatus = exports.$Enums.ProjectStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  COMPLETED: 'COMPLETED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.ManagerRole = exports.$Enums.ManagerRole = {
+  PROJECT_MANAGER: 'PROJECT_MANAGER',
+  DEPARTMENT_HEAD: 'DEPARTMENT_HEAD',
+  TEAM_LEAD: 'TEAM_LEAD',
+  SUPERVISOR: 'SUPERVISOR'
+};
+
+exports.ApprovalStatus = exports.$Enums.ApprovalStatus = {
+  DRAFT: 'DRAFT',
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+exports.RoleVisibility = exports.$Enums.RoleVisibility = {
+  UNIVERSAL: 'UNIVERSAL',
+  TENANT_SPECIFIC: 'TENANT_SPECIFIC'
+};
+
+exports.Industry = exports.$Enums.Industry = {
+  INFORMATION_TECHNOLOGY: 'INFORMATION_TECHNOLOGY',
+  HEALTHCARE: 'HEALTHCARE',
+  FINANCE: 'FINANCE',
+  MANUFACTURING: 'MANUFACTURING',
+  EDUCATION: 'EDUCATION',
+  RETAIL: 'RETAIL',
+  TELECOMMUNICATIONS: 'TELECOMMUNICATIONS',
+  GOVERNMENT: 'GOVERNMENT',
+  ENERGY: 'ENERGY',
+  TRANSPORTATION: 'TRANSPORTATION',
+  HOSPITALITY: 'HOSPITALITY',
+  REAL_ESTATE: 'REAL_ESTATE',
+  AGRICULTURE: 'AGRICULTURE',
+  MEDIA: 'MEDIA',
+  GENERIC: 'GENERIC'
+};
+
+exports.CompetencyCategory = exports.$Enums.CompetencyCategory = {
+  TECHNICAL: 'TECHNICAL',
+  BEHAVIORAL: 'BEHAVIORAL',
+  COGNITIVE: 'COGNITIVE',
+  DOMAIN_SPECIFIC: 'DOMAIN_SPECIFIC'
+};
+
+exports.IndicatorType = exports.$Enums.IndicatorType = {
+  POSITIVE: 'POSITIVE',
+  NEGATIVE: 'NEGATIVE'
+};
+
+exports.ApprovalType = exports.$Enums.ApprovalType = {
+  ROLE: 'ROLE',
+  COMPETENCY: 'COMPETENCY'
+};
+
+exports.SurveyStatus = exports.$Enums.SurveyStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.SurveyQuestionType = exports.$Enums.SurveyQuestionType = {
+  LIKERT: 'LIKERT',
+  MCQ: 'MCQ',
+  MSQ: 'MSQ',
+  RATING: 'RATING',
+  TEXT: 'TEXT',
+  NPS: 'NPS',
+  SLIDER: 'SLIDER',
+  DATE: 'DATE',
+  YES_NO: 'YES_NO'
+};
+
+exports.SurveyTargetType = exports.$Enums.SurveyTargetType = {
+  ALL: 'ALL',
+  DEPARTMENT: 'DEPARTMENT',
+  TEAM: 'TEAM',
+  ROLE: 'ROLE',
+  CUSTOM: 'CUSTOM'
+};
+
+exports.Prisma.ModelName = {
+  Trainer: 'Trainer',
+  Course: 'Course',
+  FinishingSchool: 'FinishingSchool',
+  CourseModule: 'CourseModule',
+  CourseLesson: 'CourseLesson',
+  CourseBatch: 'CourseBatch',
+  CourseReview: 'CourseReview',
+  CoursePrerequisite: 'CoursePrerequisite',
+  CourseFaq: 'CourseFaq',
+  CourseMedia: 'CourseMedia',
+  CourseOutcome: 'CourseOutcome',
+  IndustrySpecificCourse: 'IndustrySpecificCourse',
+  Communication: 'Communication',
+  CommunicationTemplate: 'CommunicationTemplate',
+  CommunicationCampaign: 'CommunicationCampaign',
+  CTAEvent: 'CTAEvent',
+  AuditLog: 'AuditLog',
+  Blog: 'Blog',
+  Webinar: 'Webinar',
+  WebinarRegistration: 'WebinarRegistration',
+  FormSubmission: 'FormSubmission',
+  LearningOutcome: 'LearningOutcome',
+  Batch: 'Batch',
+  CourseInstructor: 'CourseInstructor',
+  CourseFeature: 'CourseFeature',
+  Deliverable: 'Deliverable',
+  RelatedCourse: 'RelatedCourse',
+  Enrollment: 'Enrollment',
+  MasterCategory: 'MasterCategory',
+  MasterIndustry: 'MasterIndustry',
+  MasterDepartment: 'MasterDepartment',
+  MasterCourseType: 'MasterCourseType',
+  MasterLevel: 'MasterLevel',
+  MasterDomain: 'MasterDomain',
+  User: 'User',
+  AssessorProfile: 'AssessorProfile',
+  ComponentQuestion: 'ComponentQuestion',
+  AssessmentModel: 'AssessmentModel',
+  AssessmentModelComponent: 'AssessmentModelComponent',
+  UserAssessmentModel: 'UserAssessmentModel',
+  ProjectAssessmentModel: 'ProjectAssessmentModel',
+  ProjectUserAssessment: 'ProjectUserAssessment',
+  UserAssessmentComponent: 'UserAssessmentComponent',
+  ComponentQuestionResponse: 'ComponentQuestionResponse',
+  Tenant: 'Tenant',
+  TenantSettings: 'TenantSettings',
+  Subscription: 'Subscription',
+  Invoice: 'Invoice',
+  UsageRecord: 'UsageRecord',
+  FeatureActivation: 'FeatureActivation',
+  Member: 'Member',
+  OrganizationUnit: 'OrganizationUnit',
+  Activity: 'Activity',
+  ActivityMember: 'ActivityMember',
+  ActivityOrgUnit: 'ActivityOrgUnit',
+  CurriculumNode: 'CurriculumNode',
+  ActivityCurriculum: 'ActivityCurriculum',
+  MemberAssessment: 'MemberAssessment',
+  ActivityAssessment: 'ActivityAssessment',
+  Client: 'Client',
+  ClientSettings: 'ClientSettings',
+  Project: 'Project',
+  Department: 'Department',
+  ProjectManager: 'ProjectManager',
+  DepartmentManager: 'DepartmentManager',
+  RuntimeGeneratedQuestion: 'RuntimeGeneratedQuestion',
+  Role: 'Role',
+  Competency: 'Competency',
+  CompetencyIndicator: 'CompetencyIndicator',
+  RoleCompetency: 'RoleCompetency',
+  ComponentLibrary: 'ComponentLibrary',
+  ComponentSuggestion: 'ComponentSuggestion',
+  Panel: 'Panel',
+  PanelMember: 'PanelMember',
+  PanelInterview: 'PanelInterview',
+  PanelEvaluation: 'PanelEvaluation',
+  AdaptiveComponentLibrary: 'AdaptiveComponentLibrary',
+  AdaptiveSession: 'AdaptiveSession',
+  AdaptiveQuestion: 'AdaptiveQuestion',
+  GlobalPublishRequest: 'GlobalPublishRequest',
+  ApprovalRequest: 'ApprovalRequest',
+  RoleAssignmentRequest: 'RoleAssignmentRequest',
+  CompetencyDevelopmentRequest: 'CompetencyDevelopmentRequest',
+  ApprovalHistory: 'ApprovalHistory',
+  RecommendationRule: 'RecommendationRule',
+  RecommendationUsage: 'RecommendationUsage',
+  Survey: 'Survey',
+  SurveyQuestion: 'SurveyQuestion',
+  SurveyAssignment: 'SurveyAssignment',
+  SurveyResponse: 'SurveyResponse',
+  SurveyAnswer: 'SurveyAnswer',
+  CodeSubmission: 'CodeSubmission',
+  ReportTemplate: 'ReportTemplate',
+  Report: 'Report',
+  ReportSchedule: 'ReportSchedule',
+  AdminUser: 'AdminUser',
+  GlobalApprovalRequest: 'GlobalApprovalRequest'
+};
+
+/**
+ * This is a stub Prisma Client that will error at runtime if called.
+ */
+class PrismaClient {
+  constructor() {
+    return new Proxy(this, {
+      get(target, prop) {
+        let message
+        const runtime = getRuntime()
+        if (runtime.isEdge) {
+          message = `PrismaClient is not configured to run in ${runtime.prettyName}. In order to run Prisma Client on edge runtime, either:
+- Use Prisma Accelerate: https://pris.ly/d/accelerate
+- Use Driver Adapters: https://pris.ly/d/driver-adapters
+`;
+        } else {
+          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in `' + runtime.prettyName + '`).'
+        }
+        
+        message += `
+If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report`
+
+        throw new Error(message)
+      }
+    })
+  }
+}
+
+exports.PrismaClient = PrismaClient
+
+Object.assign(exports, Prisma)

@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Edit, Trash2, Eye, Filter, Calendar, User } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Calendar, User, Loader2, Globe, GlobeLock } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface BlogPost {
   id: string;
@@ -26,30 +27,6 @@ interface BlogPost {
   updatedAt: string;
 }
 
-const MOCK_POSTS: BlogPost[] = [
-  {
-    id: '1', title: '5 Mistakes Freshers Make When Learning to Code',
-    slug: '5-mistakes-freshers-coding', excerpt: 'Learn from common pitfalls and accelerate your coding journey.',
-    author: 'Dr. Rajesh Kumar', category: 'Career Advice', tags: ['coding', 'career', 'beginners'],
-    status: 'PUBLISHED', publishedAt: '2026-02-01', readTime: 5, featured: true,
-    viewCount: 1250, createdAt: '2026-01-28', updatedAt: '2026-02-01',
-  },
-  {
-    id: '2', title: 'Full Stack vs Data Science: Which Should You Choose?',
-    slug: 'fullstack-vs-datascience', excerpt: 'A comprehensive comparison to help you make the right career choice.',
-    author: 'Priya Sharma', category: 'Career Guidance', tags: ['career', 'fullstack', 'datascience'],
-    status: 'PUBLISHED', publishedAt: '2026-01-25', readTime: 8, featured: false,
-    viewCount: 890, createdAt: '2026-01-20', updatedAt: '2026-01-25',
-  },
-  {
-    id: '3', title: 'How to Get Your First Tech Job Without Experience',
-    slug: 'first-tech-job-no-experience', excerpt: 'Practical strategies to land your dream tech job as a beginner.',
-    author: 'Amit Patel', category: 'Job Search', tags: ['jobs', 'career', 'interview'],
-    status: 'DRAFT', readTime: 6, featured: false,
-    viewCount: 0, createdAt: '2026-02-02', updatedAt: '2026-02-02',
-  },
-];
-
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,20 +36,20 @@ export default function BlogPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await fetch('/api/blog');
-        const data = await response.json();
-        setPosts(data.blogs || MOCK_POSTS);
-      } catch {
-        setPosts(MOCK_POSTS);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchPosts();
-  }, []);
+  useEffect(() => { loadPosts(); }, []);
+
+  const loadPosts = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/admin/blog');
+      const data = await res.json();
+      setPosts(data.blogs || []);
+    } catch {
+      toast.error('Failed to load blog posts');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,19 +61,50 @@ export default function BlogPage() {
 
   const categories = [...new Set(posts.map(p => p.category))];
 
-  const handleSavePost = (postData: Partial<BlogPost>) => {
-    if (editingPost) {
-      setPosts(prev => prev.map(p => p.id === editingPost.id ? { ...p, ...postData } : p));
-    } else {
-      setPosts(prev => [...prev, { id: Date.now().toString(), ...postData } as BlogPost]);
+  const handleSavePost = async (postData: Partial<BlogPost>) => {
+    try {
+      const url = editingPost ? `/api/admin/blog/${editingPost.id}` : '/api/admin/blog';
+      const method = editingPost ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(editingPost ? 'Post updated' : 'Post created');
+      setShowAddForm(false);
+      setEditingPost(null);
+      await loadPosts();
+    } catch {
+      toast.error('Failed to save post');
     }
-    setShowAddForm(false);
-    setEditingPost(null);
   };
 
-  const handleDeletePost = (postId: string) => {
-    if (confirm('Are you sure you want to delete this post?')) {
-      setPosts(prev => prev.filter(p => p.id !== postId));
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    try {
+      const res = await fetch(`/api/admin/blog/${postId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      toast.success('Post archived');
+      await loadPosts();
+    } catch {
+      toast.error('Failed to delete post');
+    }
+  };
+
+  const handlePublishToggle = async (post: BlogPost) => {
+    const newStatus = post.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+    try {
+      const res = await fetch(`/api/admin/blog/${post.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(newStatus === 'PUBLISHED' ? 'Post published — visible on website' : 'Post unpublished — moved to draft');
+      await loadPosts();
+    } catch {
+      toast.error('Failed to update post status');
     }
   };
 
@@ -162,7 +170,7 @@ export default function BlogPage() {
         <CardHeader><CardTitle>All Blog Posts</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">Loading posts...</div>
+            <div className="flex items-center justify-center py-12 text-gray-500 gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Loading...</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -197,10 +205,19 @@ export default function BlogPage() {
                       </td>
                       <td className="p-2"><span className="text-sm">👁️ {post.viewCount.toLocaleString()}</span></td>
                       <td className="p-2">
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline"><Eye className="h-4 w-4" /></Button>
+                        <div className="flex gap-1 flex-wrap">
+                          {post.status === 'PUBLISHED' ? (
+                            <Button size="sm" variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50" onClick={() => handlePublishToggle(post)} title="Unpublish">
+                              <GlobeLock className="h-4 w-4 mr-1" />Unpublish
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline" className="text-green-600 border-green-200 hover:bg-green-50" onClick={() => handlePublishToggle(post)} title="Publish">
+                              <Globe className="h-4 w-4 mr-1" />Publish
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" asChild title="View"><a href={`/blog/${post.slug}`} target="_blank"><Eye className="h-4 w-4" /></a></Button>
                           <Button size="sm" variant="outline" onClick={() => { setEditingPost(post); setShowAddForm(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDeletePost(post.id)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button size="sm" variant="outline" className="text-red-500 border-red-200 hover:bg-red-50" onClick={() => handleDeletePost(post.id)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </td>
                     </tr>

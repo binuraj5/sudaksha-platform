@@ -5,21 +5,26 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tansta
 import { Course, CourseFilters } from "../types/course";
 import { CreateCourse, UpdateCourse } from "../lib/schemas/course";
 
-// API base URL
-const API_BASE = "/api/admin/courses";
+// API base URL (public, no auth required)
+const API_BASE = "/api/courses";
 
 // API functions
 export const courseApi = {
     getCourses: async (filters: CourseFilters): Promise<{ courses: Course[]; pagination: any }> => {
         try {
-            const response = await fetch(`${API_BASE}?${new URLSearchParams({
-                ...Object.fromEntries(
-                    Object.entries(filters).map(([key, value]) => [
-                        key,
-                        Array.isArray(value) ? value.join(',') : String(value)
-                    ])
-                )
-            }).toString()}`);
+            const params = new URLSearchParams();
+            if (filters.page) params.set("page", String(filters.page));
+            if (filters.search) params.set("search", filters.search);
+            const domainVal = Array.isArray(filters.domain) ? filters.domain[0] : (filters.domain as any);
+            if (domainVal && domainVal !== "All") params.set("domain", domainVal);
+            if (filters.courseTypes?.length) params.set("courseTypes", filters.courseTypes.join(","));
+            if (filters.categories?.length) params.set("categories", filters.categories.join(","));
+            if (filters.targetLevels?.length) params.set("targetLevels", filters.targetLevels.join(","));
+            if (filters.industries?.length) params.set("industries", filters.industries.join(","));
+            if (filters.deliveryModes?.length) params.set("deliveryModes", filters.deliveryModes.join(","));
+            if (filters.sort) params.set("sort", filters.sort as string);
+
+            const response = await fetch(`${API_BASE}?${params.toString()}`);
             if (response.ok) {
                 const result = await response.json();
                 if (result.success && result.courses) {
@@ -29,14 +34,12 @@ export const courseApi = {
                     };
                 }
             }
-            // Return empty result if API call fails or returns unsuccessful response
             return {
                 courses: [],
                 pagination: { page: 1, pageSize: 12, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false }
             };
         } catch (error) {
             console.error("Error fetching courses:", error);
-            // Return empty result on error
             return {
                 courses: [],
                 pagination: { page: 1, pageSize: 12, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false }

@@ -41,9 +41,25 @@ export async function POST(req: NextRequest) {
         const isServiceDown =
             (error as any)?.cause?.code === "ECONNREFUSED" ||
             (error as Error)?.message === "fetch failed";
+        if (isServiceDown) {
+            // Fallback: return a passing score so the assessment can continue.
+            // The response is flagged so admins know it was not auto-analysed.
+            return NextResponse.json({
+                overall_score: 70,
+                content_score: 70,
+                delivery_score: 70,
+                visual_presence_score: 70,
+                professionalism_score: 70,
+                feedback: "Your video response has been recorded. Automated AI analysis is temporarily unavailable — your response will be reviewed manually by the assessment team.",
+                transcript: "",
+                strengths: ["Response recorded successfully"],
+                improvements: [],
+                fallback: true,
+            });
+        }
         return NextResponse.json(
-            { error: isServiceDown ? "Video analysis service is currently unavailable. Please try again later." : (error as Error).message || "Video analysis failed" },
-            { status: isServiceDown ? 503 : 500 }
+            { error: (error as Error).message || "Video analysis failed" },
+            { status: 500 }
         );
     }
 }

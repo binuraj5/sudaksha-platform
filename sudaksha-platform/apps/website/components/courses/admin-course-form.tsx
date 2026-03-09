@@ -12,16 +12,18 @@ import { CreateCourseSchema } from '@/lib/schemas/course';
 
 type CreateFormData = z.infer<typeof CreateCourseSchema>;
 
-const domains = ['IT', 'Non-IT', 'All'];
-const industries = [
-  'Technology', 'Healthcare', 'Finance', 'Retail', 'Manufacturing',
-  'Education', 'Consulting', 'Pharmaceutical', 'Telecommunications',
-  'Automotive', 'Aviation', 'Defense'
-];
-const levels = ['Beginner', 'Intermediate', 'Advanced'];
-const types = ['Technology', 'IT', 'Functional', 'Process', 'Behavioral', 'Personal'];
 const modes = ['Live Online', 'Offline', 'Hybrid'];
 const statuses = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
+
+// Load master data items by type from the JSON file store API
+async function fetchMasterItems(type: string): Promise<string[]> {
+  try {
+    const res = await fetch(`/api/admin/master-data?type=${type}`);
+    const data = await res.json();
+    if (data.success && Array.isArray(data.data)) return data.data.map((i: any) => i.name);
+  } catch {}
+  return [];
+}
 
 interface AdminCourseFormProps {
   course?: any;
@@ -29,8 +31,39 @@ interface AdminCourseFormProps {
   mode: 'create' | 'edit';
 }
 
+// Normalize learningObjectives to [{outcome: string}] (matches Zod schema)
+function normalizeLearningObjectives(raw: any[]): { outcome: string }[] {
+  if (!raw?.length) return [{ outcome: '' }, { outcome: '' }, { outcome: '' }];
+  return raw.map(item =>
+    typeof item === 'string' ? { outcome: item } : { outcome: item?.outcome ?? '' }
+  );
+}
+
 export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Master data dropdowns — loaded from /api/admin/master-data
+  const [mdCategories, setMdCategories] = useState<string[]>([]);
+  const [mdDomains, setMdDomains] = useState<string[]>(['IT', 'Non-IT', 'All']);
+  const [mdIndustries, setMdIndustries] = useState<string[]>([]);
+  const [mdLevels, setMdLevels] = useState<string[]>([]);
+  const [mdCourseTypes, setMdCourseTypes] = useState<string[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetchMasterItems('category'),
+      fetchMasterItems('domain'),
+      fetchMasterItems('industry'),
+      fetchMasterItems('level'),
+      fetchMasterItems('courseType'),
+    ]).then(([cats, doms, inds, lvls, types]) => {
+      if (cats.length) setMdCategories(cats);
+      if (doms.length) setMdDomains(doms);
+      if (inds.length) setMdIndustries(inds);
+      if (lvls.length) setMdLevels(lvls);
+      if (types.length) setMdCourseTypes(types);
+    });
+  }, []);
 
   const {
     register,
@@ -57,9 +90,9 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
       price: course?.price || 0,
       description: course?.description || '',
       prerequisites: course?.prerequisites || '',
-      learningObjectives: course?.learningObjectives || ['', '', ''],
+      learningObjectives: normalizeLearningObjectives(course?.learningObjectives) as any,
       specialFeatures: course?.specialFeatures || [],
-      curriculum: course?.modules || [
+      curriculum: course?.curriculum || course?.modules || [
         {
           title: 'Module 1: Introduction',
           description: 'Introduction to the course',
@@ -91,6 +124,20 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
     name: 'curriculum'
   });
 
+  // Auto-compute total durationHours from sum of all chapter durations
+  const curriculumWatch = watch('curriculum');
+  useEffect(() => {
+    const total = (curriculumWatch ?? []).reduce((sum: number, mod: any) => {
+      const chapSum = (mod?.chapters ?? []).reduce(
+        (s: number, ch: any) => s + (parseFloat(ch?.duration) || 0), 0
+      );
+      return sum + chapSum;
+    }, 0);
+    if (total > 0) {
+      setValue('durationHours', Math.round(total * 100) / 100);
+    }
+  }, [curriculumWatch, setValue]);
+
   useEffect(() => {
     if (course && mode === 'edit') {
       reset({
@@ -107,9 +154,9 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
         status: course.status,
         description: course.description,
         prerequisites: course.prerequisites,
-        learningObjectives: course.learningObjectives,
+        learningObjectives: normalizeLearningObjectives(course.learningObjectives) as any,
         specialFeatures: course.specialFeatures,
-        curriculum: course.modules || []
+        curriculum: course.curriculum || course.modules || []
       });
     }
   }, [course, mode, reset]);
@@ -203,16 +250,9 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
             >
               <option value="">Select category</option>
-              <option value="IT Courses">IT Courses</option>
-              <option value="Data Science">Data Science</option>
-              <option value="Cloud Computing">Cloud Computing</option>
-              <option value="Cybersecurity">Cybersecurity</option>
-              <option value="AI & ML">AI & ML</option>
-              <option value="Business Analysis">Business Analysis</option>
-              <option value="Project Management">Project Management</option>
-              <option value="Digital Marketing">Digital Marketing</option>
-              <option value="Communication">Communication</option>
-              <option value="Leadership">Leadership</option>
+              {mdCategories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
             </select>
             {errors.category && (
               <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
@@ -227,7 +267,7 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
               {...register('domain')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
             >
-              {domains.map(domain => (
+              {mdDomains.map(domain => (
                 <option key={domain} value={domain}>{domain}</option>
               ))}
             </select>
@@ -245,7 +285,7 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
             >
               <option value="">Select industry</option>
-              {industries.map(industry => (
+              {mdIndustries.map(industry => (
                 <option key={industry} value={industry}>{industry}</option>
               ))}
             </select>
@@ -264,7 +304,8 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
               {...register('targetLevel')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
             >
-              {levels.map(level => (
+              <option value="">Select level</option>
+              {mdLevels.map(level => (
                 <option key={level} value={level}>{level}</option>
               ))}
             </select>
@@ -281,7 +322,8 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
               {...register('courseType')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
             >
-              {types.map(type => (
+              <option value="">Select course type</option>
+              {mdCourseTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
@@ -328,13 +370,14 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Duration (Hours) *
+              Total Duration (Hours) — auto-calculated from chapters
             </label>
             <input
               type="number"
+              step="any"
               {...register('durationHours', { valueAsNumber: true })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-              placeholder="120"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+              readOnly
             />
             {errors.durationHours && (
               <p className="mt-1 text-sm text-red-600">{errors.durationHours.message}</p>
@@ -399,7 +442,7 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
           {learningObjectiveFields.map((field, index) => (
             <div key={field.id} className="flex gap-2">
               <input
-                {...register(`learningObjectives.${index}`)}
+                {...register(`learningObjectives.${index}.outcome`)}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder={`Learning objective ${index + 1}`}
               />
@@ -417,7 +460,7 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
 
           <button
             type="button"
-            onClick={() => appendLearningObjective('' as any)}
+            onClick={() => appendLearningObjective({ outcome: '' } as any)}
             className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -469,9 +512,10 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
                     </label>
                     <input
                       type="number"
+                      step="any"
                       {...register(`curriculum.${moduleIndex}.duration`, { valueAsNumber: true })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                      placeholder="20"
+                      placeholder="e.g. 2.5"
                     />
                   </div>
                 </div>
@@ -511,12 +555,14 @@ export default function AdminCourseForm({ course, onSave, mode }: AdminCourseFor
                             placeholder="Chapter title"
                           />
                         </div>
-                        <div className="w-24">
+                        <div className="w-28">
                           <input
                             type="number"
+                            step="any"
+                            min="0"
                             {...register(`curriculum.${moduleIndex}.chapters.${chapterIndex}.duration`, { valueAsNumber: true })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                            placeholder="2h"
+                            placeholder="e.g. 1.5"
                           />
                         </div>
                         {module.chapters.length > 1 && (
