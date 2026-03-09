@@ -58,10 +58,11 @@ export async function GET(req: NextRequest) {
     // Map to page-expected shape
     const logs = rawLogs.map(l => {
       const details = (l.details as Record<string, any>) ?? {};
-      const description = details.description
-        ?? details.button ? `CTA click: "${details.button}"${details.courseName ? ` on "${details.courseName}"` : ""}` : null
-        ?? details.message
-        ?? l.action.replace(/_/g, " ").toLowerCase();
+      const description =
+        details.description ??
+        (details.button ? `CTA click: "${details.button}"${details.courseName ? ` on "${details.courseName}"` : ""}` : null) ??
+        details.message ??
+        l.action.replace(/_/g, " ").toLowerCase();
 
       return {
         id: l.idEntity,

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  Clock, Users, Star, BookOpen, Award, DollarSign, Info, ArrowRight,
-  Code, Database, Cloud, Lock, BarChart, Briefcase, Terminal, Cpu, Globe, Layout, Server, Shield
+  Clock, Users, Star, BookOpen,
+  Code, Database, Cloud, BarChart, Briefcase, Cpu, Globe, Layout, Server, Shield
 } from 'lucide-react';
 import { Course } from '@/types/course';
 import Link from 'next/link';
@@ -19,16 +19,16 @@ interface CourseCardProps {
 
 const getCategoryIcon = (category: string) => {
   const normalized = category?.toLowerCase() || '';
-  if (normalized.includes('data')) return <Database className="w-8 h-8" />;
-  if (normalized.includes('cloud')) return <Cloud className="w-8 h-8" />;
-  if (normalized.includes('cyber')) return <Shield className="w-8 h-8" />;
-  if (normalized.includes('web')) return <Globe className="w-8 h-8" />;
-  if (normalized.includes('devops')) return <Server className="w-8 h-8" />;
-  if (normalized.includes('business')) return <Briefcase className="w-8 h-8" />;
-  if (normalized.includes('marketing')) return <BarChart className="w-8 h-8" />;
-  if (normalized.includes('ai') || normalized.includes('intelligence')) return <Cpu className="w-8 h-8" />;
-  if (normalized.includes('management')) return <Users className="w-8 h-8" />;
-  return <Code className="w-8 h-8" />;
+  if (normalized.includes('data')) return <Database className="w-5 h-5" />;
+  if (normalized.includes('cloud')) return <Cloud className="w-5 h-5" />;
+  if (normalized.includes('cyber')) return <Shield className="w-5 h-5" />;
+  if (normalized.includes('web')) return <Globe className="w-5 h-5" />;
+  if (normalized.includes('devops')) return <Server className="w-5 h-5" />;
+  if (normalized.includes('business')) return <Briefcase className="w-5 h-5" />;
+  if (normalized.includes('marketing')) return <BarChart className="w-5 h-5" />;
+  if (normalized.includes('ai') || normalized.includes('intelligence')) return <Cpu className="w-5 h-5" />;
+  if (normalized.includes('management')) return <Users className="w-5 h-5" />;
+  return <Code className="w-5 h-5" />;
 };
 
 const getCategoryColor = (category: string) => {
@@ -195,105 +195,74 @@ export function CourseCard({
     <>
       <CardComponent
         {...cardProps}
-        className={`bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full ${className}`}
+        className={`bg-white rounded-xl border border-orange-100 shadow-sm hover:shadow-[0_4px_20px_rgba(249,115,22,0.18)] hover:border-orange-300 transition-all duration-200 overflow-hidden flex flex-col h-full ${className}`}
       >
-        {/* Icon Header */}
-        <div className={`relative h-48 ${getCategoryColor(course.category)} flex items-center justify-center overflow-hidden flex-shrink-0`}>
-          <div className="transform scale-150 opacity-90 p-6 rounded-full bg-white/20 backdrop-blur-sm">
-            {getCategoryIcon(course.category)}
+        {/* Branded Header — course name + icon on colored background */}
+        <div className={`relative h-32 ${getCategoryColor(course.category)} flex flex-col justify-between overflow-hidden flex-shrink-0 p-4`}>
+          {/* Decorative background circles */}
+          <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10" />
+          <div className="absolute -right-2 -bottom-6 w-14 h-14 rounded-full bg-white/10" />
+
+          {/* Top row: icon + badges */}
+          <div className="flex items-start justify-between relative z-10">
+            <div className="p-1.5 rounded-lg bg-white/25">
+              {getCategoryIcon(course.category)}
+            </div>
+            <div className="flex flex-col gap-1 items-end">
+              {course.rating > 0 && (
+                <div className="bg-white/90 rounded-full px-2 py-0.5 flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                  <span className="text-xs font-bold">{course.rating.toFixed(1)}</span>
+                </div>
+              )}
+              {course.specialFeatures?.includes('Most Popular') && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500 text-white">Popular</span>
+              )}
+              {course.specialFeatures?.includes('New Program') && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500 text-white">New</span>
+              )}
+            </div>
           </div>
 
-          {/* Status Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {/* Industry Badge */}
-            {course.industry && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/90 text-gray-800 shadow-sm backdrop-blur-sm">
-                {course.industry}
-              </span>
-            )}
-          </div>
-
-          <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
-            {/* Rating */}
-            {course.rating && (
-              <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
-                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-bold">{course.rating.toFixed(1)}</span>
-              </div>
-            )}
-            {/* Popular/New Badges */}
-            {course.specialFeatures?.includes('Most Popular') && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-500 text-white shadow-sm">
-                Popular
-              </span>
-            )}
-            {course.specialFeatures?.includes('New Program') && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-500 text-white shadow-sm">
-                New
-              </span>
-            )}
-          </div>
+          {/* Course name at the bottom of header */}
+          <h3 className="relative z-10 text-sm font-bold leading-snug line-clamp-2 drop-shadow-sm">
+            {course.name}
+          </h3>
         </div>
 
         {/* Content */}
-        <div className="p-6 flex flex-col flex-1">
-          <div className="space-y-4 flex-1">
-            {/* Title and Category */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2 min-h-[3.5rem]">
-                {course.name}
-              </h3>
-              <p className="text-sm text-gray-600">{course.category}</p>
-            </div>
+        <div className="p-4 flex flex-col flex-1">
+          <div className="space-y-2 flex-1">
+            <p className="text-xs text-gray-500">{course.category}</p>
 
             {/* Description */}
-            <p className="text-gray-600 text-sm line-clamp-2 min-h-[2.5rem]">
-              {course.description}
-            </p>
+            {course.description && (
+              <p className="text-gray-500 text-xs line-clamp-2">{course.description}</p>
+            )}
 
-            {/* Course Info */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-sm text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{course.durationHours}h</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span>{course.audienceLevel}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <BookOpen className="w-4 h-4" />
-                  <span>{course.deliveryMode}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 min-h-[2rem]">
-              <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getLevelColor(course.audienceLevel)} bg-opacity-10 border border-opacity-20`}>
-                {course.audienceLevel}
-              </span>
-
-              {/* Delivery Mode Icon Badge */}
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                {course.deliveryMode === 'Online' || course.deliveryMode === 'ONLINE' ? <Globe className="w-3 h-3 mr-1" /> :
-                  course.deliveryMode === 'Offline' || course.deliveryMode === 'OFFLINE' ? <Users className="w-3 h-3 mr-1" /> :
-                    <Layout className="w-3 h-3 mr-1" />
-                }
-                {course.deliveryMode}
-              </span>
-
-              {/* Next Batch (Mock) */}
-              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                <Clock className="w-3 h-3 mr-1" />
-                Next Batch: Soon
-              </span>
+            {/* Course meta — single row, no duplicates */}
+            <div className="flex items-center gap-3 text-xs text-gray-500 pt-1">
+              {(course.durationHours ?? 0) > 0 && (
+                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{course.durationHours}h</span>
+              )}
+              {course.audienceLevel && (
+                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getLevelColor(course.audienceLevel)}`}>
+                  {course.audienceLevel}
+                </span>
+              )}
+              {course.deliveryMode && (
+                <span className="flex items-center gap-1">
+                  {course.deliveryMode.toUpperCase() === 'ONLINE' ? <Globe className="w-3 h-3" /> :
+                   course.deliveryMode.toUpperCase() === 'OFFLINE' ? <Users className="w-3 h-3" /> :
+                   <Layout className="w-3 h-3" />}
+                  {course.deliveryMode}
+                </span>
+              )}
             </div>
           </div>
 
           {/* CTA */}
-          <div className="mt-6 pt-4 border-t flex items-center justify-end gap-3">
+          <div className="mt-3 pt-3 border-t border-orange-100 flex items-center justify-end gap-2">
             <div className="flex gap-2">
               <Link
                 href={`/courses/${course.slug || course.id}`}

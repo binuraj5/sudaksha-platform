@@ -30,6 +30,9 @@
         "./hooks/*",
         "./types/*",
         "./*"
+      ],
+      "@prisma/client": [
+        "../../packages/db-core/generated/client"
       ]
     },
     "target": "ES2017"

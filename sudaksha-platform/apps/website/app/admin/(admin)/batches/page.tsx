@@ -451,7 +451,7 @@ function BatchForm({ batch, onSave, onCancel }: { batch: Batch | null; onSave: (
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Mode</label>
-          <select value={formData.platform} onChange={(e) => setFormData(p => ({ ...p, platform: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm">
+          <select value={formData.platform} onChange={(e) => setFormData(p => ({ ...p, platform: e.target.value as 'ONLINE' | 'OFFLINE' | 'HYBRID' }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm">
             <option value="ONLINE">Online</option>
             <option value="OFFLINE">Offline</option>
             <option value="HYBRID">Hybrid</option>

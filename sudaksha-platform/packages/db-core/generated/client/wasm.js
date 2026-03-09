@@ -2273,7 +2273,8 @@ exports.IndicatorType = exports.$Enums.IndicatorType = {
 
 exports.ApprovalType = exports.$Enums.ApprovalType = {
   ROLE: 'ROLE',
-  COMPETENCY: 'COMPETENCY'
+  COMPETENCY: 'COMPETENCY',
+  ASSESSMENT_REQUEST: 'ASSESSMENT_REQUEST'
 };
 
 exports.SurveyStatus = exports.$Enums.SurveyStatus = {

@@ -201,7 +201,7 @@ export default function AdminSidebar({ adminName, adminEmail }: AdminSidebarProp
 
       {/* Command Palette */}
       {isCommandPaletteOpen && (
-        <CommandPalette onClose={() => setIsCommandPaletteOpen(false)} />
+        <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
       )}
 
       {/* Universal Modal */}
@@ -210,6 +210,7 @@ export default function AdminSidebar({ adminName, adminEmail }: AdminSidebarProp
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           type={modalType}
+          title=""
           data={null}
           onSubmit={() => setIsModalOpen(false)}
         />

@@ -2758,6 +2758,7 @@ enum ApprovalStatus {
 enum ApprovalType {
   ROLE
   COMPETENCY
+  ASSESSMENT_REQUEST
 }
 
 enum SurveyQuestionType {

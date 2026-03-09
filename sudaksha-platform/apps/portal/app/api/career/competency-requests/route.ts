@@ -23,7 +23,6 @@ export async function GET(req: NextRequest) {
         const requests = await prisma.competencyDevelopmentRequest.findMany({
             where: { userId: user.id },
             orderBy: { createdAt: "desc" },
-            include: { competency: true }
         });
 
         return NextResponse.json(requests);

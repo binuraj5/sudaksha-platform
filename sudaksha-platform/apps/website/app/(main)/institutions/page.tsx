@@ -1,9 +1,9 @@
 'use client';
 
-import { motion, AnimatePresence, LayoutGroup, useAnimation, useInView } from 'framer-motion';
+import { motion, LayoutGroup, useAnimation, useInView } from 'framer-motion';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
-  BookOpen, Users, TrendingUp, Award, Target, Clock,
+  BookOpen, Users, TrendingUp, Award, Target,
   Briefcase, MessageSquare, Server, Code, ArrowRight,
   CheckCircle, AlertCircle, BarChart3, Zap, Shield,
   GraduationCap, Building2, UserCheck, Star, ChevronRight,
@@ -34,43 +34,6 @@ const useDebouncedInView = (ref: React.RefObject<Element | null>, amount = 0.1, 
   return debouncedInView;
 };
 
-// Batched motion wrapper for better performance
-const BatchedMotion = ({
-  children,
-  variants,
-  className,
-  delay = 0,
-  ...props
-}: {
-  children: React.ReactNode;
-  variants?: any;
-  className?: string;
-  delay?: number;
-  [key: string]: any;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const controls = useAnimation();
-  const inView = useDebouncedInView(ref, 0.1, delay);
-
-  useEffect(() => {
-    if (inView) {
-      controls.start('visible');
-    }
-  }, [controls, inView]);
-
-  return (
-    <motion.div
-      ref={ref}
-      className={className}
-      initial="hidden"
-      animate={controls}
-      variants={variants}
-      {...props}
-    >
-      {children}
-    </motion.div>
-  );
-};
 
 // Optimized animation variants with simplified transitions
 const createAnimationVariants = () => ({
@@ -162,7 +125,6 @@ const createAnimationVariants = () => ({
 });
 
 export default function InstitutionsPage() {
-  const [activeSection, setActiveSection] = useState<string>('hero');
   const animationVariants = useMemo(() => createAnimationVariants(), []);
 
   // Optimized container variants
@@ -283,7 +245,7 @@ export default function InstitutionsPage() {
                   className="flex flex-col sm:flex-row gap-3 lg:gap-4"
                 >
                   <motion.a
-                    href="/for-institutions/schedule-assessment"
+                    href="/consult"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="inline-flex items-center justify-center px-6 lg:px-8 py-3 lg:py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-sm lg:text-base shadow-lg hover:shadow-xl"
@@ -292,7 +254,7 @@ export default function InstitutionsPage() {
                     <ArrowRight className="ml-2 w-4 lg:w-5 h-4 lg:h-5" />
                   </motion.a>
                   <motion.a
-                    href="/for-institutions/brochure"
+                    href="/contact"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="inline-flex items-center justify-center px-6 lg:px-8 py-3 lg:py-4 bg-white text-blue-600 font-semibold rounded-lg border-2 border-blue-600 hover:bg-blue-50 transition-colors text-sm lg:text-base shadow-lg hover:shadow-xl"
@@ -673,7 +635,7 @@ export default function InstitutionsPage() {
 
                       <div className="text-center mt-6">
                         <motion.a
-                          href="/for-institutions/finishing-school"
+                          href="/contact"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg"
@@ -731,7 +693,7 @@ export default function InstitutionsPage() {
 
                       <div className="text-center mt-6">
                         <motion.a
-                          href="/for-institutions/curriculum-mapping"
+                          href="/contact"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg"
@@ -794,7 +756,7 @@ export default function InstitutionsPage() {
 
                       <div className="text-center mt-6">
                         <motion.a
-                          href="/for-institutions/pp-index"
+                          href="/contact"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg"
@@ -853,7 +815,7 @@ export default function InstitutionsPage() {
 
                       <div className="text-center mt-6">
                         <motion.a
-                          href="/for-institutions/faculty-training"
+                          href="/contact"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white font-semibold rounded-lg hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-lg"
@@ -915,7 +877,7 @@ export default function InstitutionsPage() {
 
                       <div className="text-center mt-6">
                         <motion.a
-                          href="/for-institutions/lab-infrastructure"
+                          href="/contact"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all duration-200 shadow-lg"
@@ -983,7 +945,7 @@ export default function InstitutionsPage() {
 
                       <div className="text-center mt-6">
                         <motion.a
-                          href="/for-institutions/industry-connect"
+                          href="/contact"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg"
@@ -1057,7 +1019,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/models/co-branded"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors w-full justify-center"
@@ -1102,7 +1064,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/models/curriculum-integration"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors w-full justify-center"
@@ -1147,7 +1109,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/models/faculty-development"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors w-full justify-center"
@@ -1192,7 +1154,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/models/lab-infrastructure"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors w-full justify-center"
@@ -1237,7 +1199,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/models/placement-services"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors w-full justify-center"
@@ -1282,7 +1244,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/models/bot"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors w-full justify-center"
@@ -1360,7 +1322,7 @@ export default function InstitutionsPage() {
               </div>
             </section>
 
-            {/* Technology Tracks */}
+            {false && /* Technology Tracks for Career Success — hidden */ (
             <section className="py-12 lg:py-16 bg-gray-50">
               <div className="container mx-auto px-4">
                 <MotionWrapper
@@ -1413,7 +1375,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/tracks/software-development"
+                      href="/courses/domain/software-development"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -1454,7 +1416,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/tracks/data-science"
+                      href="/courses/domain/data-analytics"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -1495,7 +1457,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/tracks/cloud-devops"
+                      href="/courses/domain/cloud-devops"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-sm"
@@ -1536,7 +1498,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/tracks/cybersecurity"
+                      href="/courses/domain/cybersecurity"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm"
@@ -1577,7 +1539,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/tracks/ai-ml"
+                      href="/courses/domain/ai-ml"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-sm"
@@ -1618,7 +1580,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/tracks/custom"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm"
@@ -1636,7 +1598,7 @@ export default function InstitutionsPage() {
                   className="text-center"
                 >
                   <motion.a
-                    href="/for-institutions/tracks"
+                    href="/courses"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg"
@@ -1647,6 +1609,7 @@ export default function InstitutionsPage() {
                 </MotionWrapper>
               </div>
             </section>
+            )}
 
             {/* Success Stories */}
             <section className="py-12 lg:py-16">
@@ -1878,7 +1841,7 @@ export default function InstitutionsPage() {
                   className="text-center mb-8 lg:mb-12"
                 >
                   <motion.a
-                    href="/for-institutions/case-studies"
+                    href="/success-stories"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg"
@@ -1891,6 +1854,7 @@ export default function InstitutionsPage() {
             </section>
 
             {/* Resources Section */}
+            {false && /* Resources for Institution Success — hidden */ (
             <section className="py-12 lg:py-16 bg-white">
               <div className="container mx-auto px-4">
                 <MotionWrapper
@@ -1943,7 +1907,7 @@ export default function InstitutionsPage() {
                     </ul>
 
                     <motion.a
-                      href="/for-institutions/resources/reports"
+                      href="/resources"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -1984,7 +1948,7 @@ export default function InstitutionsPage() {
                     </ul>
 
                     <motion.a
-                      href="/for-institutions/resources/placement-data"
+                      href="/resources"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm"
@@ -2025,7 +1989,7 @@ export default function InstitutionsPage() {
                     </ul>
 
                     <motion.a
-                      href="/for-institutions/resources/best-practices"
+                      href="/resources"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-sm"
@@ -2066,7 +2030,7 @@ export default function InstitutionsPage() {
                     </ul>
 
                     <motion.a
-                      href="/for-institutions/resources/curriculum-samples"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm"
@@ -2107,7 +2071,7 @@ export default function InstitutionsPage() {
                     </ul>
 
                     <motion.a
-                      href="/for-institutions/resources/roi-calculator"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm"
@@ -2134,21 +2098,21 @@ export default function InstitutionsPage() {
 
                     <div className="space-y-3 mb-6">
                       <motion.a
-                        href="/for-institutions/employability-crisis"
+                        href="/resources"
                         whileHover={{ x: 5 }}
                         className="block text-sm text-blue-600 hover:text-blue-800 transition-colors"
                       >
                         → Employability Crisis Report
                       </motion.a>
                       <motion.a
-                        href="/for-institutions/approach"
+                        href="/institutions"
                         whileHover={{ x: 5 }}
                         className="block text-sm text-blue-600 hover:text-blue-800 transition-colors"
                       >
                         → Our Comprehensive Approach
                       </motion.a>
                       <motion.a
-                        href="/for-institutions/metrics"
+                        href="/institutions"
                         whileHover={{ x: 5 }}
                         className="block text-sm text-blue-600 hover:text-blue-800 transition-colors"
                       >
@@ -2157,7 +2121,7 @@ export default function InstitutionsPage() {
                     </div>
 
                     <motion.a
-                      href="/for-institutions/contact"
+                      href="/contact"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="inline-flex items-center px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors text-sm"
@@ -2175,7 +2139,7 @@ export default function InstitutionsPage() {
                   className="text-center"
                 >
                   <motion.a
-                    href="/for-institutions/resources"
+                    href="/resources"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-gray-800 to-gray-900 text-white font-semibold rounded-lg hover:from-gray-900 hover:to-black transition-all shadow-lg"
@@ -2186,6 +2150,7 @@ export default function InstitutionsPage() {
                 </MotionWrapper>
               </div>
             </section>
+            )}
 
             {/* Final CTA Section */}
             <motion.div
@@ -2199,7 +2164,7 @@ export default function InstitutionsPage() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                 <motion.a
-                  href="/for-institutions/schedule-assessment"
+                  href="/consult"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
@@ -2208,7 +2173,7 @@ export default function InstitutionsPage() {
                   <Calendar className="ml-2 w-5 h-5" />
                 </motion.a>
                 <motion.a
-                  href="/for-institutions/brochure"
+                  href="/contact"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="inline-flex items-center justify-center px-8 py-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-400 transition-colors shadow-lg"
@@ -2217,7 +2182,7 @@ export default function InstitutionsPage() {
                   <FileText className="ml-2 w-5 h-5" />
                 </motion.a>
                 <motion.a
-                  href="/for-institutions/request-proposal"
+                  href="/contact"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="inline-flex items-center justify-center px-8 py-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-500 transition-colors shadow-lg"
@@ -2229,7 +2194,7 @@ export default function InstitutionsPage() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.a
-                  href="/for-institutions/resources/roi-calculator"
+                  href="/contact"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-500 transition-colors shadow-md"
@@ -2238,7 +2203,7 @@ export default function InstitutionsPage() {
                   <BarChart3 className="ml-2 w-4 h-4" />
                 </motion.a>
                 <motion.a
-                  href="/for-institutions/resources/reports"
+                  href="/resources"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="inline-flex items-center justify-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-500 transition-colors shadow-md"
@@ -2253,7 +2218,7 @@ export default function InstitutionsPage() {
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-6 text-sm">
                   <span>📞 +91-XXXXX-XXXXX</span>
                   <motion.a
-                    href="/for-institutions/contact"
+                    href="/contact"
                     whileHover={{ scale: 1.05 }}
                     className="text-blue-200 hover:text-white transition-colors"
                   >

@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
         ]);
 
         const csvLines = [headers, ...rows]
-            .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+            .map(row => row.map((cell: unknown) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
             .join("\r\n");
 
         const filename = `assessment-results-${tenant.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${new Date().toISOString().split("T")[0]}.csv`;

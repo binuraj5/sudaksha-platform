@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // GET single lead
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const lead = await prisma.formSubmission.findUnique({ where: { id: params.id } });
+    const { id } = await params;
+    const lead = await prisma.formSubmission.findUnique({ where: { id } });
     if (!lead) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ success: true, lead });
   } catch (error: any) {
@@ -13,12 +14,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 // PUT — update status or add a reply to the thread
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const { status, reply } = body;
 
-    const lead = await prisma.formSubmission.findUnique({ where: { id: params.id } });
+    const lead = await prisma.formSubmission.findUnique({ where: { id } });
     if (!lead) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const updateData: any = {};
@@ -34,7 +36,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     const updated = await prisma.formSubmission.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
     });
 
