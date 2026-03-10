@@ -25,3 +25,6 @@ yarn-error.log*
 # OS files
 .DS_Store
 Thumbs.db
+gitfiles.txt
+sudaksha-platform/packages/dirlist.txt
+sudaksha-platform/sudplatdir
