@@ -87,9 +87,30 @@ export default async function AssessmentTakePage({
         redirect("/assessments/results/" + id);
     }
 
+    // Determine which section to resume from by counting completed UserAssessmentComponents.
+    // This runs server-side so the runner opens at the correct section with no flicker.
+    let initialSectionIndex = 0;
+    const isInProgress = !["NOT_STARTED", "DRAFT"].includes((userAssessment as any).status ?? "");
+    if (isInProgress) {
+        const modelId = (userAssessment as any).projectAssignment?.model?.id as string | undefined;
+        if (modelId) {
+            const uam = await prisma.userAssessmentModel.findFirst({
+                where: { userId: session.user.id, modelId },
+                orderBy: { createdAt: "desc" },
+                select: { id: true },
+            });
+            if (uam) {
+                const completedCount = await (prisma as any).userAssessmentComponent.count({
+                    where: { userAssessmentModelId: uam.id, status: "COMPLETED" },
+                });
+                initialSectionIndex = completedCount as number;
+            }
+        }
+    }
+
     return (
         <div className="min-h-screen bg-white">
-            <AssessmentRunnerWithBoundary userAssessment={userAssessment} />
+            <AssessmentRunnerWithBoundary userAssessment={userAssessment} initialSectionIndex={initialSectionIndex} />
         </div>
     );
 }

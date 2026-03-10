@@ -59,7 +59,8 @@ export async function GET(req: NextRequest) {
             completedAt: ua.completedAt?.toISOString() ?? undefined,
             isMandatory: ua.projectAssignment.isMandatory,
             assignmentType: "ASSIGNED",
-            // Pass scope metadata so the UI can verify this is org-assigned
+            completionPercentage: ua.completionPercentage ?? 0,
+            totalSections: ua.projectAssignment.model.components.length,
             scope: "TENANT_SPECIFIC",
         }));
 
@@ -115,6 +116,8 @@ export async function GET(req: NextRequest) {
         dueDate: (ma as any).dueDate?.toISOString() ?? undefined,
         completedAt: (ma as any).completedAt?.toISOString() ?? undefined,
         assignmentType: ma.assignmentType,
+        completionPercentage: ma.completionPercentage ?? 0,
+        totalSections: ma.assessmentModel.components.length,
         scope: "TENANT_SPECIFIC",
     }));
 

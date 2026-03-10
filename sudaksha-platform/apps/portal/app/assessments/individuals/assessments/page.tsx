@@ -22,6 +22,8 @@ interface Assessment {
     completedAt?: string;
     isMandatory?: boolean;
     assignmentType?: "ASSIGNED" | "SELF_SELECTED";
+    completionPercentage?: number;
+    totalSections?: number;
 }
 
 interface AssessmentRequest {
@@ -321,6 +323,36 @@ function EmptyState() {
     );
 }
 
+function SectionProgressBar({ completionPercentage, totalSections }: { completionPercentage: number; totalSections: number }) {
+    if (totalSections <= 0) return null;
+
+    // How many full sections are done
+    const completedSections = Math.round((completionPercentage / 100) * totalSections);
+    const pctPerSection = 100 / totalSections;
+
+    return (
+        <div className="mt-3 space-y-1">
+            <div className="flex gap-1">
+                {Array.from({ length: totalSections }).map((_, i) => (
+                    <div
+                        key={i}
+                        className={`h-2 flex-1 rounded-full transition-colors ${
+                            i < completedSections
+                                ? "bg-blue-500"
+                                : "bg-gray-200"
+                        }`}
+                        title={`Section ${i + 1}${i < completedSections ? " — completed" : ""}`}
+                    />
+                ))}
+            </div>
+            <p className="text-xs text-gray-500">
+                {completedSections} of {totalSections} section{totalSections !== 1 ? "s" : ""} completed
+                {" "}({Math.round(pctPerSection * completedSections)}%)
+            </p>
+        </div>
+    );
+}
+
 function AssessmentCard({ assessment }: { assessment: Assessment }) {
     const statusColors: Record<string, string> = {
         NOT_STARTED: "bg-gray-100 text-gray-700",
@@ -334,6 +366,10 @@ function AssessmentCard({ assessment }: { assessment: Assessment }) {
         assessment.dueDate &&
         new Date(assessment.dueDate) < new Date() &&
         assessment.status !== "COMPLETED";
+
+    const showProgress = ["IN_PROGRESS", "ACTIVE"].includes(assessment.status) &&
+        (assessment.totalSections ?? 0) > 0 &&
+        (assessment.completionPercentage ?? 0) > 0;
 
     return (
         <Card className={isOverdue ? "border-red-200 bg-red-50/30" : ""}>
@@ -362,6 +398,13 @@ function AssessmentCard({ assessment }: { assessment: Assessment }) {
                                 Due: {new Date(assessment.dueDate).toLocaleDateString()}
                                 {isOverdue && " (Overdue!)"}
                             </div>
+                        )}
+
+                        {showProgress && (
+                            <SectionProgressBar
+                                completionPercentage={assessment.completionPercentage!}
+                                totalSections={assessment.totalSections!}
+                            />
                         )}
                     </div>
 

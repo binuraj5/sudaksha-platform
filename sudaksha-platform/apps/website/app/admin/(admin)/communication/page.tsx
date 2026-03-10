@@ -74,7 +74,14 @@ export default function CommunicationPage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
   useEffect(() => { loadData(); }, []);
-  useEffect(() => { if (activeTab === 'leads') loadLeads(); }, [activeTab, statusFilter]);
+  useEffect(() => { if (activeTab === 'leads') loadLeads(); }, [activeTab, statusFilter, searchTerm]);
+
+  // Auto-refresh leads when user returns to this tab
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible' && activeTab === 'leads') loadLeads(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [activeTab]);
 
   const loadData = async () => {
     setIsLoading(true);

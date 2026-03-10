@@ -43,6 +43,33 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
 
+    // Write audit log so this appears in the Audit Trail
+    const submitterName = (formData as any)?.name ?? null;
+    const submitterEmail = (formData as any)?.email ?? null;
+    await prisma.auditLog.create({
+      data: {
+        action: "FORM_SUBMISSION",
+        entityType: formType || "UNKNOWN",
+        entityId: submission.id,
+        entityName: formName || pageName || pageUrl,
+        details: {
+          formType,
+          formName,
+          pageUrl,
+          pageName,
+          name: submitterName,
+          email: submitterEmail,
+          ctaButton: (formData as any)?.ctaButton ?? null,
+          description: `New ${formName || formType} submission from ${submitterName ?? "visitor"}${submitterEmail ? ` (${submitterEmail})` : ""}`,
+        },
+        severity: "INFO",
+        status: "SUCCESS",
+        userName: submitterEmail ?? submitterName ?? "visitor",
+        ipAddress,
+        userAgent,
+      },
+    }).catch(() => { /* audit write failure must not block response */ });
+
     return NextResponse.json({ success: true, id: submission.id });
   } catch (error: any) {
     console.error("Form submission error:", error);

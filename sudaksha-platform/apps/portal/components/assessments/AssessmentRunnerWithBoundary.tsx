@@ -5,9 +5,10 @@ import { AssessmentRunner } from "./AssessmentRunner";
 
 interface Props {
     userAssessment: unknown;
+    initialSectionIndex?: number;
 }
 
-export function AssessmentRunnerWithBoundary({ userAssessment }: Props) {
+export function AssessmentRunnerWithBoundary({ userAssessment, initialSectionIndex = 0 }: Props) {
     return (
         <ErrorBoundary
             fallback={({ error, reset }) => (
@@ -35,7 +36,7 @@ export function AssessmentRunnerWithBoundary({ userAssessment }: Props) {
                 </div>
             )}
         >
-            <AssessmentRunner userAssessment={userAssessment} />
+            <AssessmentRunner userAssessment={userAssessment} initialSectionIndex={initialSectionIndex} />
         </ErrorBoundary>
     );
 }

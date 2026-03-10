@@ -71,6 +71,13 @@ export default function AuditPage() {
 
   useEffect(() => { loadLogs(); }, [loadLogs]);
 
+  // Auto-refresh when user returns to this tab
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') loadLogs(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [loadLogs]);
+
   const handleExportCSV = () => {
     const headers = ['Timestamp', 'Action', 'Category', 'Severity', 'Actor', 'Description', 'Status', 'IP'];
     const rows = logs.map(l => [

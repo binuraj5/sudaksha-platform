@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Plus, Search, Edit, Trash2, Eye, Calendar, User, Loader2, Globe, GlobeLock } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -268,9 +269,34 @@ function BlogForm({ post, onSave, onCancel }: { post: BlogPost | null; onSave: (
         <label className="block text-sm font-medium text-gray-700 mb-2">Excerpt *</label>
         <textarea value={formData.excerpt} onChange={(e) => setFormData(p => ({ ...p, excerpt: e.target.value }))} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" required />
       </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Cover Image URL</label>
+          <input type="url" value={formData.imageUrl} onChange={(e) => setFormData(p => ({ ...p, imageUrl: e.target.value }))} placeholder="https://..." className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Tags <span className="text-gray-400 font-normal">(comma-separated)</span></label>
+          <input type="text" value={formData.tags} onChange={(e) => setFormData(p => ({ ...p, tags: e.target.value }))} placeholder="AI, Career, Skills" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+        </div>
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Read Time (min)</label>
+            <input type="number" min={1} value={formData.readTime} onChange={(e) => setFormData(p => ({ ...p, readTime: Number(e.target.value) }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer mt-1">
+            <input type="checkbox" checked={formData.featured} onChange={(e) => setFormData(p => ({ ...p, featured: e.target.checked }))} className="h-4 w-4 rounded border-gray-300 text-indigo-600" />
+            <span className="text-sm font-medium text-gray-700">Featured post</span>
+          </label>
+        </div>
+      </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
-        <textarea value={formData.content} onChange={(e) => setFormData(p => ({ ...p, content: e.target.value }))} rows={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+        <RichTextEditor
+          value={formData.content}
+          onChange={(html) => setFormData(p => ({ ...p, content: html }))}
+          placeholder="Write your blog post content here..."
+          minHeight="400px"
+        />
       </div>
       <div className="flex justify-end gap-4">
         <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
