@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { prismaAssessments } from "@sudaksha/db-assessments";
 import { getApiSession } from "@/lib/get-session";
 import { normalizeUserRole } from "@/lib/permissions/role-competency-permissions";
 
@@ -56,11 +55,13 @@ export async function GET(req: NextRequest) {
             requests = [...requests, ...coreRequests];
         }
 
-        // Fetch ASSESSMENT_REQUEST from db-assessments
+        // Fetch ASSESSMENT_REQUEST from db-core (which has ASSESSMENT_REQUEST in its ApprovalType enum)
         if (!type || type === "ASSESSMENT_REQUEST") {
-            const assessTypeFilter = { type: "ASSESSMENT_REQUEST" as any };
-            const assessRequests = await prismaAssessments.approvalRequest.findMany({
-                where: { ...whereClause, ...assessTypeFilter },
+            const assessRequests = await prisma.approvalRequest.findMany({
+                where: { ...whereClause, type: "ASSESSMENT_REQUEST" as any },
+                include: {
+                    tenant: { select: { name: true } },
+                },
                 orderBy: { createdAt: "desc" },
             });
             requests = [...requests, ...assessRequests];
