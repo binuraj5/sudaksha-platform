@@ -1,7 +1,7 @@
 import {
     Home, Building, Users, Briefcase, UsersIcon,
     FileText, FilePlus, ClipboardList, BarChart, Settings,
-    User, Globe, CheckCircle, DollarSign, GraduationCap, BookOpen, BrainCircuit
+    User, Globe, CheckCircle, DollarSign, GraduationCap, BookOpen, BrainCircuit, MessageSquare
 } from 'lucide-react';
 import { TENANT_LABELS, getLabelsForTenant } from './tenant-labels';
 
@@ -50,6 +50,7 @@ const BASE_NAV_ITEMS: NavigationItem[] = [
     { id: 'approval-queue', icon: CheckCircle, label: 'Approval Queue', path: (base) => `${base}/approvals`, permission: '*', roles: ['TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEADER', 'CLASS_TEACHER'] },
     { id: 'competencies', icon: BrainCircuit, label: 'Role Matrix', path: (base) => `${base}/competencies`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD'] },
     { id: 'assessments', icon: FileText, label: 'Assessments', path: (base) => `${base}/assessments`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
+    { id: 'responses', icon: MessageSquare, label: 'Assessment Responses', path: (base) => `${base}/responses`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
     { id: 'reports', icon: BarChart, label: 'Reports', path: (base) => `${base}/reports`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
     { id: 'surveys', icon: ClipboardList, label: 'Survey', path: (base) => `${base}/surveys`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'] },
     { id: 'curriculum', icon: BookOpen, label: 'Curriculum', path: (base) => `${base}/curriculum`, permission: '*', roles: ['SUPER_ADMIN', 'TENANT_ADMIN', 'DEPARTMENT_HEAD', 'TEAM_LEAD', 'CLASS_TEACHER'], tenantTypes: ['INSTITUTION'] },
