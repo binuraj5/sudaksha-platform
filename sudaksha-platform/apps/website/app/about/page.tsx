@@ -144,7 +144,7 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Bar */}
-      <section className="bg-orange-500 py-10">
+      <section className="bg-orange-400 py-10">
         <motion.div
           initial="hidden"
           whileInView="visible"
