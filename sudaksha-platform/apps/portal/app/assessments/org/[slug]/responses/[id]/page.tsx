@@ -27,8 +27,7 @@ export default async function AdminResponseDetailPage({
 
     const u = session.user as { tenantSlug?: string; role?: string; userType?: string };
     const isSuperAdmin = u.userType === "SUPER_ADMIN" || u.role === "SUPER_ADMIN";
-    const isTenantAdmin = u.role === "TENANT_ADMIN" || u.role === "DEPARTMENT_HEAD";
-    const isAdmin = isSuperAdmin || isTenantAdmin;
+    const isAdmin = isSuperAdmin || ["TENANT_ADMIN", "DEPARTMENT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"].includes(u.role || "");
     const hasAccess = isSuperAdmin || u.tenantSlug === slug;
 
     if (!hasAccess) {

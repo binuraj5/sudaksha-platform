@@ -4,7 +4,7 @@ import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
-const ADMIN_ROLES = ["SUPER_ADMIN", "TENANT_ADMIN", "DEPARTMENT_HEAD"];
+const ADMIN_ROLES = ["SUPER_ADMIN", "TENANT_ADMIN", "DEPARTMENT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"];
 
 export async function getAdminAssessmentResponses(tenantSlug: string, assessmentModelId?: string) {
     const session = await getApiSession();
@@ -20,8 +20,7 @@ export async function getAdminAssessmentResponses(tenantSlug: string, assessment
 
     const u = session.user as { tenantSlug?: string; role?: string; userType?: string };
     const isSuperAdmin = u.userType === "SUPER_ADMIN" || u.role === "SUPER_ADMIN";
-    const isTenantAdmin = u.role === "TENANT_ADMIN" || u.role === "DEPARTMENT_HEAD";
-    const isAdmin = isSuperAdmin || isTenantAdmin;
+    const isAdmin = isSuperAdmin || ADMIN_ROLES.includes(u.role || "");
     const hasAccess = isSuperAdmin || u.tenantSlug === tenantSlug;
 
     if (!isAdmin || !hasAccess) {
@@ -72,8 +71,7 @@ export async function getDetailedResponse(tenantSlug: string, memberAssessmentId
 
     const u = session.user as { tenantSlug?: string; role?: string; userType?: string };
     const isSuperAdmin = u.userType === "SUPER_ADMIN" || u.role === "SUPER_ADMIN";
-    const isTenantAdmin = u.role === "TENANT_ADMIN" || u.role === "DEPARTMENT_HEAD";
-    const isAdmin = isSuperAdmin || isTenantAdmin;
+    const isAdmin = isSuperAdmin || ADMIN_ROLES.includes(u.role || "");
     const hasAccess = isSuperAdmin || u.tenantSlug === tenantSlug;
 
     if (!isAdmin || !hasAccess) {
@@ -199,8 +197,7 @@ export async function getAllAssessmentModels(tenantSlug: string) {
 
     const u = session.user as { tenantSlug?: string; role?: string; userType?: string };
     const isSuperAdmin = u.userType === "SUPER_ADMIN" || u.role === "SUPER_ADMIN";
-    const isTenantAdmin = u.role === "TENANT_ADMIN" || u.role === "DEPARTMENT_HEAD";
-    const isAdmin = isSuperAdmin || isTenantAdmin;
+    const isAdmin = isSuperAdmin || ADMIN_ROLES.includes(u.role || "");
     const hasAccess = isSuperAdmin || u.tenantSlug === tenantSlug;
 
     if (!isAdmin || !hasAccess) {

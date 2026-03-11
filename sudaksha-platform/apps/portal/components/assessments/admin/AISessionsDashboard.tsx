@@ -150,7 +150,7 @@ function AdaptiveSessionCard({ s }: { s: AdaptiveSessionData }) {
                         <div className="flex gap-1 flex-wrap">
                             {s.questions.map((q) => (
                                 <div
-                                    key={q.sequenceNumber}
+                                    key={`${s.id}-q${q.sequenceNumber}`}
                                     title={`Q${q.sequenceNumber}: diff=${q.difficulty.toFixed(1)}`}
                                     className={`h-2 w-5 rounded-sm transition-colors ${q.isCorrect === true
                                         ? "bg-green-400"
