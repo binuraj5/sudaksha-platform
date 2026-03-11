@@ -4,7 +4,10 @@
       "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" mv \"sudaksha-platform/apps/portal/components/Profile/RestrictedProfileForm.tsx\" \"sudaksha-platform/apps/portal/components/profile_tmp/RestrictedProfileForm.tsx\")",
       "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" rm --cached \"sudaksha-platform/apps/portal/components/Profile/RestrictedProfileForm.tsx\")",
       "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" diff --cached --name-only)",
-      "Bash(git -C:*)"
+      "Bash(git -C:*)",
+      "Bash(find /c/Users/Administrator/Documents/GitHub/SudakshaNWS/sudaksha-platform/apps/website -iname *about* -o -iname *AboutUs* -o -iname *who-we-are*)",
+      "Bash(cat \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS/sudaksha-platform/apps/portal/app/assessments/\\(marketing\\)/about/page.tsx\")",
+      "Bash(cat \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS/sudaksha-platform/apps/website/app/\\(main\\)/layout.tsx\")"
     ]
   }
 }
