@@ -3,6 +3,8 @@ declare module "next-auth" {
         user: {
             id: string;
             role: string;
+            userType?: string;
+            tenantSlug?: string | null;
             tenantId?: string | null;
             clientId?: string | null;
             memberType?: string;
@@ -19,6 +21,8 @@ declare module "next-auth" {
     interface User extends DefaultUser {
         id: string;
         role: string;
+        userType?: string;
+        tenantSlug?: string | null;
         tenantId?: string | null;
         clientId?: string | null;
         type?: string;
@@ -36,6 +40,8 @@ declare module "next-auth/jwt" {
     interface JWT {
         id: string;
         role: string;
+        userType?: string;
+        tenantSlug?: string | null;
         tenantId?: string | null;
         clientId?: string | null;
         type?: string;

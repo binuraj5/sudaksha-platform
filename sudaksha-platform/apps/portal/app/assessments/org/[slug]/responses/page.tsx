@@ -31,11 +31,32 @@ export default async function AdminAllResponsesPage({
     const isAdmin = isSuperAdmin || ["TENANT_ADMIN", "DEPARTMENT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"].includes(u.role || "");
     const hasAccess = isSuperAdmin || u.tenantSlug === slug;
 
+    // Debug logging
+    const debugInfo = {
+        slug,
+        u_tenantSlug: u.tenantSlug,
+        u_role: u.role,
+        u_userType: u.userType,
+        isSuperAdmin,
+        isAdmin,
+        hasAccess,
+        match: u.tenantSlug === slug,
+    };
+    console.log("[AdminAllResponsesPage] Auth checks:", debugInfo);
+
     if (!hasAccess) {
+        console.log("[AdminAllResponsesPage] Access denied - redirecting", {
+            reason: "hasAccess is false",
+            debugInfo,
+        });
         redirect(u.tenantSlug ? `/assessments/org/${u.tenantSlug}/dashboard` : "/assessments");
     }
 
     if (!isAdmin) {
+        console.log("[AdminAllResponsesPage] Admin check failed - redirecting", {
+            reason: "isAdmin is false",
+            debugInfo,
+        });
         redirect(u.tenantSlug ? `/assessments/org/${u.tenantSlug}/dashboard` : "/assessments");
     }
 
