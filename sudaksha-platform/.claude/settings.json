@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" add --dry-run --verbose \"sudaksha-platform/apps/portal/components/profile/RestrictedProfileForm.tsx\")",
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" ls-files --ignored --exclude-per-directory=.gitignore \"sudaksha-platform/apps/portal/components/profile/RestrictedProfileForm.tsx\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git -C /c/Users/Administrator/Documents/GitHub/SudakshaNWS config core.excludesFile)",
+      "Read(//c/Users/Administrator/**)",
+      "Read(//c/Users/Administrator/.config/git/**)",
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" config --list)",
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" submodule status)",
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" ls-files \"sudaksha-platform/apps/portal/components/Career/ProfileWizard.tsx\")",
+      "Bash(git -C /c/Users/Administrator/Documents/GitHub/SudakshaNWS add sudaksha-platform/apps/portal/components/profile/RestrictedProfileForm.tsx)",
+      "Bash(echo \"add exit: $?\")",
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" status --porcelain)",
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" ls-files \"sudaksha-platform/apps/portal/components/.gitignore\" \"sudaksha-platform/apps/portal/components/profile/.gitignore\")",
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" check-ignore -v \"sudaksha-platform/apps/portal/components/profile/RestrictedProfileForm.tsx\")",
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" add -v \"sudaksha-platform/apps/portal/components/profile/RestrictedProfileForm.tsx\")"
+    ]
+  }
+}
