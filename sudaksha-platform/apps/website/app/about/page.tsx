@@ -19,10 +19,11 @@ const stagger = {
 };
 
 const stats = [
-  { value: '10,000+', label: 'Students Trained' },
-  { value: '85%',     label: 'Placement Rate' },
-  { value: '6 LPA+',  label: 'Average Starting Salary' },
-  { value: '12+',     label: 'Years of Experience' },
+  { value: '50,000+', label: 'Students Placed' },
+  { value: '30,000+', label: 'Professionals Trained' },
+  { value: '3,400+',  label: 'Empanelled Trainers' },
+  { value: '12',      label: 'Industries Served' },
+  { value: '10+',     label: 'Countries' },
 ];
 
 const values = [
@@ -82,14 +83,10 @@ const values = [
   },
 ];
 
-const milestones = [
-  { year: '2012', event: 'Founded as a "Finishing School" for fresh IT graduates in partnership with Chennai colleges.' },
-  { year: '2015', event: 'Expanded to corporate upskilling — training mid-career professionals at 50+ companies.' },
-  { year: '2018', event: 'Launched the SudAssess competency platform to bring scientific measurement to career development.' },
-  { year: '2021', event: 'Crossed 5,000 placements. Introduced pay-after-placement model for B2C learners.' },
-  { year: '2024', event: 'Opened operations in 8 cities. Launched AI-powered adaptive assessments and personalised learning paths.' },
-  { year: '2025', event: 'Serving 10,000+ active learners across corporates, institutions, and individual tracks.' },
-];
+// TODO: replace with correct milestones from the team
+// const milestones = [
+//   { year: '2012', event: '...' },
+// ];
 
 export default function AboutPage() {
   return (
@@ -153,7 +150,7 @@ export default function AboutPage() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.4 }}
           variants={stagger}
-          className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+          className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-8 text-center"
         >
           {stats.map((s) => (
             <motion.div key={s.label} variants={fadeUp}>
@@ -199,35 +196,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Timeline */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            className="text-3xl font-bold text-gray-900 mb-12 text-center"
-          >
-            Our Journey
-          </motion.h2>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-            variants={stagger}
-            className="relative border-l-2 border-blue-200 ml-4 md:ml-12 space-y-10"
-          >
-            {milestones.map((m) => (
-              <motion.div key={m.year} variants={fadeUp} className="relative pl-8">
-                <div className="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-blue-600 border-2 border-white shadow" />
-                <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">{m.year}</span>
-                <p className="mt-1 text-gray-700">{m.event}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {/* Timeline — commented out pending correct milestones from the team */}
+      {/* <section className="py-20 px-6 bg-gray-50"> ... </section> */}
 
       {/* Values */}
       <section className="py-24 px-6 bg-white">
