@@ -144,7 +144,7 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Bar */}
-      <section className="bg-gray-900 py-10">
+      <section className="bg-orange-500 py-10">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -155,7 +155,7 @@ export default function AboutPage() {
           {stats.map((s) => (
             <motion.div key={s.label} variants={fadeUp}>
               <p className="text-4xl font-bold text-white">{s.value}</p>
-              <p className="text-gray-400 text-sm mt-1">{s.label}</p>
+              <p className="text-orange-100 text-sm mt-1">{s.label}</p>
             </motion.div>
           ))}
         </motion.div>
