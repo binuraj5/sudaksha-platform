@@ -39,21 +39,31 @@ export async function POST(
                 const pwd = Math.random().toString(36).slice(-8);
                 const hashed = await hash(pwd, 10);
 
-                // Determine ID code
+                // Handle input code
                 let inputCode = emp.employeeId || emp.enrollmentNumber || emp.memberCode || emp.id;
                 if (!inputCode) {
-                    inputCode = memberType === 'STUDENT'
-                        ? `STU${Math.floor(1000 + Math.random() * 9000)}`
-                        : `EMP${Math.floor(1000 + Math.random() * 9000)}`;
+                    const uniqueSuffix = Math.floor(10000 + Math.random() * 90000);
+                    inputCode = memberType === 'STUDENT' ? `STU${uniqueSuffix}` : `EMP${uniqueSuffix}`;
                 }
 
-                // Parse name if firstName/lastName are missing
+                // Handle Name Parsing
                 let fName = emp.firstName;
                 let lName = emp.lastName;
                 if (!fName && emp.name) {
                     const parts = emp.name.split(' ');
                     fName = parts[0];
                     lName = parts.slice(1).join(' ');
+                } else if (!fName) {
+                    fName = "Unknown";
+                }
+
+                // Handle Department Code (OrgUnit lookup MVP)
+                let orgUnitId = null;
+                if (emp.departmentCode) {
+                    const orgUnit = await prisma.organizationUnit.findFirst({
+                        where: { tenantId: clientId, code: emp.departmentCode }
+                    });
+                    if (orgUnit) orgUnitId = orgUnit.id;
                 }
 
                 await prisma.member.create({
@@ -61,7 +71,7 @@ export async function POST(
                         tenantId: clientId,
                         type: memberType,
                         role: memberType === 'STUDENT' ? 'ASSESSOR' : 'EMPLOYEE',
-                        firstName: fName || 'User',
+                        firstName: fName,
                         lastName: lName || '',
                         name: emp.name || `${fName} ${lName}`.trim(),
                         email: emp.email,
@@ -70,14 +80,23 @@ export async function POST(
                         memberCode: inputCode,
                         ...(memberType === 'STUDENT' ? { enrollmentNumber: inputCode } : { employeeId: inputCode }),
                         password: hashed,
+                        orgUnitId,
                         isActive: true,
                     }
                 });
                 successCount++;
             } catch (e: any) {
-                errors.push({ email: emp.email, error: e.message });
+                console.error(`Error importing ${emp.email}:`, e);
+                let errorMessage = e.message;
+                // Make Prisma unique constraint errors readable
+                if (e.code === 'P2002') {
+                    const target = e.meta?.target || "field";
+                    errorMessage = `Duplicate entry for ${target}. This email or ID already exists.`;
+                }
+                errors.push({ email: emp.email || 'Unknown', error: errorMessage });
             }
         }
+
 
         return NextResponse.json({ success: true, count: successCount, errors });
 

@@ -40,8 +40,11 @@ export function BulkUploadDialog({ clientId }: { clientId: string }) {
                 lastName: row['Last Name'] || row['last_name'] || row['lastname'],
                 email: row['Email'] || row['email'],
                 phone: row['Phone'] || row['phone'],
-                designation: row['Designation'] || row['designation']
+                designation: row['Designation'] || row['designation'],
+                employeeId: row['Employee ID'] || row['employee_id'] || row['memberCode'] || row['member_code'],
+                departmentCode: row['Department Code'] || row['department_code']
             }));
+
             setParsedData(mapped);
             setStep(2);
         }
@@ -70,7 +73,8 @@ export function BulkUploadDialog({ clientId }: { clientId: string }) {
     };
 
     const downloadTemplate = () => {
-        const csvContent = "first_name,last_name,email,phone,designation,department_code\nJohn,Doe,john@example.com,1234567890,Developer,IT";
+        const csvContent = "first_name,last_name,email,phone,designation,employee_id,department_code\nJohn,Doe,john@example.com,1234567890,Developer,EMP001,IT";
+
         const blob = new Blob([csvContent], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
