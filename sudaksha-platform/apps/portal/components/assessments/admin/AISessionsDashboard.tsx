@@ -148,9 +148,9 @@ function AdaptiveSessionCard({ s }: { s: AdaptiveSessionData }) {
                     <div className="space-y-1">
                         <p className="text-[10px] text-gray-400 uppercase tracking-widest">Question trail</p>
                         <div className="flex gap-1 flex-wrap">
-                            {s.questions.map((q) => (
+                            {s.questions.map((q, idx) => (
                                 <div
-                                    key={`${s.id}-q${q.sequenceNumber}`}
+                                    key={`${s.id}-q${idx}-seq${q.sequenceNumber}`}
                                     title={`Q${q.sequenceNumber}: diff=${q.difficulty.toFixed(1)}`}
                                     className={`h-2 w-5 rounded-sm transition-colors ${q.isCorrect === true
                                         ? "bg-green-400"

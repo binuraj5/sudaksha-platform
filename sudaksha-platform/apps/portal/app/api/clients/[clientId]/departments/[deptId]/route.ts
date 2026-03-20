@@ -47,12 +47,49 @@ export async function PATCH(
 
     try {
         const body = await req.json();
+        const { name, description, code, managerId, ...rest } = body;
+
+        // Verify department exists and belongs to tenant
+        const current = await prisma.organizationUnit.findUnique({
+            where: { id: deptId },
+            select: { tenantId: true }
+        });
+
+        if (!current || current.tenantId !== clientId) {
+            return NextResponse.json({ error: "Department not found" }, { status: 404 });
+        }
+
+        // Validate manager if provided
+        if (managerId !== undefined && managerId !== null) {
+            const manager = await prisma.member.findUnique({
+                where: { id: managerId }
+            });
+            if (!manager || manager.tenantId !== clientId) {
+                return NextResponse.json({ error: "Manager not found in this organization" }, { status: 400 });
+            }
+        }
+
+        // Build update data with validation
+        const updateData: any = { ...rest };
+        if (name !== undefined) updateData.name = name;
+        if (description !== undefined) updateData.description = description;
+        if (code !== undefined) updateData.code = code;
+        if (managerId !== undefined) updateData.managerId = managerId || null;
+
         const updated = await prisma.organizationUnit.update({
             where: { id: deptId },
-            data: body
+            data: updateData,
+            include: {
+                manager: { select: { id: true, name: true, email: true, designation: true } }
+            }
         });
+
         return NextResponse.json(updated);
-    } catch (error) {
+    } catch (error: any) {
+        console.error("Department update error:", error);
+        if (error.code === 'P2002') {
+            return NextResponse.json({ error: "Department code already exists" }, { status: 400 });
+        }
         return NextResponse.json({ error: "Update failed" }, { status: 500 });
     }
 }
