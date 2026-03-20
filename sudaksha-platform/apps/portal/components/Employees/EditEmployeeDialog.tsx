@@ -30,9 +30,10 @@ export function EditEmployeeDialog({
     const [formData, setFormData] = useState({
         firstName: employee?.firstName || "",
         lastName: employee?.lastName || "",
+        email: employee?.email || "",
         designation: employee?.designation || "",
-        orgUnitId: employee?.orgUnitId || "",
-        reportingToId: employee?.reportingToId || ""
+        orgUnitId: employee?.orgUnitId || "none",
+        reportingToId: employee?.reportingToId || "none"
     });
 
     // Load departments and supervisors on mount
@@ -43,11 +44,13 @@ export function EditEmployeeDialog({
 
     const loadOptions = async () => {
         try {
-            // Load departments
-            const deptRes = await fetch(`/api/clients/${clientId}/departments`);
-            if (deptRes.ok) {
-                const depts = await deptRes.json();
-                setDepartments(depts);
+            // Load org units with hierarchy info (polymorphic: TEAM, DEPARTMENT, etc.)
+            const orgUnitsRes = await fetch(
+                `/api/clients/${clientId}/org-units?includeHierarchy=true&assignable=true`
+            );
+            if (orgUnitsRes.ok) {
+                const units = await orgUnitsRes.json();
+                setDepartments(units);
             }
 
             // Load all active members to use as supervisors (simple format)
@@ -64,22 +67,15 @@ export function EditEmployeeDialog({
     };
 
     const handleUpdate = async () => {
-        if (!formData.firstName.trim()) {
-            toast.error("First name is required");
-            return;
-        }
-
         setLoading(true);
         try {
             const response = await fetch(`/api/clients/${clientId}/employees/${employee.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
                     designation: formData.designation,
-                    orgUnitId: formData.orgUnitId || null,
-                    reportingToId: formData.reportingToId || null
+                    orgUnitId: formData.orgUnitId === "none" ? null : formData.orgUnitId,
+                    reportingToId: formData.reportingToId === "none" ? null : formData.reportingToId
                 })
             });
 
@@ -106,25 +102,26 @@ export function EditEmployeeDialog({
                 </DialogHeader>
 
                 <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <Label className="text-sm font-medium">First Name</Label>
-                            <Input
-                                value={formData.firstName}
-                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                placeholder="First name"
-                                disabled={loading}
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-sm font-medium">Last Name</Label>
-                            <Input
-                                value={formData.lastName}
-                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                placeholder="Last name"
-                                disabled={loading}
-                            />
-                        </div>
+                    <div>
+                        <Label className="text-sm font-medium">Name</Label>
+                        <Input
+                            value={`${formData.firstName} ${formData.lastName}`.trim()}
+                            readOnly
+                            className="bg-gray-100 cursor-not-allowed"
+                            disabled
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Name cannot be edited</p>
+                    </div>
+
+                    <div>
+                        <Label className="text-sm font-medium">Email</Label>
+                        <Input
+                            value={formData.email}
+                            readOnly
+                            className="bg-gray-100 cursor-not-allowed"
+                            disabled
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Email cannot be edited</p>
                     </div>
 
                     <div>
@@ -138,24 +135,49 @@ export function EditEmployeeDialog({
                     </div>
 
                     <div>
-                        <Label className="text-sm font-medium">Department</Label>
+                        <Label className="text-sm font-medium">Department / Team / Unit</Label>
                         <Select
                             value={formData.orgUnitId}
                             onValueChange={(value) => setFormData({ ...formData, orgUnitId: value })}
-                            disabled={loading}
+                            disabled={loading || departments.length === 0}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select department" />
+                                <SelectValue placeholder="Select organizational unit" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">No Department</SelectItem>
-                                {departments.map((dept) => (
-                                    <SelectItem key={dept.id} value={dept.id}>
-                                        {dept.name}
-                                    </SelectItem>
-                                ))}
+                                <SelectItem value="none">Independent Role (No Unit)</SelectItem>
+                                {/* Group units by type for better UX */}
+                                {departments.length > 0 && (
+                                    <>
+                                        {/* Departments */}
+                                        {departments.filter((d: any) => d.type === 'DEPARTMENT').map((dept: any) => (
+                                            <SelectItem key={dept.id} value={dept.id}>
+                                                📁 {dept.name}
+                                            </SelectItem>
+                                        ))}
+                                        {/* Teams (nested under departments) */}
+                                        {departments.filter((d: any) => d.type === 'TEAM').map((team: any) => (
+                                            <SelectItem key={team.id} value={team.id}>
+                                                └─ 👥 {team.name} {team.parent ? `(${team.parent.name})` : ''}
+                                            </SelectItem>
+                                        ))}
+                                        {/* Classes (for institutions) */}
+                                        {departments.filter((d: any) => d.type === 'CLASS').map((cls: any) => (
+                                            <SelectItem key={cls.id} value={cls.id}>
+                                                └─ 🏫 {cls.name} {cls.parent ? `(${cls.parent.name})` : ''}
+                                            </SelectItem>
+                                        ))}
+                                        {/* Other unit types */}
+                                        {departments.filter((d: any) => !['DEPARTMENT', 'TEAM', 'CLASS'].includes(d.type)).map((unit: any) => (
+                                            <SelectItem key={unit.id} value={unit.id}>
+                                                • {unit.name} ({unit.type.toLowerCase()})
+                                            </SelectItem>
+                                        ))}
+                                    </>
+                                )}
                             </SelectContent>
                         </Select>
+                        <p className="text-xs text-gray-500 mt-1">Supports polymorphic assignment: Departments, Teams, Classes, or Independent roles</p>
                     </div>
 
                     <div>
@@ -169,7 +191,7 @@ export function EditEmployeeDialog({
                                 <SelectValue placeholder="Select supervisor" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">No Supervisor</SelectItem>
+                                <SelectItem value="none">No Supervisor</SelectItem>
                                 {supervisors.map((sup) => (
                                     <SelectItem key={sup.id} value={sup.id}>
                                         {sup.name} ({sup.designation || sup.role})

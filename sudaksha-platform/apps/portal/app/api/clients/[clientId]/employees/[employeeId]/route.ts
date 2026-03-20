@@ -62,11 +62,17 @@ export async function PATCH(
             return NextResponse.json({ error: "Not found" }, { status: 404 });
         }
 
-        // Institution students: orgUnitId must be a CLASS (FSD validation)
-        if (current.type === "STUDENT" && orgUnitId !== undefined) {
-            const validation = await validateStudentOrgUnit(clientId, orgUnitId || null);
-            if (!validation.ok) {
-                return NextResponse.json({ error: validation.error }, { status: 400 });
+        // Validate org unit if provided (polymorphic: supports TEAM, DEPARTMENT, CLASS, etc.)
+        if (orgUnitId !== undefined && orgUnitId !== null) {
+            const orgUnit = await prisma.organizationUnit.findUnique({
+                where: { id: orgUnitId }
+            });
+            if (!orgUnit || orgUnit.tenantId !== clientId) {
+                return NextResponse.json({ error: "Organization unit not found" }, { status: 400 });
+            }
+            // For students, still enforce CLASS requirement (FSD validation)
+            if (current.type === "STUDENT" && orgUnit.type !== "CLASS") {
+                return NextResponse.json({ error: "Students must be assigned to a CLASS" }, { status: 400 });
             }
         }
 
