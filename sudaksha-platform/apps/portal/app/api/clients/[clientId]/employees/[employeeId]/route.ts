@@ -52,7 +52,7 @@ export async function PATCH(
 
     try {
         const body = await req.json();
-        const { firstName, lastName, role, isActive, facultyType, designation, orgUnitId, ...rest } = body;
+        const { firstName, lastName, role, isActive, facultyType, designation, orgUnitId, reportingToId, ...rest } = body;
 
         const current = await prisma.member.findUnique({
             where: { id: employeeId },
@@ -70,12 +70,23 @@ export async function PATCH(
             }
         }
 
+        // Validate supervisor exists if provided
+        if (reportingToId !== undefined && reportingToId !== null) {
+            const supervisor = await prisma.member.findUnique({
+                where: { id: reportingToId }
+            });
+            if (!supervisor || supervisor.tenantId !== clientId) {
+                return NextResponse.json({ error: "Supervisor not found in this organization" }, { status: 400 });
+            }
+        }
+
         const updateData: Record<string, unknown> = { ...rest };
         if (role && validMemberRoles.includes(role)) updateData.role = role;
         if (typeof isActive === 'boolean') updateData.isActive = isActive;
         if (facultyType !== undefined && ['PERMANENT', 'ADJUNCT', 'VISITING'].includes(String(facultyType))) updateData.facultyType = facultyType;
         if (designation !== undefined) updateData.designation = designation;
         if (orgUnitId !== undefined) updateData.orgUnitId = orgUnitId || null;
+        if (reportingToId !== undefined) updateData.reportingToId = reportingToId || null;
         if (firstName || lastName) {
             const memberForName = await prisma.member.findUnique({ where: { id: employeeId } });
             const fName = firstName || memberForName?.firstName || "";

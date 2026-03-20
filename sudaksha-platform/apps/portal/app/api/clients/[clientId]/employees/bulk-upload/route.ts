@@ -63,7 +63,33 @@ export async function POST(
                     const orgUnit = await prisma.organizationUnit.findFirst({
                         where: { tenantId: clientId, code: emp.departmentCode }
                     });
-                    if (orgUnit) orgUnitId = orgUnit.id;
+                    if (orgUnit) {
+                        orgUnitId = orgUnit.id;
+                    } else {
+                        errors.push({ email: emp.email || 'Unknown', error: `Department code '${emp.departmentCode}' not found` });
+                        continue; // Skip this employee since department is required
+                    }
+                }
+
+                // Handle Supervisor lookup (by member code/employee ID)
+                let reportingToId = null;
+                if (emp.supervisorId) {
+                    const supervisor = await prisma.member.findFirst({
+                        where: { 
+                            tenantId: clientId,
+                            OR: [
+                                { memberCode: emp.supervisorId },
+                                { employeeId: emp.supervisorId },
+                                { enrollmentNumber: emp.supervisorId }
+                            ]
+                        }
+                    });
+                    if (supervisor) {
+                        reportingToId = supervisor.id;
+                    } else {
+                        // Log warning but continue - supervisor is optional
+                        console.warn(`Supervisor ID '${emp.supervisorId}' not found for ${emp.email}`);
+                    }
                 }
 
                 await prisma.member.create({
@@ -81,6 +107,7 @@ export async function POST(
                         ...(memberType === 'STUDENT' ? { enrollmentNumber: inputCode } : { employeeId: inputCode }),
                         password: hashed,
                         orgUnitId,
+                        reportingToId,
                         isActive: true,
                     }
                 });

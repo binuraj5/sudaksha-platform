@@ -42,7 +42,8 @@ export function BulkUploadDialog({ clientId }: { clientId: string }) {
                 phone: row['Phone'] || row['phone'],
                 designation: row['Designation'] || row['designation'],
                 employeeId: row['Employee ID'] || row['employee_id'] || row['memberCode'] || row['member_code'],
-                departmentCode: row['Department Code'] || row['department_code']
+                departmentCode: row['Department Code'] || row['department_code'],
+                supervisorId: row['Supervisor ID'] || row['supervisor_id'] || row['Supervisor Code'] || row['supervisor_code'] || row['reportingToId']
             }));
 
             setParsedData(mapped);
@@ -73,7 +74,7 @@ export function BulkUploadDialog({ clientId }: { clientId: string }) {
     };
 
     const downloadTemplate = () => {
-        const csvContent = "first_name,last_name,email,phone,designation,employee_id,department_code\nJohn,Doe,john@example.com,1234567890,Developer,EMP001,IT";
+        const csvContent = "first_name,last_name,email,phone,designation,employee_id,department_code,supervisor_id\nJohn,Doe,john@example.com,1234567890,Developer,EMP001,IT,SUP001";
 
         const blob = new Blob([csvContent], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
@@ -119,7 +120,9 @@ export function BulkUploadDialog({ clientId }: { clientId: string }) {
                                     <tr>
                                         <th className="p-2">Name</th>
                                         <th className="p-2">Email</th>
-                                        <th className="p-2">Role</th>
+                                        <th className="p-2">Department</th>
+                                        <th className="p-2">Supervisor ID</th>
+                                        <th className="p-2">Designation</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -127,6 +130,8 @@ export function BulkUploadDialog({ clientId }: { clientId: string }) {
                                         <tr key={i} className="border-b">
                                             <td className="p-2">{row.firstName} {row.lastName}</td>
                                             <td className="p-2">{row.email}</td>
+                                            <td className="p-2">{row.departmentCode || 'N/A'}</td>
+                                            <td className="p-2">{row.supervisorId || 'N/A'}</td>
                                             <td className="p-2">{row.designation || 'N/A'}</td>
                                         </tr>
                                     ))}

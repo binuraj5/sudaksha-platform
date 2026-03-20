@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, User, Eye, UserMinus } from "lucide-react";
+import { MoreVertical, User, Eye, UserMinus, Pencil } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
@@ -12,11 +12,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useTenantLabels } from "@/hooks/useTenantLabels";
 import { AssignRoleDialog } from "./AssignRoleDialog";
+import { EditEmployeeDialog } from "./EditEmployeeDialog";
 
 export function EmployeeTable({ employees, clientId, basePath }: { employees: any[]; clientId: string; basePath?: string }) {
     const router = useRouter();
     const labels = useTenantLabels();
     const [assignEmployee, setAssignEmployee] = useState<any | null>(null);
+    const [editEmployee, setEditEmployee] = useState<any | null>(null);
 
     const handleDeactivate = async (id: string) => {
         if (!confirm("Are you sure?")) return;
@@ -31,6 +33,11 @@ export function EmployeeTable({ employees, clientId, basePath }: { employees: an
 
     const handleRoleAssigned = () => {
         setAssignEmployee(null);
+        router.refresh();
+    };
+
+    const handleEmployeeUpdated = () => {
+        setEditEmployee(null);
         router.refresh();
     };
 
@@ -94,6 +101,9 @@ export function EmployeeTable({ employees, clientId, basePath }: { employees: an
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => setEditEmployee(emp)}>
+                                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => setAssignEmployee(emp)}>
                                             <User className="mr-2 h-4 w-4" /> Assign Role
                                         </DropdownMenuItem>
@@ -126,6 +136,15 @@ export function EmployeeTable({ employees, clientId, basePath }: { employees: an
                     clientId={clientId}
                     employee={assignEmployee}
                     onAssigned={handleRoleAssigned}
+                />
+            )}
+            {editEmployee && (
+                <EditEmployeeDialog
+                    open={!!editEmployee}
+                    onOpenChange={(open) => !open && setEditEmployee(null)}
+                    clientId={clientId}
+                    employee={editEmployee}
+                    onUpdated={handleEmployeeUpdated}
                 />
             )}
         </div>
