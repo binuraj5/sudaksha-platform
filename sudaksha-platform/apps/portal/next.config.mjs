@@ -7,5 +7,6 @@ const nextConfig = {
         '@sudaksha/sso-auth',
         '@sudaksha/ui'
     ],
+    devIndicators: false, // Hide the "N" development indicator
 };
 export default nextConfig;

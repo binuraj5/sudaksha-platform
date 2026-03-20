@@ -7,6 +7,11 @@ import { Toaster } from 'sonner'
 export const metadata: Metadata = {
   title: 'Sudaksha - Bridging Academic Output & Industry Demand | IT Training & Placement',
   description: "Transform your career with Sudaksha's outcome-driven training programs. 85%+ placement rate, 6 LPA+ starting salaries. Finishing school for freshers, upskilling for professionals.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Sudaksha',
+  }
 }
 
 export default function RootLayout({
