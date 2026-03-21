@@ -592,7 +592,7 @@ const mockData = {
       { id: 3, text: "Transition: Switch roles or technologies smoothly" },
       { id: 4, text: "Leadership: Path to architect and senior roles" }
     ],
-    primaryCTA: { text: "Explore Professional Programs", href: "#professionals-programs" },
+    primaryCTA: { text: "Explore Professional Programs", href: "/courses" },
     secondaryCTA: { text: "Talk to Career Counselor", href: "#counseling" },
     trustBanner: "5,000+ Professionals Transformed | 2-3x Average Salary Growth | Weekend Batches Available | Lifetime Career Support",
     careerStages: [

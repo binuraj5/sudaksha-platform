@@ -49,11 +49,18 @@ export const Footer = () => {
                             Empowering organizations with AI-powered competency assessments and data-driven career development. Built for modern teams.
                         </p>
                         <div className="flex items-center gap-4">
-                            {[Twitter, Linkedin, Github, Mail].map((Icon, i) => (
-                                <a key={i} href="#" className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all">
-                                    <Icon className="w-5 h-5" />
-                                </a>
-                            ))}
+                            <a href="https://twitter.com/sudaksha" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all">
+                                <Twitter className="w-5 h-5" />
+                            </a>
+                            <a href="https://linkedin.com/company/sudaksha" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all">
+                                <Linkedin className="w-5 h-5" />
+                            </a>
+                            <a href="https://github.com/sudaksha" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all">
+                                <Github className="w-5 h-5" />
+                            </a>
+                            <a href="mailto:info@sudaksha.com" className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all">
+                                <Mail className="w-5 h-5" />
+                            </a>
                         </div>
                     </div>
 
