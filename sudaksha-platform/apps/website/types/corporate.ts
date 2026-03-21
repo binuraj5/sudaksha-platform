@@ -9,6 +9,7 @@ export interface TrainingModel {
   duration: string;
   cta: string;
   icon: string;
+  intent?: string;
 }
 
 export interface CaseStudy {

@@ -8,7 +8,9 @@ import {
 } from 'lucide-react';
 import { Course } from '@/types/course';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { GlobalCTAForm } from '../common/GlobalCTAForm';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 interface CourseCardProps {
   course: Course;
@@ -48,6 +50,8 @@ export function CourseCard({
   className = ''
 }: CourseCardProps) {
   const [showEnrollForm, setShowEnrollForm] = useState(false);
+  const { capture } = useCTACapture();
+  const router = useRouter();
   const CardComponent = viewMode === 'grid' ? motion.div : 'div';
 
   const handleEnrollClick = async (e: React.MouseEvent) => {
@@ -57,12 +61,11 @@ export function CourseCard({
 
     // Track click
     try {
-      const { trackEvent } = await import('@/lib/tracking');
-      await trackEvent({
-        action: 'CLICK_CTA',
-        entityType: 'BUTTON',
-        entityId: course.id,
-        details: { button: 'Enroll Now', courseName: course.name, price: course.price }
+      capture({
+        sourcePage: `/courses`,
+        ctaLabel: 'Enroll Now',
+        intent: 'enrollment',
+        programInterest: course.name,
       });
     } catch (err) {
       console.error('Tracking failed', err);
@@ -163,12 +166,17 @@ export function CourseCard({
                     ₹{course.price.toLocaleString('en-IN')}
                   </div>
                   <div className="flex gap-2">
-                    <Link
-                      href={`/courses/${course.slug || course.id}`}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        capture({ sourcePage: '/courses', ctaLabel: 'View Course Details', intent: 'view_course', programInterest: course.name });
+                        router.push(`/courses/${course.slug || course.id}`);
+                      }}
                       className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                     >
                       More Details
-                    </Link>
+                    </button>
                     <button
                       onClick={handleEnrollClick}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -264,12 +272,17 @@ export function CourseCard({
           {/* CTA */}
           <div className="mt-3 pt-3 border-t border-orange-100 flex items-center justify-end gap-2">
             <div className="flex gap-2">
-              <Link
-                href={`/courses/${course.slug || course.id}`}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  capture({ sourcePage: '/courses', ctaLabel: 'View Course Details', intent: 'view_course', programInterest: course.name });
+                  router.push(`/courses/${course.slug || course.id}`);
+                }}
                 className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium whitespace-nowrap"
               >
                 Details
-              </Link>
+              </button>
               <motion.button
                 onClick={handleEnrollClick}
                 className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium whitespace-nowrap"

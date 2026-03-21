@@ -16,6 +16,63 @@ const popularTags = [
   'Mobile Development', 'DevOps', 'UI/UX Design', 'Blockchain'
 ];
 
+const fallbackCourses: Course[] = [
+  {
+    id: "fb-1", name: "Java Full Stack Development", slug: "java-built-stack-development", category: "Software Development",
+    durationHours: 320, duration: 320, price: 45000, status: "PUBLISHED",
+    description: "Master front-end and back-end development using Java Spring Boot and React.",
+    learningObjectives: ["React", "Spring Boot", "Microservices"],
+    curriculum: [{ title: "Basics", description: "Intro" }], domain: "IT", industryFocus: "Technology",
+    careerLevel: "Beginner", audienceLevel: "Beginner", courseType: "Technology", deliveryMode: "Live Online",
+    specialFeatures: ["Most Popular", "Placement Support"], rating: 4.8, isPopular: true, isNew: false, isFinishingSchool: false, hasPlacementSupport: true, hasEMI: false, hasCorporateTraining: false
+  },
+  {
+    id: "fb-2", name: "MERN Stack Web Development", slug: "mern-stack-web-development", category: "Software Development",
+    durationHours: 240, duration: 240, price: 40000, status: "PUBLISHED",
+    description: "Learn MongoDB, Express.js, React, and Node.js to build scalable web applications.",
+    learningObjectives: ["MongoDB", "Express", "React", "Node.js"],
+    curriculum: [{ title: "Basics", description: "Intro" }], domain: "IT", industryFocus: "Technology",
+    careerLevel: "Beginner", audienceLevel: "Beginner", courseType: "Technology", deliveryMode: "Live Online",
+    specialFeatures: ["Placement Support"], rating: 4.7, isPopular: false, isNew: false, isFinishingSchool: false, hasPlacementSupport: true, hasEMI: false, hasCorporateTraining: false
+  },
+  {
+    id: "fb-3", name: "Data Analytics Professional", slug: "data-analytics-professional", category: "Data Science",
+    durationHours: 200, duration: 200, price: 42000, status: "PUBLISHED",
+    description: "Master Python, SQL, Tableau, and Excel to become a data-driven decision maker.",
+    learningObjectives: ["Python", "SQL", "Tableau"],
+    curriculum: [{ title: "Basics", description: "Intro" }], domain: "IT", industryFocus: "Technology",
+    careerLevel: "Beginner", audienceLevel: "Beginner", courseType: "Technology", deliveryMode: "Live Online",
+    specialFeatures: ["Most Popular"], rating: 4.9, isPopular: true, isNew: false, isFinishingSchool: false, hasPlacementSupport: false, hasEMI: false, hasCorporateTraining: false
+  },
+  {
+    id: "fb-4", name: "AWS Solutions Architect", slug: "aws-solutions-architect", category: "Cloud Computing",
+    durationHours: 160, duration: 160, price: 35000, status: "PUBLISHED",
+    description: "Prepare for the AWS Certified Solutions Architect - Associate exam.",
+    learningObjectives: ["AWS services", "Architecture patterns", "Security"],
+    curriculum: [{ title: "Basics", description: "Intro" }], domain: "IT", industryFocus: "Technology",
+    careerLevel: "Intermediate", audienceLevel: "Intermediate", courseType: "Technology", deliveryMode: "Live Online",
+    specialFeatures: [], rating: 4.6, isPopular: false, isNew: false, isFinishingSchool: false, hasPlacementSupport: false, hasEMI: false, hasCorporateTraining: false
+  },
+  {
+    id: "fb-5", name: "Manual & Automation Testing", slug: "manual-and-automation-testing", category: "Software Testing",
+    durationHours: 180, duration: 180, price: 38000, status: "PUBLISHED",
+    description: "Learn QA methodologies, Selenium, API testing, and CI/CD integration.",
+    learningObjectives: ["Selenium", "TestNG", "Postman"],
+    curriculum: [{ title: "Basics", description: "Intro" }], domain: "IT", industryFocus: "Technology",
+    careerLevel: "Beginner", audienceLevel: "Beginner", courseType: "Technology", deliveryMode: "Live Online",
+    specialFeatures: ["Placement Support"], rating: 4.7, isPopular: false, isNew: false, isFinishingSchool: false, hasPlacementSupport: true, hasEMI: false, hasCorporateTraining: false
+  },
+  {
+    id: "fb-6", name: "Business Analysis Foundation", slug: "business-analysis-foundation", category: "Business",
+    durationHours: 120, duration: 120, price: 30000, status: "PUBLISHED",
+    description: "Learn requirements gathering, agile methodologies, and stakeholder management.",
+    learningObjectives: ["Agile", "UML", "Jira"],
+    curriculum: [{ title: "Basics", description: "Intro" }], domain: "Non-IT", industryFocus: "Technology",
+    careerLevel: "Beginner", audienceLevel: "Beginner", courseType: "Functional", deliveryMode: "Live Online",
+    specialFeatures: ["EMI Available"], rating: 4.5, isPopular: false, isNew: false, isFinishingSchool: false, hasPlacementSupport: false, hasEMI: true, hasCorporateTraining: false
+  }
+] as any;
+
 function CoursesPageContent() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,7 +133,10 @@ function CoursesPageContent() {
     domain: filters.domain === 'All' ? undefined : [filters.domain] as any,
   });
 
-  const courses = data?.pages.flatMap(page => page.courses) || [];
+  const fetchedCourses = data?.pages.flatMap(page => page.courses) || [];
+  const hasActiveFilters = debouncedSearch !== '' || filters.domain !== 'All' || filters.industries.length > 0 || filters.levels.length > 0 || filters.types.length > 0 || filters.modes.length > 0;
+  const courses = fetchedCourses.length > 0 ? fetchedCourses : (!isLoading && !hasActiveFilters ? fallbackCourses : []);
+
   const loadMoreRef = useInfiniteScroll({
     hasNextPage,
     isFetchingNextPage,

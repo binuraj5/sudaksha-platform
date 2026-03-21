@@ -11,7 +11,7 @@ export const domesticPageData: any = {
     valuePropositions: [
       { id: "1", text: "IT Training: Cloud, AI/ML, Full Stack, DevOps, Data Engineering" },
       { id: "2", text: "Non-IT Training: Leadership, Sales, Process Excellence, OB Interventions" },
-      { id: "3", text: "Employment Models: Train-Hire-Deploy & Deploy-Hire-Train" },
+      { id: "3", text: "Employment Models: Train-Hire-Deploy & Hire-Train-Deploy" },
       { id: "4", text: "Organizational Transformation: Change Management & Culture Building" }
     ],
     primaryCTA: {
@@ -71,7 +71,7 @@ export const domesticPageData: any = {
       {
         aspect: "Scalability",
         traditional: "Limited by trainer pool",
-        sudaksha: "THD/DHT employment models"
+        sudaksha: "THD/HTD employment models"
       }
     ]
   },
@@ -457,8 +457,8 @@ export const domesticPageData: any = {
         href: "/for-corporates/domestic/thd"
       }
     },
-    dht: {
-      title: "DEPLOY-HIRE-TRAIN (DHT)",
+    htd: {
+      title: "HIRE-TRAIN-DEPLOY (HTD)",
       bestFor: ["Urgent project deadlines", "Seasonal scaling"],
       phases: [],
       investmentModel: {
@@ -471,8 +471,8 @@ export const domesticPageData: any = {
         results: ["25 developers deployed in 3 weeks"]
       },
       cta: {
-        text: "Explore DHT Model",
-        href: "/for-corporates/domestic/dht"
+        text: "Explore HTD Model",
+        href: "/corporates/domestic/htd"
       }
     }
   },
@@ -560,7 +560,7 @@ export const domesticPageData: any = {
       }
     ],
     contact: {
-      phone: "+91-XXXXX-XXXXX",
+      phone: "+91 91210 44435",
       email: "corporate@sudaksha.com",
       hours: "Mon-Sat, 9 AM - 7 PM IST"
     }

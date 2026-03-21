@@ -37,11 +37,11 @@ interface EmploymentModel {
 
 interface EmploymentModelsProps {
   thdData: EmploymentModel;
-  dhtData: EmploymentModel;
+  htdData: EmploymentModel;
 }
 
-export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsProps) {
-  const [activeModel, setActiveModel] = useState<'thd' | 'dht' | null>(null);
+export default function EmploymentModels({ thdData, htdData }: EmploymentModelsProps) {
+  const [activeModel, setActiveModel] = useState<'thd' | 'htd' | null>(null);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -273,11 +273,11 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
             </div>
           </motion.div>
 
-          {/* DHT Model */}
+          {/* HTD Model */}
           <motion.div
             variants={cardVariants}
             className="group"
-            onMouseEnter={() => setActiveModel('dht')}
+            onMouseEnter={() => setActiveModel('htd')}
             onMouseLeave={() => setActiveModel(null)}
           >
             <div className="h-full bg-white rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden border-2 border-sudaksha-orange-200">
@@ -295,15 +295,15 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
                     </div>
                     <div className="text-right">
                       <div className="text-white/90 text-sm font-medium">Model</div>
-                      <div className="text-white text-2xl font-bold">DHT</div>
+                      <div className="text-white text-2xl font-bold">HTD</div>
                     </div>
                   </div>
                   
                   <h3 className="text-2xl font-bold text-white mb-2">
-                    {dhtData.title}
+                    {htdData.title}
                   </h3>
                   <p className="text-white/90 text-sm">
-                    Deploy → Hire → Train
+                    Hire → Train → Deploy
                   </p>
                 </div>
               </div>
@@ -317,7 +317,7 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
                     Best For:
                   </h4>
                   <div className="space-y-2">
-                    {dhtData.bestFor.map((item, index) => (
+                    {htdData.bestFor.map((item, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
                         <span className="text-sm text-sudaksha-navy-700">{item}</span>
@@ -333,7 +333,7 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
                     Process Phases:
                   </h4>
                   <div className="space-y-3">
-                    {dhtData.phases.slice(0, activeModel === 'dht' ? undefined : 2).map((phase, index) => (
+                    {htdData.phases.slice(0, activeModel === 'htd' ? undefined : 2).map((phase, index) => (
                       <div key={index} className="bg-sudaksha-orange-50 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
                           <h5 className="font-medium text-sudaksha-navy-800 text-sm">{phase.title}</h5>
@@ -353,9 +353,9 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
                     ))}
                   </div>
                   
-                  {dhtData.phases.length > 2 && activeModel !== 'dht' && (
+                  {htdData.phases.length > 2 && activeModel !== 'htd' && (
                     <p className="text-sudaksha-orange-600 text-sm font-medium">
-                      +{dhtData.phases.length - 2} more phases
+                      +{htdData.phases.length - 2} more phases
                     </p>
                   )}
                 </div>
@@ -367,9 +367,9 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
                     Investment Model:
                   </h4>
                   <div className="bg-green-50 rounded-lg p-3">
-                    <p className="text-sm text-sudaksha-navy-700 mb-2">{dhtData.investmentModel.description}</p>
+                    <p className="text-sm text-sudaksha-navy-700 mb-2">{htdData.investmentModel.description}</p>
                     <ul className="space-y-1">
-                      {dhtData.investmentModel.details.map((detail, index) => (
+                      {htdData.investmentModel.details.map((detail, index) => (
                         <li key={index} className="text-xs text-sudaksha-navy-600 flex items-center space-x-1">
                           <div className="w-1 h-1 bg-green-500 rounded-full" />
                           {detail}
@@ -386,7 +386,7 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
                     Success Metrics:
                   </h4>
                   <div className="grid grid-cols-2 gap-2">
-                    {dhtData.successMetrics.slice(0, 4).map((metric, index) => (
+                    {htdData.successMetrics.slice(0, 4).map((metric, index) => (
                       <div key={index} className="bg-sudaksha-blue-50 rounded-lg p-2 text-center">
                         <div className="text-lg font-bold text-sudaksha-blue-600">{metric.value}</div>
                         <div className="text-xs text-sudaksha-navy-600">{metric.label}</div>
@@ -402,9 +402,9 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
                     Case Study Preview:
                   </h4>
                   <div className="bg-purple-50 rounded-lg p-3">
-                    <h5 className="font-medium text-sudaksha-navy-800 text-sm mb-2">{dhtData.caseStudyPreview.title}</h5>
+                    <h5 className="font-medium text-sudaksha-navy-800 text-sm mb-2">{htdData.caseStudyPreview.title}</h5>
                     <ul className="space-y-1">
-                      {dhtData.caseStudyPreview.results.map((result, index) => (
+                      {htdData.caseStudyPreview.results.map((result, index) => (
                         <li key={index} className="text-xs text-sudaksha-navy-600 flex items-center space-x-1">
                           <CheckCircle className="w-2 h-2 text-purple-500" />
                           {result}
@@ -416,13 +416,13 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
 
                 {/* CTA */}
                 <motion.a
-                  href={dhtData.cta.href}
+                  href={htdData.cta.href}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="block w-full bg-gradient-to-r from-sudaksha-orange-600 to-sudaksha-orange-700 text-white font-semibold py-3 px-4 rounded-lg text-center transition-all duration-300 group-hover:shadow-lg"
                 >
                   <span className="flex items-center justify-center">
-                    {dhtData.cta.text}
+                    {htdData.cta.text}
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </motion.a>
@@ -441,7 +441,7 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
         >
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-sudaksha-navy-200">
             <div className="bg-gradient-to-r from-sudaksha-navy-800 to-sudaksha-navy-900 p-4">
-              <h3 className="text-xl font-bold text-white text-center">THD vs DHT: Quick Comparison</h3>
+              <h3 className="text-xl font-bold text-white text-center">THD vs HTD: Quick Comparison</h3>
             </div>
             
             <div className="p-6">
@@ -449,7 +449,7 @@ export default function EmploymentModels({ thdData, dhtData }: EmploymentModelsP
                 <div className="grid grid-cols-3 gap-4">
                   <div className="font-semibold text-sudaksha-navy-800">Aspect</div>
                   <div className="font-semibold text-sudaksha-blue-600 text-center">THD</div>
-                  <div className="font-semibold text-sudaksha-orange-600 text-center">DHT</div>
+                  <div className="font-semibold text-sudaksha-orange-600 text-center">HTD</div>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 border-t border-sudaksha-navy-100 pt-4">

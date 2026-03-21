@@ -137,7 +137,7 @@ export default function AuditPage() {
               {selectedLog.metadata && Object.keys(selectedLog.metadata).length > 0 && (
                 <div>
                   <p className="text-xs text-gray-400 mb-1">Metadata</p>
-                  <pre className="text-xs bg-gray-50 rounded p-2 overflow-auto max-h-32">{JSON.stringify(selectedLog.metadata, null, 2)}</pre>
+                  <pre className="text-xs bg-gray-50 rounded p-2 overflow-auto max-h-32 whitespace-pre-wrap break-all">{JSON.stringify(selectedLog.metadata, null, 2)}</pre>
                 </div>
               )}
             </div>
@@ -205,17 +205,17 @@ export default function AuditPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[900px] table-fixed">
                 <thead>
                   <tr className="border-b text-left">
-                    <th className="p-2 text-xs font-medium text-gray-500">Sev</th>
-                    <th className="p-2 text-xs font-medium text-gray-500">Action</th>
-                    <th className="p-2 text-xs font-medium text-gray-500">Category</th>
-                    <th className="p-2 text-xs font-medium text-gray-500">Actor</th>
+                    <th className="p-2 text-xs font-medium text-gray-500 w-10">Sev</th>
+                    <th className="p-2 text-xs font-medium text-gray-500 w-32">Action</th>
+                    <th className="p-2 text-xs font-medium text-gray-500 w-32">Category</th>
+                    <th className="p-2 text-xs font-medium text-gray-500 w-48">Actor</th>
                     <th className="p-2 text-xs font-medium text-gray-500">Description</th>
-                    <th className="p-2 text-xs font-medium text-gray-500">Status</th>
-                    <th className="p-2 text-xs font-medium text-gray-500">Time</th>
-                    <th className="p-2"></th>
+                    <th className="p-2 text-xs font-medium text-gray-500 w-24">Status</th>
+                    <th className="p-2 text-xs font-medium text-gray-500 w-40">Time</th>
+                    <th className="p-2 w-12 text-center"></th>
                   </tr>
                 </thead>
                 <tbody>

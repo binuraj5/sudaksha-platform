@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { Users, Target, Zap } from 'lucide-react';
 import { TrainingModel } from '../../types/corporate';
+import { CTAButton } from '@/components/universal/CTAButton';
+import { CTAIntent } from '@/types/cta';
 
 export default function TrainingModels() {
-  const [activeTab, setActiveTab] = useState<'custom' | 'thd' | 'dht'>('custom');
+  const [activeTab, setActiveTab] = useState<'custom' | 'thd' | 'htd'>('custom');
 
   const trainingModels: Record<string, TrainingModel> = {
     custom: {
@@ -30,7 +32,8 @@ export default function TrainingModels() {
       pricingModel: 'Per-seat or per-program pricing',
       duration: 'Typically 4-12 weeks',
       cta: 'Design Your Program',
-      icon: 'Users'
+      icon: 'Users',
+      intent: 'design_program' as CTAIntent
     },
     thd: {
       id: 'thd',
@@ -55,11 +58,12 @@ export default function TrainingModels() {
       pricingModel: 'Pay only for successfully deployed candidates',
       duration: '3-4 months from start to deployment',
       cta: 'Explore THD Model',
-      icon: 'Target'
+      icon: 'Target',
+      intent: 'start_process' as CTAIntent
     },
-    dht: {
-      id: 'dht',
-      title: 'DEPLOY-HIRE-TRAIN (DHT)',
+    htd: {
+      id: 'htd',
+      title: 'HIRE-TRAIN-DEPLOY (HTD)',
       subtitle: 'For companies needing immediate resources with parallel upskilling',
       description: 'We deploy pre-vetted talent into your environment immediately, while conducting parallel training to ensure they grow with your project\'s complexity.',
       process: [
@@ -79,7 +83,8 @@ export default function TrainingModels() {
       pricingModel: 'Monthly resource cost + training fee',
       duration: 'Resources available in 1-2 weeks',
       cta: 'Get Immediate Resources',
-      icon: 'Zap'
+      icon: 'Zap',
+      intent: 'start_process' as CTAIntent
     }
   };
 
@@ -114,7 +119,7 @@ export default function TrainingModels() {
             return (
               <button
                 key={model.id}
-                onClick={() => setActiveTab(model.id as 'custom' | 'thd' | 'dht')}
+                onClick={() => setActiveTab(model.id as 'custom' | 'thd' | 'htd')}
                 className={`flex items-center px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                   activeTab === model.id
                     ? 'bg-blue-600 text-white shadow-lg'
@@ -197,9 +202,13 @@ export default function TrainingModels() {
                 <p className="mb-6 opacity-90">
                   Let us help you choose the right model for your specific needs and show you exactly how we can transform your workforce.
                 </p>
-                <button className="w-full lg:w-auto inline-flex items-center justify-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                <CTAButton 
+                  variant="custom"
+                  className="w-full lg:w-auto inline-flex items-center justify-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Training Models', ctaLabel: currentModel.cta, audienceType: 'corporate', intent: (currentModel as any).intent || 'design_program', prefill: { model: currentModel.title.split(' ')[0] } }}
+                >
                   {currentModel.cta}
-                </button>
+                </CTAButton>
               </div>
             </div>
           </div>
@@ -217,7 +226,7 @@ export default function TrainingModels() {
                 }`}
               >
                 <button
-                  onClick={() => setActiveTab(model.id as 'custom' | 'thd' | 'dht')}
+                  onClick={() => setActiveTab(model.id as 'custom' | 'thd' | 'htd')}
                   className="w-full p-4 flex items-center justify-between text-left"
                 >
                   <div className="flex items-center">

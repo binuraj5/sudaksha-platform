@@ -6,6 +6,11 @@
 
 ---
 
+### [BUG-007] TNI Phantom Gaps
+- **Issue:** Missing \`if (!scores || scores.length === 0) continue;\` check caused TNI generator to evaluate unassessed competencies, defaulting their scores to 0% and creating phantom "CRITICAL" gaps.
+- **Root Cause:** Developer assumed \`role.competencies\` map would inherently filter by session scope. It does not.
+- **Fix:** Added \`.filter\` bounds in \`tni/page.tsx\`, \`gap-analysis/route.ts\`, and \`results/[id]/page.tsx\` before gap computation. Centralized gap banding into \`lib/tni-utils.ts\`.
+
 ## FIX 1 (P0) — Full Workflow Verification
 
 **Status:** VERIFIED
@@ -111,6 +116,70 @@ Both builds run before changes (captured in task output files) showed `exit code
 
 ---
 
-## Competencies Covered in Training Map
-
 Network Administration, Cybersecurity, Database Management, Systems Analysis, IT Project Management, Software Development, Cloud Computing, Leadership, Communication, Problem Solving, Data Analysis.
+
+---
+
+## Individual Assessment Report — Full Rebuild (2026-03-21)
+
+**Files Changed:**
+- `apps/portal/lib/tni-utils.ts` — Added `CareerContext`, `buildCareerContext`, `getExperienceStanding`, `computeOverallFitment`, `getReadinessVerdict`
+- `apps/portal/lib/report-ai.ts` — NEW: parallelised Claude API narrative generation (executive summary, gap insight, capability trajectory) with graceful plaintext fallbacks
+- `apps/portal/app/assessments/(portal)/results/[id]/page.tsx` — Complete rebuild
+
+### [REPORT-001] Schema migration not required
+- **Finding:** `AssessmentModelComponent.weight Float @default(1.0)` already exists in schema (line 932). No Prisma migration needed.
+
+### [REPORT-002] Weighted score synthesis implemented
+- **Fix:** `synthesizeCompetencyScores()` in the rebuilt page computes a weighted average across all components per competency using `component.weight`. Unlinked components (no `competencyId`) are skipped per Principle 3.
+
+### [REPORT-003] Mode A / Mode B branching enforced
+- **Fix:** `isRoleBased` flag gates all role-specific sections (Section 2 Gap Analysis, Section 4 TNI). Mode B (standalone) shows a flat competency list sorted by score.
+
+### [REPORT-004] Career profile context integrated into AI narratives
+- **Finding:** No separate `CareerProfile` table exists. All career data lives in `Member.careerFormData` (jsonb), `Member.previousRoles`, `Member.selfAssignedCompetencies`.
+- **Fix:** `buildCareerContext()` extracts `certifications`, `strengths`, `areasToImprove`, `performanceRating`, `learningPreferences`, `selfAssessmentScores`, `goals`, `responsibilities` from `careerFormData`.
+- **AI prompts** reference these exact fields for context-aware executive summary, gap insight, and capability trajectory narratives.
+
+- **FO-001:** Wire the `aspirationalRole` into Mode B progression messaging once B2C career goals flow is complete.
+- **FO-002:** Add PDF export of the 5-section report (print-friendly CSS or Puppeteer server action).
+- **FO-003:** Consider caching AI narratives in `MemberAssessment.aiEvaluationResults` to avoid re-generating on every page load.
+- **FO-004:** `previousRoles` and `experience` fields in `careerFormData` currently have no data. Enrich the career form to capture these and feed them into the trajectory prompt.
+
+---
+
+## Individual Assessment Report — Post-Rebuild Fixes (2026-03-21)
+
+**File Changed:** `apps/portal/app/assessments/(portal)/results/[id]/page.tsx`
+
+### [FIX-001] Instrument blocks removed (AT-1)
+- **Problem:** `AIResultCard` rendered a full block per VIDEO/VOICE/ADAPTIVE_AI component result. These showed IRT scores, ability estimates, and per-dimension video scores directly in the UI.
+- **Fix:** Removed all `AIResultCard` usage and the entire "Section Breakdowns" sub-section from the JSX. The entire Section 3 now iterates the synthesised `gapRows`/`standaloneCompetencies` maps only. No instrument block can appear.
+
+### [FIX-002] Competency duplicates eliminated (AT-2)
+- **Problem:** Section 3 iterated `componentResults` directly — one card per component row, not per competency. A competency assessed by two instruments (e.g. MCQ + SITUATIONAL) produced two separate cards.
+- **Fix:** Section 3 JSX now iterates `gapRows` (Mode A) or `standaloneCompetencies` (Mode B) — both are derived from the synthesised `competencyScores` Map, which has exactly one entry per unique assessed competency.
+- **Confirmed from Fix 6 DB data:** `Business Process Architecture` had MCQ=60% and SITUATIONAL=60% → single synthesis result: 60%.
+
+### [FIX-003] Uncalibrated video scores excluded from synthesis (AT-5)
+- **Problem:** VIDEO component for `Data-Driven Analysis` has `percentage: 70, score: 70, maxScore: 100` — the hardcoded default when AI analysis is unavailable. This 70% was entering synthesis and inflating the competency score.
+- **Fix:** Added `isUncalibratedInstrument()` guard: any VIDEO/VOICE/ADAPTIVE_AI/ADAPTIVE_QUESTIONNAIRE result with `percentage === 70` is skipped from synthesis. `Data-Driven Analysis` now computes from the ADAPTIVE_AI component only (0%), giving a true 0% synthesised score.
+- **DB evidence:** UAM `cmmd6rf8p000i12u1sy0fd2ln` — VIDEO result: `percentage: 70, score: 70` → excluded.
+
+### [FIX-004] Fitment Index is the headline number (AT-3)
+- **Problem:** `overallScore: 17%` was the large 4xl number. `fitmentPct: 69%` was secondary.
+- **Fix:** Fitment Index is now the 6xl headline. Raw average component score (`17%`) appears as small muted text: `"Avg component score: 17%"`.
+
+### [FIX-005] TNI justification always generated (AT-4)
+- **Problem:** When `mainCr` was null (no calibrated component result for a competency), the else-branch returned the generic fallback string without calling `generateTNIJustification`. This affected competencies assessed only via uncalibrated video.
+- **Fix:** `generateTNIJustification` is always called even when `mainCr` is null. The AI function handles its own fallback internally. Cache write to `userAssessmentComponent` is attempted only if `mainCr` exists and is wrapped in try/catch so cache failure is non-fatal.
+
+### [FIX-006] Innovation & Solution Design 0% confirmed real (AT-6)
+- **DB query on UAM `cmmd6rf8p000i12u1sy0fd2ln`:**
+
+| Component | Type | Status | % | Score/Max |
+|---|---|---|---|---|
+| Innovation & Solution Design | PANEL | COMPLETED | **0%** | 0/100 |
+| Innovation & Solution Design | VOICE | COMPLETED | **0%** | 0/100 |
+
+- **Verdict: REAL SCORE.** The candidate scored 0 on both the panel interview and the voice component. This is not a phantom gap. No change needed — the 0% (Significant Gap) is correctly included in the gap analysis and TNI.

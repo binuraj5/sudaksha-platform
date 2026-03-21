@@ -1,11 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { DemoBookingModal } from '@/src/components/common/DemoBookingModal';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 export function HeroSection() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [demoOpen, setDemoOpen] = useState(false);
+  const { capture } = useCTACapture();
+  const router = useRouter();
 
   return (
     <div className="relative bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 lg:py-24 overflow-hidden">
@@ -51,7 +58,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto"
           >
-            10,000+ careers transformed. 85% placement rate. ₹6.5 LPA average salary.
+            50,000+ careers transformed. 85% placement rate. ₹6.5 LPA average salary.
             But numbers don't tell the full story. Here's what makes us fundamentally different.
           </motion.p>
 
@@ -106,21 +113,29 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.8 }}
             className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6"
           >
-            <Link
-              href="#demo"
+            <button
+              onClick={() => {
+                capture({ sourcePage: '/why-sudaksha', ctaLabel: 'Experience a Demo Class', intent: 'book_demo' });
+                setDemoOpen(true);
+              }}
               className="px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200 font-semibold text-lg shadow-lg hover:shadow-xl"
             >
               Experience a Demo Class
-            </Link>
-            <Link
-              href="/success-stories"
+            </button>
+            <button
+              onClick={() => {
+                capture({ sourcePage: '/why-sudaksha', ctaLabel: 'Talk to Our Alumni', intent: 'view_success_stories' });
+                router.push('/success-stories');
+              }}
               className="px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-colors duration-200 font-semibold text-lg"
             >
               Talk to Our Alumni
-            </Link>
+            </button>
           </motion.div>
         </motion.div>
       </div>
+
+      <DemoBookingModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} sourcePage="/why-sudaksha" />
     </div>
   );
 }

@@ -27,7 +27,7 @@ const statistics = [
   },
   {
     icon: Building,
-    value: '80+',
+    value: '200+',
     label: 'Corporate Partners'
   }
 ];

@@ -185,22 +185,42 @@ export default function PlacementSupportPage() {
                         Success Stories
                     </h2>
                     <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                        {[1, 2, 3].map((item) => (
-                            <div key={item} className="bg-white rounded-xl shadow-lg p-6">
+                        {[
+                            {
+                                name: "Priya Sharma",
+                                role: "Software Developer at Infosys",
+                                review: "Sudaksha's placement support was invaluable. From resume building to interview prep, they helped me land my dream job within weeks of completing the Java Full Stack Plus course.",
+                                jump: "60% salary increase"
+                            },
+                            {
+                                name: "Rajesh Kumar",
+                                role: "Automation Test Lead at Tech Startup",
+                                review: "The transition from manual to automation testing was seamless with Sudaksha. Their mock interviews prepared me perfectly for the rigorous tech rounds I faced.",
+                                jump: "100% salary jump"
+                            },
+                            {
+                                name: "Meera Desai",
+                                role: "People Analytics Specialist",
+                                review: "Coming from an HR background, I was intimidated by data. Sudaksha helped me pivot my career completely, teaching me the analytics skills and negotiating my new role.",
+                                jump: "33% salary increase"
+                            }
+                        ].map((student, idx) => (
+                            <div key={idx} className="bg-white rounded-xl shadow-lg p-6">
                                 <div className="flex items-center gap-4 mb-4">
-                                    <div className="w-16 h-16 bg-blue-100 rounded-full"></div>
+                                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600 text-xl">
+                                        {student.name.charAt(0)}
+                                    </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-900">Student Name</h4>
-                                        <p className="text-sm text-gray-600">Software Developer at TechCo</p>
+                                        <h4 className="font-bold text-gray-900">{student.name}</h4>
+                                        <p className="text-sm text-gray-600">{student.role}</p>
                                     </div>
                                 </div>
                                 <p className="text-gray-700 mb-4">
-                                    "Sudaksha's placement support was invaluable. From resume building to interview prep,
-                                    they helped me land my dream job within weeks of completing the course."
+                                    "{student.review}"
                                 </p>
                                 <div className="flex items-center gap-2 text-blue-600">
                                     <TrendingUp className="w-4 h-4" />
-                                    <span className="font-semibold">50% salary increase</span>
+                                    <span className="font-semibold">{student.jump}</span>
                                 </div>
                             </div>
                         ))}

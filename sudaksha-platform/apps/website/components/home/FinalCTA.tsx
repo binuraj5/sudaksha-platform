@@ -1,11 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { ArrowRight, Phone, Mail } from 'lucide-react';
+import { QuoteRequestModal } from '@/src/components/common/QuoteRequestModal';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 export function FinalCTA() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  const { capture } = useCTACapture();
 
   return (
     <div className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -21,13 +26,14 @@ export function FinalCTA() {
             Ready to Transform Your Career or Team?
           </h2>
           <p className="text-xl text-blue-100 mb-12 max-w-3xl mx-auto">
-            Join 10,000+ learners who've already taken the leap towards success
+            Join 50,000+ learners who've already taken the leap towards success
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
             <motion.a
               href="/for-individuals"
+              onClick={() => capture({ sourcePage: '/', ctaLabel: 'Explore Programs for Individuals', userType: 'individual' })}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={inView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -39,8 +45,8 @@ export function FinalCTA() {
               <ArrowRight className="ml-2 w-5 h-5" />
             </motion.a>
 
-            <motion.a
-              href="/for-corporates"
+            <motion.button
+              onClick={() => { setQuoteOpen(true); capture({ sourcePage: '/', ctaLabel: 'Get Corporate Training Quote', intent: 'corporate_quote', userType: 'corporate' }); }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={inView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -50,7 +56,7 @@ export function FinalCTA() {
             >
               Get Corporate Training Quote
               <ArrowRight className="ml-2 w-5 h-5" />
-            </motion.a>
+            </motion.button>
           </div>
 
           {/* Contact Info */}
@@ -71,6 +77,7 @@ export function FinalCTA() {
           </motion.div>
         </motion.div>
       </div>
+      <QuoteRequestModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} sourcePage="/" />
     </div>
   );
 }

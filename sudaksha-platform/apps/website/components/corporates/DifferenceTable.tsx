@@ -39,7 +39,7 @@ export default function DifferenceTable() {
     {
       feature: 'Hiring Integration',
       traditional: 'None',
-      sudaksha: 'THD & DHT employment models'
+      sudaksha: 'THD & HTD employment models'
     },
     {
       feature: 'Reporting',

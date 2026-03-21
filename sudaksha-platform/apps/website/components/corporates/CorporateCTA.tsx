@@ -1,6 +1,7 @@
 'use client';
 
 import { Calendar, FileText, Phone, HelpCircle } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 export default function CorporateCTA() {
   return (
@@ -23,9 +24,13 @@ export default function CorporateCTA() {
             <p className="mb-4 opacity-90">
               45-minute consultation with our corporate training experts
             </p>
-            <button className="w-full bg-white text-blue-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+            <CTAButton 
+              variant="custom"
+              className="w-full bg-white text-blue-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Ready to Transform', ctaLabel: 'Book Your Session', audienceType: 'corporate', intent: 'schedule_call' }}
+            >
               Book Your Session
-            </button>
+            </CTAButton>
             <p className="text-sm mt-2 opacity-75">
               No obligation. No sales pitch. Just solutions.
             </p>
@@ -38,9 +43,13 @@ export default function CorporateCTA() {
             <p className="mb-4 opacity-90">
               Tell us about your needs and get a tailored proposal within 48 hours
             </p>
-            <button className="w-full bg-white text-blue-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+            <CTAButton 
+              variant="custom"
+              className="w-full bg-white text-blue-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Ready to Transform', ctaLabel: 'Request Proposal', audienceType: 'corporate', intent: 'get_proposal' }}
+            >
               Request Proposal
-            </button>
+            </CTAButton>
             <p className="text-sm mt-2 opacity-75">
               Includes curriculum outline and pricing
             </p>
@@ -54,7 +63,7 @@ export default function CorporateCTA() {
               Speak with our corporate team right away
             </p>
             <div className="space-y-2 mb-4">
-              <p className="font-semibold">+91-XXXXX-XXXXX</p>
+              <p className="font-semibold">+91 91210 44435</p>
               <p className="font-semibold">corporate@sudaksha.com</p>
             </div>
             <p className="text-sm opacity-75">

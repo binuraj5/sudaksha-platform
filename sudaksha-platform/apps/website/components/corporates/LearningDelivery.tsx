@@ -1,6 +1,7 @@
 'use client';
 
 import { MapPin, Monitor, Users, Clock, Video, Briefcase, Layers, Zap } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 export default function LearningDelivery() {
   const deliveryModels = [
@@ -121,9 +122,13 @@ export default function LearningDelivery() {
             <p className="text-lg mb-6 opacity-90">
               Our experts will help you choose the perfect format based on your team size, schedule, and learning objectives.
             </p>
-            <button className="inline-flex items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
+            <CTAButton 
+              variant="custom"
+              className="inline-flex justify-center items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Flexible Delivery Models', ctaLabel: 'Get Delivery Recommendation', audienceType: 'corporate', intent: 'start_process' }}
+            >
               Get Delivery Recommendation
-            </button>
+            </CTAButton>
           </div>
         </div>
       </div>

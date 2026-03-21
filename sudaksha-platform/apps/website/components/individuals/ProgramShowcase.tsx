@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Clock, Users, TrendingUp, Award, ChevronDown, ChevronUp, Star, CheckCircle, Calendar, DollarSign } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 interface Program {
   id: string;
@@ -317,12 +318,20 @@ export default function ProgramShowcase({ data }: ProgramShowcaseProps) {
 
                     {/* CTA */}
                     <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                      <button className="px-8 py-3 bg-gradient-to-r from-sudaksha-blue-600 to-sudaksha-blue-700 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300">
+                      <CTAButton 
+                        variant="primary"
+                        className="px-8 py-3 bg-gradient-to-r from-sudaksha-blue-600 to-sudaksha-blue-700 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
+                        ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Program Showcase', ctaLabel: 'Enroll Now', audienceType: 'individual', intent: 'career_counseling', prefill: { program: program.title } }}
+                      >
                         Enroll Now
-                      </button>
-                      <button className="px-8 py-3 bg-white text-sudaksha-blue-600 font-semibold rounded-lg border-2 border-sudaksha-blue-200 hover:border-sudaksha-blue-300 hover:bg-sudaksha-blue-50 transition-all duration-300">
+                      </CTAButton>
+                      <CTAButton 
+                        variant="outline"
+                        className="px-8 py-3 bg-white text-sudaksha-blue-600 font-semibold rounded-lg border-2 border-sudaksha-blue-200 hover:border-sudaksha-blue-300 hover:bg-sudaksha-blue-50 transition-all duration-300"
+                        ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Program Showcase', ctaLabel: 'Download Brochure', audienceType: 'individual', intent: 'download_brochure', prefill: { program: program.title } }}
+                      >
                         Download Brochure
-                      </button>
+                      </CTAButton>
                     </div>
                   </div>
                 </motion.div>

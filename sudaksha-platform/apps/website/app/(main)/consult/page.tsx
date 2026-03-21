@@ -7,6 +7,8 @@ import {
     BarChart3, Users, Target, Zap, ChevronDown, Check, Star,
     Download, Play, X
 } from 'lucide-react';
+import { useCTACapture } from '@/hooks/useCTACapture';
+import { QuoteRequestModal } from '@/src/components/common/QuoteRequestModal';
 
 // --- Components ---
 
@@ -130,7 +132,14 @@ const PricingCard = ({ title, active, price, features }: any) => (
                 </li>
             ))}
         </ul>
-        <button className={`w-full py-3 rounded-xl font-bold transition-all ${active ? 'bg-secondary hover:bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-primary'}`}>
+        <button 
+            onClick={() => {
+                if (active) {
+                    // Logic to open QuoteRequestModal with this plan
+                }
+            }}
+            className={`w-full py-3 rounded-xl font-bold transition-all ${active ? 'bg-secondary hover:bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-primary'}`}
+        >
             Get Started
         </button>
     </div>
@@ -140,7 +149,9 @@ export default function ConsultPage() {
     const [activeIndustry, setActiveIndustry] = useState('All');
     const scrollRef = useRef(null);
     const { scrollYProgress } = useScroll({ target: scrollRef });
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState('');
+    const { capture } = useCTACapture();
 
     // Animations
     const fadeInUp = {
@@ -188,12 +199,18 @@ export default function ConsultPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={() => {
+                                    capture({ sourcePage: '/consult', ctaLabel: 'Get My Free Diagnostic', intent: 'diagnostic' });
+                                    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                                }}
                                 className="px-8 py-4 bg-secondary hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-secondary/25 flex items-center justify-center gap-2 transition-all hover:-translate-y-1"
                             >
                                 Get My Free Diagnostic <ArrowRight className="w-5 h-5" />
                             </button>
                             <button
+                                onClick={() => {
+                                    capture({ sourcePage: '/consult', ctaLabel: 'Watch Case Study', intent: 'video_play' });
+                                }}
                                 className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl backdrop-blur-sm border border-white/10 flex items-center justify-center gap-2 transition-all"
                             >
                                 <Play className="w-5 h-5 fill-current" /> Watch Case Study
@@ -379,41 +396,47 @@ export default function ConsultPage() {
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                        <PricingCard
-                            title="Starter"
-                            price="₹75k"
-                            features={[
-                                "Initial Diagnostic Audit",
-                                "Standard Curriculum Access",
-                                "Virtual Training (2 Days)",
-                                "Basic Assessment Report"
-                            ]}
-                            active={false}
-                        />
-                        <PricingCard
-                            title="Accelerator"
-                            price="₹2.5L"
-                            features={[
-                                "Comprehensive Gap Analysis",
-                                "Customized Learning Path",
-                                "Hybrid Training (1 Week)",
-                                "Pre & Post Assessments",
-                                "Manager De-briefs"
-                            ]}
-                            active={true}
-                        />
-                        <PricingCard
-                            title="Enterprise"
-                            price="Custom"
-                            features={[
-                                "Full-Scale OD Transformation",
-                                "Dedicated Program Manager",
-                                "LMS Integration & White-labeling",
-                                "Long-term ROI Tracking",
-                                "Executive Coaching"
-                            ]}
-                            active={false}
-                        />
+                        <div onClick={() => { setSelectedPlan('Starter'); setIsQuoteModalOpen(true); capture({ sourcePage: '/consult', ctaLabel: 'Starter Plan', intent: 'corporate_quote', planName: 'Starter' }); }}>
+                            <PricingCard
+                                title="Starter"
+                                price="₹75k"
+                                features={[
+                                    "Initial Diagnostic Audit",
+                                    "Standard Curriculum Access",
+                                    "Virtual Training (2 Days)",
+                                    "Basic Assessment Report"
+                                ]}
+                                active={false}
+                            />
+                        </div>
+                        <div onClick={() => { setSelectedPlan('Accelerator'); setIsQuoteModalOpen(true); capture({ sourcePage: '/consult', ctaLabel: 'Accelerator Plan', intent: 'corporate_quote', planName: 'Accelerator' }); }}>
+                            <PricingCard
+                                title="Accelerator"
+                                price="₹2.5L"
+                                features={[
+                                    "Comprehensive Gap Analysis",
+                                    "Customized Learning Path",
+                                    "Hybrid Training (1 Week)",
+                                    "Pre & Post Assessments",
+                                    "Manager De-briefs"
+                                ]}
+                                active={true}
+                            />
+                        </div>
+                        <div onClick={() => { setSelectedPlan('Enterprise'); setIsQuoteModalOpen(true); capture({ sourcePage: '/consult', ctaLabel: 'Enterprise Plan', intent: 'corporate_quote', planName: 'Enterprise' }); }}>
+                            <PricingCard
+                                title="Enterprise"
+                                price="Custom"
+                                features={[
+                                    "Full-Scale OD Transformation",
+                                    "Dedicated Program Manager",
+                                    "LMS Integration & White-labeling",
+                                    "Long-term ROI Tracking",
+                                    "Executive Coaching"
+                                ]}
+                                active={false}
+                            />
+                        </div>
                     </div>
                 </div>
             </section>
@@ -449,7 +472,9 @@ export default function ConsultPage() {
                                     <option>200+</option>
                                 </select>
                             </div>
-                            <button className="w-full py-4 bg-secondary hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition-transform hover:-translate-y-1">
+                            <button 
+                                onClick={(e) => { e.preventDefault(); capture({ sourcePage: '/consult', ctaLabel: 'Download Diagnostic Report', intent: 'diagnostic' }); alert('Diagnostic form submitted (captured).'); }}
+                                className="w-full py-4 bg-secondary hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition-transform hover:-translate-y-1">
                                 Download Diagnostic Report
                             </button>
                             <p className="text-center text-xs text-slate-400 mt-4">We respect your privacy. No spam, ever.</p>
@@ -458,41 +483,12 @@ export default function ConsultPage() {
                 </div>
             </section>
 
-            {/* --- MODAL --- */}
-            <AnimatePresence>
-                {isModalOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white rounded-2xl p-8 max-w-lg w-full relative"
-                        >
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-                            <h3 className="text-2xl font-bold text-primary mb-2">Book Consultation</h3>
-                            <p className="text-slate-600 mb-6">Schedule a 15-minute discovery call with our Senior OD Consultant.</p>
-                            {/* Simplified Form for Modal */}
-                            <form className="space-y-4">
-                                <input type="text" placeholder="Name" className="w-full px-4 py-3 rounded-lg border border-slate-200" />
-                                <input type="email" placeholder="Email" className="w-full px-4 py-3 rounded-lg border border-slate-200" />
-                                <button className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-[#2a457a]">
-                                    Confirm Booking
-                                </button>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <QuoteRequestModal 
+                isOpen={isQuoteModalOpen} 
+                onClose={() => setIsQuoteModalOpen(false)} 
+                sourcePage="/consult" 
+                planName={selectedPlan} 
+            />
         </div>
     );
 }

@@ -3,7 +3,7 @@ import CorporateHero from '@/components/corporates/CorporateHero';
 import ProblemSection from '@/components/corporates/ProblemSection';
 import SudakshaSolution from '@/components/corporates/SudakshaSolution';
 import TrainingModels from '@/components/corporates/TrainingModels';
-import IndustryPreview from '@/components/corporates/IndustryPreview';
+import IndustryTrainingSolutions from '@/components/corporates/IndustryPreview'; // Mapped to the updated file
 import DifferenceTable from '@/components/corporates/DifferenceTable';
 import CorporateStats from '@/components/corporates/CorporateStats';
 import ClientLogos from '@/components/corporates/ClientLogos';
@@ -34,7 +34,7 @@ export default function CorporatesPage() {
       <ProblemSection />
       <SudakshaSolution />
       <TrainingModels />
-      <IndustryPreview />
+      <IndustryTrainingSolutions />
       <DifferenceTable />
       <CorporateStats />
       <ClientLogos />

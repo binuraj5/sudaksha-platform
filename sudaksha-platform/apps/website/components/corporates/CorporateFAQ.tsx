@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 export default function CorporateFAQ() {
   const [openItems, setOpenItems] = useState<number[]>([]);
@@ -40,8 +41,8 @@ export default function CorporateFAQ() {
       answer: 'For technical training, we maintain 1:20-25 ratio to ensure interaction and personalization. For hands-on labs, we can provide additional assistant trainers for 1:10-15 ratio.'
     },
     {
-      question: 'How do Train-Hire-Deploy and Deploy-Hire-Train models work financially?',
-      answer: 'THD: You pay only for successfully deployed candidates (no hire, no fee). DHT: Monthly resource cost plus training fee. Both include our standard guarantees. We\'ll provide detailed pricing during consultation.'
+      question: 'How do Train-Hire-Deploy and Hire-Train-Deploy models work financially?',
+      answer: 'THD: You pay only for successfully deployed candidates (no hire, no fee). HTD: Monthly resource cost plus training fee. Both include our standard guarantees. We\'ll provide detailed pricing during consultation.'
     },
     {
       question: 'Do you provide training for non-technical staff?',
@@ -118,9 +119,13 @@ export default function CorporateFAQ() {
             <p className="text-lg mb-6 opacity-90">
               Our corporate training experts are here to help. Schedule a call to discuss your specific needs.
             </p>
-            <button className="inline-flex items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
+            <CTAButton 
+              variant="custom"
+              className="inline-flex justify-center items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'FAQ', ctaLabel: 'Talk to an Expert', audienceType: 'corporate', intent: 'schedule_call' }}
+            >
               Talk to an Expert
-            </button>
+            </CTAButton>
           </div>
         </div>
       </div>

@@ -65,7 +65,7 @@ const resourceCategories = [
     icon: DollarSign,
     title: 'SALARY GUIDE',
     data: {
-      title: '2024 IT Salary Report',
+      title: '2025-26 IT Salary Report',
       byRole: [
         'Full Stack Developer: ₹4-12 LPA',
         'Data Scientist: ₹6-15 LPA',
@@ -101,7 +101,7 @@ const resourceCategories = [
       'Git & GitHub for Beginners',
       'Resume Building Masterclass',
     ],
-    nextWorkshop: 'Saturday, Feb 10, 2025',
+    nextWorkshop: 'Saturday, April 26, 2026',
     cta: 'Register Free',
   },
   {
@@ -213,7 +213,7 @@ export function QuickLinksGrid() {
 
               {/* Career Guidance */}
               {category.id === 'guidance' && (
-                <div className="space-y-2">
+                <div id="roadmaps" className="space-y-2">
                   <p className="text-sm text-gray-600 mb-3">Resources:</p>
                   {category.resources?.map((resource) => (
                     <Link
@@ -229,7 +229,7 @@ export function QuickLinksGrid() {
 
               {/* Skill Assessments */}
               {category.id === 'assessment' && (
-                <div className="space-y-4">
+                <div id="assessment" className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-2">Free Tools:</p>
                     {category.tools?.map((tool) => (
@@ -259,7 +259,7 @@ export function QuickLinksGrid() {
 
               {/* Interview Preparation */}
               {category.id === 'interview' && (
-                <div className="space-y-4">
+                <div id="interview" className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-2">Resources:</p>
                     {category.resources?.map((resource) => (
@@ -283,7 +283,7 @@ export function QuickLinksGrid() {
 
               {/* Salary Guide */}
               {category.id === 'salary' && category.data && (
-                <div className="space-y-4">
+                <div id="salary" className="space-y-4">
                   <h4 className="font-semibold text-gray-900">{category.data.title}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>

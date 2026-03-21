@@ -43,8 +43,8 @@ export default function CorporateNavigation() {
               href: '/corporates/domestic/thd'
             },
             {
-              title: 'Deploy-Hire-Train (DHT)',
-              href: '/corporates/domestic/dht'
+              title: 'Hire-Train-Deploy (HTD)',
+              href: '/corporates/domestic/htd'
             }
           ]
         },

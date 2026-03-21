@@ -248,7 +248,7 @@ export interface DomesticPageData {
   curationProcess: CurationProcess;
   employmentModels: {
     thd: EmploymentModel;
-    dht: EmploymentModel;
+    htd: EmploymentModel;
   };
   transformation: {
     headline: string;

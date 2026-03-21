@@ -12,6 +12,7 @@ import {
   DollarSign,
   Infinity
 } from 'lucide-react';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 const reasons = [
   {
@@ -82,7 +83,7 @@ const reasons = [
     icon: Infinity,
     title: 'LIFETIME LEARNING ECOSYSTEM',
     problem: 'Your Relationship with Sudaksha Doesn\'t End at Placement',
-    approach: 'What You Get After Placement: 6-Month Support (Monthly check-ins, Technical doubts, Issue resolution), Alumni Network (10,000+ Members, Private Slack community, Job referrals), Upskilling Opportunities (50% discount on future programs, Free workshops monthly)',
+    approach: 'What You Get After Placement: 6-Month Support (Monthly check-ins, Technical doubts, Issue resolution), Alumni Network (50,000+ Members, Private Slack community, Job referrals), Upskilling Opportunities (50% discount on future programs, Free workshops monthly)',
     example: 'Career Growth Support: Job switch guidance, Resume updates, Interview prep for senior roles. Real Example: "I completed Java Full Stack in 2021. Got placed at TCS. In 2023, I wanted to switch. Used alumni network, got referral to startup. Took Sudaksha\'s Microservices advanced program (50% off). Switched to ₹12 LPA. Now I mentor current students. Sudaksha is family, not just an institute." — Priya Sharma, Alumna',
     impact: 'Mentorship Opportunities: Mentor junior students, Guest lectures, Earn while mentoring',
   },
@@ -90,6 +91,7 @@ const reasons = [
 
 export function EightReasons() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { capture } = useCTACapture();
 
   return (
     <div className="py-16 lg:py-24 bg-gray-50">
@@ -173,7 +175,12 @@ export function EightReasons() {
 
               {reason.id === 6 && (
                 <div className="mt-8 text-center">
-                  <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+                  <button 
+                    onClick={() => {
+                      capture({ sourcePage: '/why-sudaksha', ctaLabel: 'View Placement Report', intent: 'view_placement_report' });
+                      alert('Placement report PDF would open here.');
+                    }}
+                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
                     View Our Placement Report 2023
                   </button>
                 </div>

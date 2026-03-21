@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowRight, Download, Users, TrendingUp, Target, Zap, Award } from 'lucide-react';
+import { ArrowRight, Download, Users, TrendingUp } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 export default function CorporateHero() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>
@@ -44,17 +43,22 @@ export default function CorporateHero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+              <CTAButton 
+                variant="custom"
+                className="inline-flex justify-center items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
+                ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Hero', ctaLabel: 'Schedule Strategy Session', audienceType: 'corporate', intent: 'schedule_call' }}
               >
                 Schedule Strategy Session
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </button>
-              <button className="inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all duration-200 backdrop-blur-sm border border-white/20">
+              </CTAButton>
+              <CTAButton 
+                variant="custom"
+                className="inline-flex justify-center items-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all duration-200 backdrop-blur-sm border border-white/20"
+                ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Hero', ctaLabel: 'Download Corporate Brochure', audienceType: 'corporate', intent: 'download_brochure' }}
+              >
                 <Download className="mr-2 w-5 h-5" />
                 Download Corporate Brochure
-              </button>
+              </CTAButton>
             </div>
           </div>
 
@@ -145,38 +149,6 @@ export default function CorporateHero() {
           </div>
         </div>
       </section>
-
-      {/* Contact Modal Placeholder */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <h3 className="text-2xl font-bold mb-4">Schedule Strategy Session</h3>
-            <p className="text-gray-600 mb-6">Fill in your details and our corporate training expert will contact you within 24 hours.</p>
-            {/* Contact form will be implemented here */}
-            <div className="space-y-4">
-              <input type="text" placeholder="Company Name" className="w-full px-4 py-2 border rounded-lg" />
-              <input type="text" placeholder="Your Name" className="w-full px-4 py-2 border rounded-lg" />
-              <input type="email" placeholder="Email" className="w-full px-4 py-2 border rounded-lg" />
-              <input type="tel" placeholder="Phone" className="w-full px-4 py-2 border rounded-lg" />
-              <textarea placeholder="Tell us about your training needs" rows={3} className="w-full px-4 py-2 border rounded-lg"></textarea>
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Submit
-                </button>
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

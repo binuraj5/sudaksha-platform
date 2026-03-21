@@ -1,10 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, GraduationCap, Users, BookOpen, Award, Handshake, TrendingUp } from 'lucide-react';
+import { PartnershipModal } from '@/src/components/common/PartnershipModal';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 export default function ForInstitutions() {
+  const router = useRouter();
+  const { capture } = useCTACapture();
+  const [partnerOpen, setPartnerOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
       {/* Hero Section */}
@@ -23,19 +31,25 @@ export default function ForInstitutions() {
               Empower your institution with industry-aligned IT training programs and bridge the gap between education and employment
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/contact"
+              <button
+                onClick={() => {
+                  capture({ sourcePage: '/for-institutions', ctaLabel: 'Partner With Us', intent: 'partnership', userType: 'institution' });
+                  setPartnerOpen(true);
+                }}
                 className="inline-flex items-center px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 Partner With Us
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link
-                href="/courses"
+              </button>
+              <button
+                onClick={() => {
+                  capture({ sourcePage: '/for-institutions', ctaLabel: 'View Programs', intent: 'browse_courses', userType: 'institution' });
+                  router.push('/courses');
+                }}
                 className="inline-flex items-center px-8 py-4 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
               >
                 View Programs
-              </Link>
+              </button>
             </div>
           </motion.div>
         </div>
@@ -170,16 +184,21 @@ export default function ForInstitutions() {
             <p className="text-xl text-green-100 mb-8">
               Join us in shaping the next generation of IT professionals
             </p>
-            <Link
-              href="/contact"
+            <button
+              onClick={() => {
+                capture({ sourcePage: '/for-institutions', ctaLabel: 'Start Partnership Discussion', intent: 'partnership', userType: 'institution' });
+                setPartnerOpen(true);
+              }}
               className="inline-flex items-center px-8 py-4 bg-white text-green-600 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
             >
               Start Partnership Discussion
               <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
+            </button>
           </motion.div>
         </div>
       </section>
+
+      <PartnershipModal isOpen={partnerOpen} onClose={() => setPartnerOpen(false)} sourcePage="/for-institutions" />
     </div>
   );
 }

@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AllocateEmployeesDialog } from "@/components/Teams/AllocateEmployeesDialog";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import { RemoveMemberButton } from "@/components/Teams/RemoveMemberButton";
+import { EditTeamDialog } from "@/components/Teams/EditTeamDialog";
+import { DeleteTeamButton } from "@/components/Teams/DeleteTeamButton";
 
 export default async function TeamDetailPage({ params }: { params: Promise<{ clientId: string; teamId: string }> }) {
     const session = await getServerSession(authOptions);
@@ -39,7 +40,14 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ cli
                     <p className="text-gray-500 mt-2">{team.description || "No description."}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
+                    <EditTeamDialog clientId={clientId} team={{
+                        id: team.id,
+                        name: team.name,
+                        description: team.description,
+                        parentId: team.parentId,
+                        managerId: team.managerId
+                    }} />
+                    <DeleteTeamButton clientId={clientId} teamId={team.id} />
                 </div>
             </header>
 

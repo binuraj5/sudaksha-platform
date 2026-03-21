@@ -9,6 +9,7 @@ import {
   GraduationCap, Building2, UserCheck, Star, ChevronRight,
   Calendar, FileText
 } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 // Custom debounce hook
 const useDebounce = <T,>(value: T, delay: number): [T] => {
@@ -244,24 +245,22 @@ export default function InstitutionsPage() {
                   variants={itemVariants}
                   className="flex flex-col sm:flex-row gap-3 lg:gap-4"
                 >
-                  <motion.a
-                    href="/consult"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  <CTAButton
+                    variant="custom"
                     className="inline-flex items-center justify-center px-6 lg:px-8 py-3 lg:py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-sm lg:text-base shadow-lg hover:shadow-xl"
+                    ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Hero', ctaLabel: 'Schedule Campus Assessment', audienceType: 'institution', intent: 'campus_assessment' }}
                   >
                     Schedule Campus Assessment
                     <ArrowRight className="ml-2 w-4 lg:w-5 h-4 lg:h-5" />
-                  </motion.a>
-                  <motion.a
-                    href="/contact"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  </CTAButton>
+                  <CTAButton
+                    variant="custom"
                     className="inline-flex items-center justify-center px-6 lg:px-8 py-3 lg:py-4 bg-white text-blue-600 font-semibold rounded-lg border-2 border-blue-600 hover:bg-blue-50 transition-colors text-sm lg:text-base shadow-lg hover:shadow-xl"
+                    ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Hero', ctaLabel: 'Download Partnership Brochure', audienceType: 'institution', intent: 'download_brochure' }}
                   >
                     Download Partnership Brochure
                     <ArrowRight className="ml-2 w-4 lg:w-5 h-4 lg:h-5" />
-                  </motion.a>
+                  </CTAButton>
                 </motion.div>
               </motion.div>
 
@@ -634,15 +633,14 @@ export default function InstitutionsPage() {
                       </div>
 
                       <div className="text-center mt-6">
-                        <motion.a
-                          href="/contact"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <CTAButton
+                          variant="custom"
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg"
+                          ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Finishing School', ctaLabel: 'Explore Finishing School', audienceType: 'institution', intent: 'start_process' }}
                         >
                           Explore Finishing School
                           <ArrowRight className="ml-2 w-4 h-4" />
-                        </motion.a>
+                        </CTAButton>
                       </div>
                     </motion.div>
 
@@ -692,15 +690,14 @@ export default function InstitutionsPage() {
                       </div>
 
                       <div className="text-center mt-6">
-                        <motion.a
-                          href="/contact"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <CTAButton
+                          variant="custom"
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg"
+                          ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Curriculum Mapping', ctaLabel: 'Request Curriculum Audit', audienceType: 'institution', intent: 'campus_assessment' }}
                         >
                           Request Curriculum Audit
                           <ArrowRight className="ml-2 w-4 h-4" />
-                        </motion.a>
+                        </CTAButton>
                       </div>
                     </motion.div>
 
@@ -755,15 +752,14 @@ export default function InstitutionsPage() {
                       </div>
 
                       <div className="text-center mt-6">
-                        <motion.a
-                          href="/contact"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <CTAButton
+                          variant="custom"
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg"
+                          ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'PP Index', ctaLabel: 'Implement PP Index', audienceType: 'institution', intent: 'start_process' }}
                         >
                           Implement PP Index
                           <ArrowRight className="ml-2 w-4 h-4" />
-                        </motion.a>
+                        </CTAButton>
                       </div>
                     </motion.div>
 
@@ -814,15 +810,14 @@ export default function InstitutionsPage() {
                       </div>
 
                       <div className="text-center mt-6">
-                        <motion.a
-                          href="/contact"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <CTAButton
+                          variant="custom"
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 text-white font-semibold rounded-lg hover:from-orange-700 hover:to-orange-800 transition-all duration-200 shadow-lg"
+                          ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Faculty Development', ctaLabel: 'Request Faculty Development', audienceType: 'institution', intent: 'get_proposal' }}
                         >
                           Request Faculty Development
                           <ArrowRight className="ml-2 w-4 h-4" />
-                        </motion.a>
+                        </CTAButton>
                       </div>
                     </motion.div>
 
@@ -876,15 +871,14 @@ export default function InstitutionsPage() {
                       </div>
 
                       <div className="text-center mt-6">
-                        <motion.a
-                          href="/contact"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <CTAButton
+                          variant="custom"
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white font-semibold rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all duration-200 shadow-lg"
+                          ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Lab Infrastructure', ctaLabel: 'Modernize Labs', audienceType: 'institution', intent: 'get_proposal' }}
                         >
                           Modernize Labs
                           <ArrowRight className="ml-2 w-4 h-4" />
-                        </motion.a>
+                        </CTAButton>
                       </div>
                     </motion.div>
 
@@ -944,15 +938,14 @@ export default function InstitutionsPage() {
                       </div>
 
                       <div className="text-center mt-6">
-                        <motion.a
-                          href="/contact"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <CTAButton
+                          variant="custom"
                           className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg"
+                          ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Corporate Pipeline', ctaLabel: 'Access Corporate Network', audienceType: 'institution', intent: 'start_process' }}
                         >
                           Access Corporate Network
                           <ArrowRight className="ml-2 w-4 h-4" />
-                        </motion.a>
+                        </CTAButton>
                       </div>
                     </motion.div>
                   </div>
@@ -1018,15 +1011,14 @@ export default function InstitutionsPage() {
                       </div>
                     </div>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <CTAButton
+                      variant="custom"
                       className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors w-full justify-center"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Co-Branded Finishing School', ctaLabel: 'Learn More about Co-Branded Finishing School', audienceType: 'institution', intent: 'get_proposal' }}
                     >
                       Learn More
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </motion.div>
 
                   {/* Model 2: Curriculum Integration */}
@@ -1063,15 +1055,14 @@ export default function InstitutionsPage() {
                       </div>
                     </div>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <CTAButton
+                      variant="custom"
                       className="inline-flex items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors w-full justify-center"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Curriculum Integration', ctaLabel: 'Learn More about Curriculum Integration', audienceType: 'institution', intent: 'get_proposal' }}
                     >
                       Learn More
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </motion.div>
 
                   {/* Model 3: Faculty Development Only */}
@@ -1108,15 +1099,14 @@ export default function InstitutionsPage() {
                       </div>
                     </div>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <CTAButton
+                      variant="custom"
                       className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors w-full justify-center"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Faculty Development Model', ctaLabel: 'Learn More about Faculty Development', audienceType: 'institution', intent: 'get_proposal' }}
                     >
                       Learn More
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </motion.div>
 
                   {/* Model 4: Lab Infrastructure Partnership */}
@@ -1153,15 +1143,14 @@ export default function InstitutionsPage() {
                       </div>
                     </div>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <CTAButton
+                      variant="custom"
                       className="inline-flex items-center px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors w-full justify-center"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Lab Infrastructure Model', ctaLabel: 'Learn More about Lab Infrastructure', audienceType: 'institution', intent: 'get_proposal' }}
                     >
                       Learn More
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </motion.div>
 
                   {/* Model 5: Placement Services Only */}
@@ -1198,15 +1187,14 @@ export default function InstitutionsPage() {
                       </div>
                     </div>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <CTAButton
+                      variant="custom"
                       className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors w-full justify-center"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Placement Services', ctaLabel: 'Learn More about Placement Services', audienceType: 'institution', intent: 'get_proposal' }}
                     >
                       Learn More
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </motion.div>
 
                   {/* Model 6: Build-Operate-Transfer (BOT) */}
@@ -1243,15 +1231,14 @@ export default function InstitutionsPage() {
                       </div>
                     </div>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                    <CTAButton
+                      variant="custom"
                       className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors w-full justify-center"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'BOT Model', ctaLabel: 'Learn More about BOT Model', audienceType: 'institution', intent: 'get_proposal' }}
                     >
                       Learn More
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </motion.div>
                 </div>
 
@@ -1579,15 +1566,14 @@ export default function InstitutionsPage() {
                       </div>
                     </div>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm"
+                    <CTAButton
+                      variant="custom"
+                      className="inline-flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm transform hover:scale-105 active:scale-95"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Custom Tracks', ctaLabel: 'Learn More', audienceType: 'institution', intent: 'talk_to_expert' }}
                     >
                       Learn More
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </MotionWrapper>
                 </div>
 
@@ -2029,15 +2015,14 @@ export default function InstitutionsPage() {
                       </li>
                     </ul>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm"
+                    <CTAButton
+                      variant="custom"
+                      className="inline-flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm transform hover:scale-105 active:scale-95"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Content Licensing', ctaLabel: 'View Samples', audienceType: 'institution', intent: 'get_proposal' }}
                     >
                       View Samples
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </MotionWrapper>
 
                   {/* ROI Calculator */}
@@ -2070,15 +2055,14 @@ export default function InstitutionsPage() {
                       </li>
                     </ul>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm"
+                    <CTAButton
+                      variant="custom"
+                      className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm transform hover:scale-105 active:scale-95"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'ROI Calculator', ctaLabel: 'Calculate ROI', audienceType: 'institution', intent: 'roi_analysis' }}
                     >
                       Calculate ROI
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </MotionWrapper>
 
                   {/* Quick Links */}
@@ -2120,15 +2104,14 @@ export default function InstitutionsPage() {
                       </motion.a>
                     </div>
 
-                    <motion.a
-                      href="/contact"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                    <CTAButton
+                      variant="custom"
+                      className="inline-flex items-center px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors text-sm transform hover:scale-105 active:scale-95"
+                      ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Quick Access', ctaLabel: 'Contact Support', audienceType: 'institution', intent: 'talk_to_expert' }}
                     >
                       Contact Support
                       <ArrowRight className="ml-2 w-4 h-4" />
-                    </motion.a>
+                    </CTAButton>
                   </MotionWrapper>
                 </div>
 
@@ -2163,45 +2146,41 @@ export default function InstitutionsPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-                <motion.a
-                  href="/consult"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <CTAButton
+                  variant="custom"
                   className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
+                  ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Footer Action Block', ctaLabel: 'Schedule Free Assessment', audienceType: 'institution', intent: 'campus_assessment' }}
                 >
                   Schedule Free Assessment
                   <Calendar className="ml-2 w-5 h-5" />
-                </motion.a>
-                <motion.a
-                  href="/contact"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                </CTAButton>
+                <CTAButton
+                  variant="custom"
                   className="inline-flex items-center justify-center px-8 py-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-400 transition-colors shadow-lg"
+                  ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Footer Action Block', ctaLabel: 'Download Partnership Brochure', audienceType: 'institution', intent: 'download_brochure' }}
                 >
                   Download Partnership Brochure
                   <FileText className="ml-2 w-5 h-5" />
-                </motion.a>
-                <motion.a
-                  href="/contact"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                </CTAButton>
+                <CTAButton
+                  variant="custom"
                   className="inline-flex items-center justify-center px-8 py-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-500 transition-colors shadow-lg"
+                  ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Footer Action Block', ctaLabel: 'Request Custom Proposal', audienceType: 'institution', intent: 'get_proposal' }}
                 >
                   Request Custom Proposal
                   <ArrowRight className="ml-2 w-5 h-5" />
-                </motion.a>
+                </CTAButton>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <motion.a
-                  href="/contact"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <CTAButton
+                  variant="custom"
                   className="inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-500 transition-colors shadow-md"
+                  ctx={{ page: 'Institutions', pageUrl: '/institutions', section: 'Footer Action Block', ctaLabel: 'Get Detailed ROI Analysis', audienceType: 'institution', intent: 'roi_analysis' }}
                 >
                   ROI Calculator
                   <BarChart3 className="ml-2 w-4 h-4" />
-                </motion.a>
+                </CTAButton>
                 <motion.a
                   href="/resources"
                   whileHover={{ scale: 1.05 }}
@@ -2216,9 +2195,9 @@ export default function InstitutionsPage() {
               <div className="mt-8 pt-8 border-t border-blue-500">
                 <p className="text-blue-200 mb-4">Contact our Institutions Team</p>
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-6 text-sm">
-                  <span>📞 +91-XXXXX-XXXXX</span>
+                  <a href="tel:+919121044435" className="text-blue-200 hover:text-white transition-colors">📞 +91 91210 44435</a>
                   <motion.a
-                    href="/contact"
+                    href="mailto:institutions@sudaksha.com"
                     whileHover={{ scale: 1.05 }}
                     className="text-blue-200 hover:text-white transition-colors"
                   >
@@ -2231,6 +2210,7 @@ export default function InstitutionsPage() {
           </div>
         </section>
       </div>
+
     </LayoutGroup>
   );
 }

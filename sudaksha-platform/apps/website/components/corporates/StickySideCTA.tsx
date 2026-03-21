@@ -64,7 +64,7 @@ export default function StickySideCTA() {
                 </button>
               </div>
               <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-600">
-                <p>Phone: +91-XXXXX-XXXXX</p>
+                <p>Phone: +91 91210 44435</p>
                 <p>Email: corporate@sudaksha.com</p>
               </div>
             </div>

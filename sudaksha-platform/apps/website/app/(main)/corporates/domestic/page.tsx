@@ -23,7 +23,7 @@ const mockData = {
     valuePropositions: [
       { id: 1, text: "IT Training: Cloud, AI/ML, Full Stack, DevOps, Data Engineering" },
       { id: 2, text: "Non-IT Training: Leadership, Sales, Process Excellence, OB Interventions" },
-      { id: 3, text: "Employment Models: Train-Hire-Deploy & Deploy-Hire-Train" },
+      { id: 3, text: "Employment Models: Train-Hire-Deploy & Hire-Train-Deploy" },
       { id: 4, text: "Organizational Transformation: Change Management & Culture Building" }
     ],
     primaryCTA: { text: "Design Your Training Program", href: "#training-categories" },
@@ -47,7 +47,7 @@ const mockData = {
       { aspect: "Assessment", traditional: "Pre & post tests", sudaksha: "Diagnostic → Baseline → Continuous → Impact" },
       { aspect: "Follow-up", traditional: "Certificate delivery", sudaksha: "90-day integration support" },
       { aspect: "Business Alignment", traditional: "Training KPIs", sudaksha: "Business outcome metrics" },
-      { aspect: "Scalability", traditional: "Limited by trainer pool", sudaksha: "THD/DHT employment models" }
+      { aspect: "Scalability", traditional: "Limited by trainer pool", sudaksha: "THD/HTD employment models" }
     ]
   },
   ecosystem: {
@@ -191,8 +191,8 @@ const mockData = {
       },
       cta: { text: "Explore THD Model", href: "#success-metrics" }
     },
-    dht: {
-      title: "Deploy-Hire-Train (DHT)",
+    htd: {
+      title: "Hire-Train-Deploy (HTD)",
       bestFor: ["Immediate needs", "Critical projects", "Talent shortages"],
       phases: [
         {
@@ -224,7 +224,7 @@ const mockData = {
         title: "FinanceHub Digital Transformation",
         results: ["20 consultants deployed", "80% conversion", "Zero hiring risk"]
       },
-      cta: { text: "Explore DHT Model", href: "#success-metrics" }
+      cta: { text: "Explore HTD Model", href: "#success-metrics" }
     }
   },
   transformation: {
@@ -560,7 +560,7 @@ const mockData = {
         company: "FinanceHub Technologies",
         industry: "Banking & Financial Services",
         challenge: "Required immediate technical expertise for digital transformation while evaluating long-term fit",
-        solution: "Deployed 20 consultants through DHT model with 3-month evaluation period and conversion option",
+        solution: "Deployed 20 consultants through HTD model with 3-month evaluation period and conversion option",
         implementation: {
           duration: "6 months",
           participants: 20,
@@ -573,7 +573,7 @@ const mockData = {
           { metric: "Project Timeline", value: "30% faster", description: "Digital transformation completed ahead of schedule" }
         ],
         testimonial: {
-          quote: "The DHT model gave us the flexibility we needed. We could evaluate talent on the job while making immediate progress on our critical projects.",
+          quote: "The HTD model gave us the flexibility we needed. We could evaluate talent on the job while making immediate progress on our critical projects.",
           author: "Michael Chen",
           position: "VP of Technology, FinanceHub Technologies"
         }
@@ -614,8 +614,8 @@ const mockData = {
           category: "Training Programs"
         },
         {
-          question: "What is the difference between THD and DHT models?",
-          answer: "THD (Train-Hire-Deploy) is ideal for long-term talent needs where we train and then deploy candidates. DHT (Deploy-Hire-Train) is perfect for immediate needs where candidates start working immediately while being trained.",
+          question: "What is the difference between THD and HTD models?",
+          answer: "THD (Train-Hire-Deploy) is ideal for long-term talent needs where we train and then deploy candidates. HTD (Hire-Train-Deploy) is perfect for immediate needs where candidates start working immediately while being trained.",
           category: "Employment Models"
         },
         {
@@ -649,7 +649,7 @@ const mockData = {
           description: "Talk to our training experts to assess your needs and design a custom solution",
           icon: Calendar,
           action: "Book a call",
-          href: "tel:+91801234567"
+          href: "tel:+919121044435"
         },
         {
           title: "Request Proposal",
@@ -691,7 +691,7 @@ export default function DomesticPage() {
       {/* Employment Models */}
       <EmploymentModels 
         thdData={mockData.employmentModels.thd} 
-        dhtData={mockData.employmentModels.dht} 
+        htdData={mockData.employmentModels.htd} 
       />
       
       {/* Organizational Transformation */}

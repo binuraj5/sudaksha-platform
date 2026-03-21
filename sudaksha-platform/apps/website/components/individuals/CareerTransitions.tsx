@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Users, TrendingUp, ArrowRight, Clock, DollarSign, Award, CheckCircle } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 interface Transition {
   id: string;
@@ -357,20 +358,20 @@ export default function CareerTransitions({ data }: CareerTransitionsProps) {
 
                             {/* CTA */}
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="px-8 py-3 bg-gradient-to-r from-sudaksha-blue-600 to-sudaksha-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                              <CTAButton
+                                variant="custom"
+                                className="px-8 py-3 bg-gradient-to-r from-sudaksha-blue-600 to-sudaksha-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+                                ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Career Transitions', ctaLabel: 'Enroll Now', audienceType: 'individual', intent: 'career_counseling', prefill: { program: transition.title } }}
                               >
                                 Enroll Now
-                              </motion.button>
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="px-8 py-3 bg-white text-sudaksha-blue-600 font-semibold rounded-lg border-2 border-sudaksha-blue-200 hover:border-sudaksha-blue-300 hover:bg-sudaksha-blue-50 transition-all duration-300"
+                              </CTAButton>
+                              <CTAButton
+                                variant="custom"
+                                className="px-8 py-3 bg-white text-sudaksha-blue-600 font-semibold rounded-lg border-2 border-sudaksha-blue-200 hover:border-sudaksha-blue-300 hover:bg-sudaksha-blue-50 transition-all duration-300 transform hover:scale-105 active:scale-95"
+                                ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Career Transitions', ctaLabel: 'Download Brochure', audienceType: 'individual', intent: 'download_brochure', prefill: { program: transition.title } }}
                               >
                                 Download Brochure
-                              </motion.button>
+                              </CTAButton>
                             </div>
                           </div>
                         </motion.div>

@@ -1,23 +1,62 @@
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
     ChevronLeft,
     Trophy,
     Calendar,
     Clock,
-    FileText,
     BrainCircuit,
+    BookOpen,
+    TrendingUp,
+    Target,
+    AlertTriangle,
+    Star,
+    Sparkles,
+    User2,
     CheckCircle2,
-    BookOpen
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { CompetencyGapAnalysis } from "@/components/assessments/CompetencyGapAnalysis";
-import { AIResultCard } from "@/components/assessments/AIResultCard";
+import {
+    getGapBand,
+    GAP_BAND_PRIORITY,
+    GAP_BAND_LABEL,
+    GAP_BAND_SORT_ORDER,
+    generateTNIJustification,
+    buildCareerContext,
+    getExperienceStanding,
+    computeOverallFitment,
+    getReadinessVerdict,
+    type GapBand,
+} from "@/lib/tni-utils";
+import { generateReportNarratives, type GapRow } from "@/lib/report-ai";
+
+// ─── Colour helpers ────────────────────────────────────────────────────────────
+
+const BAND_COLOUR: Record<GapBand, { bg: string; text: string; border: string }> = {
+    EXCEEDS:          { bg: "bg-emerald-50",  text: "text-emerald-800",  border: "border-emerald-200" },
+    MET:              { bg: "bg-green-50",    text: "text-green-800",    border: "border-green-200" },
+    NEAR_TARGET:      { bg: "bg-teal-50",     text: "text-teal-800",     border: "border-teal-200" },
+    MODERATE_GAP:     { bg: "bg-amber-50",    text: "text-amber-800",    border: "border-amber-200" },
+    SIGNIFICANT_GAP:  { bg: "bg-orange-50",   text: "text-orange-800",   border: "border-orange-200" },
+    CRITICAL_GAP:     { bg: "bg-red-50",      text: "text-red-800",      border: "border-red-200" },
+};
+
+const VERDICT_COLOUR: Record<string, string> = {
+    green:  "text-emerald-700 bg-emerald-100",
+    teal:   "text-teal-700 bg-teal-100",
+    amber:  "text-amber-700 bg-amber-100",
+    orange: "text-orange-700 bg-orange-100",
+    red:    "text-red-700 bg-red-100",
+};
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function IndividualResultPage({
     params,
@@ -31,43 +70,59 @@ export default async function IndividualResultPage({
         redirect("/assessments/login");
     }
 
+    // ── 1. Load data ─────────────────────────────────────────────────────────
+
     let assessment = await prisma.projectUserAssessment.findFirst({
         where: { id, userId: session.user.id },
         include: {
             projectAssignment: {
+                include: { model: true }
+            },
+            user: {
                 include: {
-                    model: true
+                    assignedRole: {
+                        include: {
+                            competencies: { include: { competency: true } }
+                        }
+                    }
                 }
             },
             componentResults: {
                 include: {
                     component: { include: { competency: true } },
-                    questionResponses: {
-                        select: {
-                            responseData: true,
-                        },
-                        take: 1,
-                        orderBy: { createdAt: "desc" },
-                    },
                 }
             }
         }
     });
 
     let isB2C = false;
-    let passingScoreLevel = assessment?.projectAssignment?.model?.passingScore || 60; // default 60%
-
-    // Aggregate Time logic since DB may not auto-calculate
+    let passingScoreLevel = assessment?.projectAssignment?.model?.passingScore || 60;
     let totalTimeAccumulated = assessment?.totalTimeSpent || 0;
     if (assessment && !totalTimeAccumulated) {
         totalTimeAccumulated = assessment.componentResults.reduce((sum, cr) => sum + (cr.timeSpent || 0), 0);
     }
 
+    let member: any = null;
+
     if (!assessment) {
-        const member = await prisma.member.findFirst({
+        member = await prisma.member.findFirst({
             where: { email: session.user.email ?? "" },
-            select: { id: true }
+            select: {
+                id: true,
+                name: true,
+                designation: true,
+                careerFormData: true,
+                currentRoleId: true,
+                aspirationalRoleId: true,
+                currentRole: {
+                    include: {
+                        competencies: { include: { competency: true } }
+                    }
+                },
+                aspirationalRole: { select: { id: true, name: true } },
+            }
         });
+
         if (member) {
             const memberAssessment = await prisma.memberAssessment.findFirst({
                 where: { id, memberId: member.id },
@@ -76,6 +131,7 @@ export default async function IndividualResultPage({
                     member: { select: { name: true } }
                 }
             });
+
             if (memberAssessment) {
                 passingScoreLevel = memberAssessment.assessmentModel.passingScore || 60;
 
@@ -86,15 +142,11 @@ export default async function IndividualResultPage({
                         componentResults: {
                             include: {
                                 component: { include: { competency: true } },
-                                questionResponses: {
-                                    select: { responseData: true },
-                                    take: 1,
-                                    orderBy: { createdAt: "desc" },
-                                },
                             }
                         }
                     }
                 });
+
                 if (uam) {
                     isB2C = true;
                     const componentResults = uam.componentResults;
@@ -107,7 +159,8 @@ export default async function IndividualResultPage({
                         completedAt: memberAssessment.completedAt,
                         totalTimeSpent,
                         projectAssignment: { model: memberAssessment.assessmentModel },
-                        componentResults
+                        componentResults,
+                        user: null,
                     } as any;
                     totalTimeAccumulated = totalTimeSpent;
                 }
@@ -115,19 +168,219 @@ export default async function IndividualResultPage({
         }
     }
 
-    if (!assessment) {
-        notFound();
+    if (!assessment) notFound();
+
+    // ── 2. Determine mode ────────────────────────────────────────────────────
+
+    const assignedRole = isB2C
+        ? (member as any)?.currentRole
+        : (assessment as any).user?.assignedRole;
+
+    const isRoleBased = !!assignedRole?.competencies?.length;
+    const roleName = assignedRole?.name || "Standalone Assessment";
+    const aspirationalRoleName = (member as any)?.aspirationalRole?.name ?? "";
+    const memberName = isB2C
+        ? (member?.name ?? "")
+        : ((assessment as any).user?.name ?? "");
+
+    // ── 3. Synthesise competency scores (Fix 2 + Fix 3) ─────────────────────
+    //
+    // Rules:
+    //   a) Group component results by competencyId — one synthesised score per competency.
+    //   b) Weight by component.weight (Float @default 1.0).
+    //   c) SKIP instrument results (VIDEO/VOICE/ADAPTIVE_AI/ADAPTIVE_QUESTIONNAIRE)
+    //      that are uncalibrated — detected by all numeric score fields being equal
+    //      OR by percentage being exactly the hardcoded default (70).
+    //      These must never enter synthesis.
+    //   d) Components with no competencyId are skipped.
+
+    const INSTRUMENT_TYPES = new Set(["VIDEO", "VOICE", "ADAPTIVE_AI", "ADAPTIVE_QUESTIONNAIRE"]);
+
+    function isUncalibratedInstrument(cr: any): boolean {
+        const type = cr.component?.componentType ?? "";
+        if (!INSTRUMENT_TYPES.has(type)) return false;
+        // Uncalibrated: percentage is the hardcoded fallback value (70), or component has no real score
+        const pct = cr.percentage ?? null;
+        if (pct === null) return true;          // no score at all — skip
+        if (pct === 70 && cr.status !== "COMPLETED") return true; // default placeholder
+        // Treat all-equal dimension pattern (video fallback) as uncalibrated
+        // We don't have dimension fields here, so we rely on the 70% sentinel:
+        // if an instrument result is exactly 70 and score equals maxScore*0.7, it's the default.
+        // Safest signal: if percentage === 70 for a video/adaptive type, skip it.
+        if (pct === 70 && INSTRUMENT_TYPES.has(type)) return true;
+        return false;
     }
 
-    // --- Training Need Identification (TNI) Logic ---
-    // If a competency section score falls below the passingScoreLevel, it is flagged as a TNI gap.
-    const trainingNeeds = (assessment.componentResults || []).filter(res => {
-        const score = res.percentage ?? res.score ?? 0;
-        return score < passingScoreLevel && res.status === 'COMPLETED';
+    function synthesizeCompetencyScores(
+        componentResults: any[],
+    ): Map<string, { avgPct: number; count: number; name: string; category: string }> {
+        const acc = new Map<string, { weightedSum: number; totalWeight: number; name: string; category: string; count: number }>();
+        for (const cr of componentResults) {
+            const compId = cr.component?.competencyId;
+            if (!compId) continue;  // unlinked component — skip
+
+            // Fix 3: exclude uncalibrated instrument results
+            if (isUncalibratedInstrument(cr)) continue;
+
+            const pct = cr.percentage ?? (cr.maxScore > 0 ? ((cr.score ?? 0) / cr.maxScore) * 100 : null);
+            if (pct === null) continue;  // no usable score — skip
+
+            const w = cr.component?.weight ?? 1.0;
+            if (!acc.has(compId)) {
+                acc.set(compId, {
+                    weightedSum: 0, totalWeight: 0, count: 0,
+                    name: cr.component?.competency?.name ?? compId,
+                    category: cr.component?.competency?.category ?? ""
+                });
+            }
+            const e = acc.get(compId)!;
+            e.weightedSum += pct * w;
+            e.totalWeight += w;
+            e.count += 1;
+        }
+        const result = new Map<string, { avgPct: number; count: number; name: string; category: string }>();
+        for (const [compId, e] of acc) {
+            result.set(compId, {
+                avgPct: e.totalWeight > 0 ? e.weightedSum / e.totalWeight : 0,
+                count: e.count,
+                name: e.name,
+                category: e.category,
+            });
+        }
+        return result;
+    }
+
+    const competencyScores = synthesizeCompetencyScores(assessment.componentResults || []);
+
+    // ── 4. Gap analysis rows — ONLY assessed competencies ────────────────────
+
+    const gapRows: GapRow[] = [];
+
+    if (isRoleBased && assessment.status === "COMPLETED") {
+        for (const rc of assignedRole.competencies) {
+            const compId = rc.competencyId;
+            const scoreEntry = competencyScores.get(compId);
+            if (!scoreEntry || scoreEntry.count === 0) continue;  // unassessed — skip
+
+            const gapBand = getGapBand(scoreEntry.avgPct, rc.requiredLevel);
+            gapRows.push({
+                competencyName: rc.competency.name,
+                category: rc.competency.category ?? "",
+                achievedPct: scoreEntry.avgPct,
+                requiredLevel: rc.requiredLevel,
+                gap: gapBand,
+                gapLabel: GAP_BAND_LABEL[gapBand],
+            });
+        }
+    }
+
+    // ── 5. TNI rows (Fix 5 — always call generateTNIJustification) ───────────
+
+    const trainingNeeds: any[] = [];
+
+    if (isRoleBased && assessment.status === "COMPLETED") {
+        for (const rc of assignedRole.competencies) {
+            const compId = rc.competencyId;
+            const scoreEntry = competencyScores.get(compId);
+            if (!scoreEntry || scoreEntry.count === 0) continue;
+
+            const gapBand = getGapBand(scoreEntry.avgPct, rc.requiredLevel);
+            if (gapBand === "EXCEEDS" || gapBand === "MET") continue;
+
+            const priority = GAP_BAND_PRIORITY[gapBand];
+
+            // Check if justification is already cached in any component result for this competency
+            const mainCr = (assessment.componentResults || []).find(
+                (cr: any) => cr.component?.competencyId === compId && !isUncalibratedInstrument(cr)
+            );
+
+            const aiObj: Record<string, any> =
+                mainCr && typeof mainCr.aiEvaluationResults === "object" && mainCr.aiEvaluationResults !== null
+                    ? mainCr.aiEvaluationResults
+                    : {};
+
+            let justification: string = aiObj.tniJustification ?? "";
+
+            // Fix 5: always generate if not cached — never fall back to generic string
+            // unless the API call itself fails (generateTNIJustification handles that internally)
+            if (!justification) {
+                justification = await generateTNIJustification(
+                    rc.competency.name,
+                    scoreEntry.avgPct,
+                    rc.requiredLevel,
+                    gapBand,
+                    roleName,
+                );
+                // Cache to the first non-instrument component result if available
+                if (mainCr) {
+                    try {
+                        await prisma.userAssessmentComponent.update({
+                            where: { id: mainCr.id },
+                            data: { aiEvaluationResults: { ...aiObj, tniJustification: justification } },
+                        });
+                    } catch (_) { /* cache write failure is non-fatal */ }
+                }
+            }
+
+            trainingNeeds.push({
+                competencyName: rc.competency.name,
+                gapBand,
+                gapLabel: GAP_BAND_LABEL[gapBand],
+                achievedPct: scoreEntry.avgPct,
+                requiredLevel: rc.requiredLevel,
+                priority,
+                justification,
+                sortOrder: GAP_BAND_SORT_ORDER[gapBand],
+            });
+        }
+        trainingNeeds.sort((a, b) => a.sortOrder - b.sortOrder);
+    }
+
+    // ── 6. Fitment & readiness ───────────────────────────────────────────────
+
+    const fitmentPct = computeOverallFitment(gapRows);
+    const readiness = getReadinessVerdict(fitmentPct);
+    const rawScore = Math.round(assessment.overallScore || 0);
+
+    // ── 7. Career context & AI narratives ────────────────────────────────────
+
+    const careerCtx = member
+        ? buildCareerContext(member, roleName, aspirationalRoleName)
+        : null;
+
+    const narratives = await generateReportNarratives({
+        memberName,
+        roleBasedMode: isRoleBased,
+        roleName,
+        overallScore: rawScore,
+        fitmentPct,
+        readinessLabel: readiness.label,
+        gapRows,
+        trainingCount: trainingNeeds.length,
+        careerCtx,
     });
 
+    // ── 8. Competency profile for Mode A (role-based) & Mode B (standalone) ──
+
+    // Mode A: show gapRows (already synthesised, one entry per assessed role competency)
+    // Mode B: show all assessed competencies from the synthesised map
+    const standaloneCompetencies = !isRoleBased
+        ? Array.from(competencyScores.entries()).map(([compId, e]) => ({
+            competencyId: compId,
+            name: e.name,
+            category: e.category,
+            achievedPct: e.avgPct,
+            standing: getExperienceStanding(e.avgPct),
+        }))
+        : [];
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RENDER
+    // ─────────────────────────────────────────────────────────────────────────
+
     return (
-        <div className="space-y-8 mt-12 pb-12">
+        <div className="space-y-8 mt-12 pb-16 max-w-7xl mx-auto">
+            {/* Back navigation */}
             <header className="flex items-center gap-4">
                 <Button variant="ghost" size="sm" asChild className="-ml-2">
                     <Link href={isB2C ? "/assessments/individuals/dashboard" : "/assessments/results"}>
@@ -137,181 +390,378 @@ export default async function IndividualResultPage({
                 </Button>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Score Summary Card */}
-                <div className="lg:col-span-1 space-y-6">
-                    <Card className="bg-gradient-to-br from-indigo-700 to-indigo-900 text-white border-none shadow-xl">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-white/90">
-                                <Trophy className="h-5 w-5" />
-                                Overall Score
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="flex items-end gap-2">
-                                <div className="text-6xl font-black">{Math.round(assessment.overallScore || 0)}%</div>
-                                <span className="text-sm pb-2 opacity-70 border-b border-indigo-400">/ {passingScoreLevel}% Req.</span>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/20">
-                                <div>
-                                    <p className="text-[10px] text-white/60 uppercase font-black tracking-wider">Status</p>
-                                    <Badge className="bg-white/20 text-white border-none mt-1 uppercase text-[10px] tracking-wider">
-                                        {assessment.status}
-                                    </Badge>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-white/60 uppercase font-black tracking-wider">Verdict</p>
-                                    <p className={`text-sm font-bold mt-1 ${assessment.passed ? 'text-green-300' : 'text-amber-300'}`}>
-                                        {assessment.passed ? "QUALIFIED" : "NEAR TARGET"}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="shadow-md border-gray-100 italic bg-gray-50/50">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm flex items-center gap-2 text-gray-700">
-                                <FileText className="h-4 w-4 text-indigo-400" />
-                                Assessment Info
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+            {/* ── Section 1: Executive Summary ─────────────────────────────── */}
+            {/* Fix 4: Fitment Index is the headline number. Raw score is small/muted. */}
+            <section>
+                <Card className="bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-900 text-white border-none shadow-2xl overflow-hidden relative">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.08),transparent_60%)]" />
+                    <div className="relative z-10 p-6 space-y-4">
+                        {/* Top row */}
+                        <div className="flex items-start justify-between flex-wrap gap-4">
                             <div className="space-y-1">
-                                <h4 className="font-bold text-gray-900">{assessment.projectAssignment?.model?.name ?? "Assessment"}</h4>
-                                <p className="text-xs text-gray-500 line-clamp-2">{assessment.projectAssignment?.model?.description ?? ""}</p>
+                                <div className="flex items-center gap-2">
+                                    <Trophy className="h-6 w-6 text-amber-300 shrink-0" />
+                                    <h1 className="text-2xl font-black text-white">Assessment Report</h1>
+                                </div>
+                                <p className="text-indigo-200 text-sm pl-8">
+                                    {memberName && <><span className="font-semibold">{memberName}</span> · </>}
+                                    {assessment.projectAssignment?.model?.name ?? "Competency Assessment"}
+                                    {isRoleBased && <> · <span className="font-semibold">{roleName}</span></>}
+                                </p>
                             </div>
 
-                            <div className="pt-4 border-t space-y-3">
-                                <div className="flex justify-between text-xs">
-                                    <span className="text-gray-500 flex items-center gap-1"><Calendar className="h-3 w-3" /> Date</span>
-                                    <span className="font-bold text-gray-800">{assessment.completedAt ? format(assessment.completedAt, 'PPP') : 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between text-xs">
-                                    <span className="text-gray-500 flex items-center gap-1"><Clock className="h-3 w-3" /> Time Spent</span>
-                                    <span className="font-bold text-gray-800">{totalTimeAccumulated ? `${Math.round(Number(totalTimeAccumulated) / 60)} mins` : "—"}</span>
-                                </div>
+                            {/* Scores: Fitment is hero; raw score is muted */}
+                            <div className="flex items-end gap-5">
+                                {isRoleBased ? (
+                                    <div className="text-right">
+                                        <p className="text-6xl font-black leading-none">{fitmentPct}%</p>
+                                        <p className="text-[11px] text-indigo-300 uppercase tracking-widest mt-1">Role Fitment Index</p>
+                                        <p className="text-[11px] text-indigo-400 mt-0.5">Avg component score: {rawScore}%</p>
+                                    </div>
+                                ) : (
+                                    <div className="text-right">
+                                        <p className="text-6xl font-black leading-none">{rawScore}%</p>
+                                        <p className="text-[11px] text-indigo-300 uppercase tracking-widest mt-1">Overall Score</p>
+                                    </div>
+                                )}
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
 
-                    {/* Training Need Identification (TNI) Output Card */}
-                    {trainingNeeds.length > 0 && assessment.status === "COMPLETED" && (
-                        <Card className="border-amber-200 bg-amber-50 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-amber-200 to-transparent opacity-50"></div>
-                            <CardHeader className="pb-2 relative z-10">
-                                <CardTitle className="text-sm flex items-center gap-2 text-amber-900 tracking-tight">
-                                    <BookOpen className="h-4 w-4 text-amber-600" />
-                                    Training Recommended
-                                </CardTitle>
-                                <CardDescription className="text-[11px] text-amber-700 leading-snug pt-1">
-                                    The following competencies require your attention to reach mastery.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-2 relative z-10">
-                                <ul className="space-y-2 text-sm text-gray-800">
-                                    {trainingNeeds.map(need => (
-                                        <li key={need.id} className="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">
-                                            <span className="font-medium text-amber-900/90 text-[13px]">{need.component?.competency?.name ?? "Module"}</span>
-                                            <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-[10px]">
-                                                {Math.round(need.percentage ?? need.score ?? 0)}%
-                                            </Badge>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <Button size="sm" className="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-white shadow-sm" asChild>
-                                    <Link href="/assessments/individuals/career">Update Career Goals</Link>
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
-
-                {/* Gap Analysis & Component Results */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/* Integrated Gap Analysis (Phase 5) - org assessments only */}
-                    {!isB2C && <CompetencyGapAnalysis assessmentId={id} />}
-
-                    {/* Component-wise Breakdown */}
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-bold flex items-center gap-2 text-gray-800">
-                            <BrainCircuit className="h-5 w-5 text-indigo-600" />
-                            Section Breakdowns
-                        </h3>
-                        {(!assessment.componentResults || assessment.componentResults.length === 0) ? (
-                            <Card className="border-dashed bg-slate-50/50">
-                                <CardContent className="p-8 text-center text-gray-500">
-                                    <p>No section breakdown available.</p>
-                                    <p className="text-sm mt-2">Sections will appear here once you complete the assessment.</p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid gap-3">
-                                {assessment.componentResults.map((res: any) => {
-                                    // Check if this is an AI interview component
-                                    const componentType = res.component?.componentType ?? "";
-                                    const isAIComponent = ["VOICE", "VIDEO", "ADAPTIVE_AI", "ADAPTIVE_QUESTIONNAIRE"].includes(componentType);
-                                    const aiResponseData = res.questionResponses?.[0]?.responseData as Record<string, unknown> | null;
-                                    const hasAIResult = isAIComponent && aiResponseData && typeof aiResponseData === "object";
-
-                                    if (hasAIResult) {
-                                        return (
-                                            <div key={res.id} className="space-y-2 relative">
-                                                <AIResultCard
-                                                    responseData={aiResponseData}
-                                                    componentType={componentType}
-                                                />
-                                            </div>
-                                        );
-                                    }
-
-                                    const scoreValue = Math.round((res.percentage ?? res.score ?? 0));
-                                    const isFailing = res.status === 'COMPLETED' && scoreValue < passingScoreLevel;
-
-                                    // Standard questionnaire card
-                                    return (
-                                        <Card key={res.id} className={`transition-colors shadow-sm overflow-hidden ${isFailing ? 'border-amber-200 bg-amber-50/30' : 'hover:border-indigo-100'}`}>
-                                            <div className={`h-1 w-full ${res.status === 'COMPLETED' ? (isFailing ? 'bg-amber-400' : 'bg-green-500') : 'bg-gray-200'}`} />
-                                            <CardContent className="p-4 sm:p-5 flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`p-2.5 rounded-xl hidden sm:block ${res.status === 'COMPLETED' ? (isFailing ? 'bg-amber-100' : 'bg-green-50') : 'bg-gray-50'}`}>
-                                                        <CheckCircle2 className={`h-5 w-5 ${res.status === 'COMPLETED' ? (isFailing ? 'text-amber-600' : 'text-green-600') : 'text-gray-300'}`} />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-sm sm:text-base text-gray-900">
-                                                            {res.component?.competency?.name ?? `Section ${(res.component?.order ?? 0) + 1}`}
-                                                        </h4>
-                                                        <Badge variant="outline" className="text-[10px] uppercase border-none bg-slate-100 text-slate-500 mt-1">
-                                                            {res.component?.competency?.name ? "Competency" : "Section"}
-                                                        </Badge>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className={`text-xl sm:text-2xl font-black ${isFailing ? 'text-amber-700' : 'text-gray-900'}`}>
-                                                        {scoreValue}%
-                                                    </p>
-                                                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">Score</p>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })}
+                        {/* Readiness */}
+                        {isRoleBased && (
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm">
+                                <Star className="h-3.5 w-3.5 text-amber-300" />
+                                <span className="text-sm font-bold text-white">{readiness.label}</span>
+                                <span className="text-xs text-indigo-200">— {readiness.description}</span>
                             </div>
                         )}
-                    </div>
 
-                    {isB2C && (
-                        <Card className="border-gray-200">
-                            <CardContent className="p-6 flex justify-center">
-                                <Button asChild className="bg-gray-900 hover:bg-gray-800">
-                                    <Link href="/assessments/individuals/dashboard">Return to Dashboard</Link>
-                                </Button>
+                        {/* AI Executive Summary */}
+                        <div className="pt-2 border-t border-white/10">
+                            <p className="text-sm text-indigo-100 leading-relaxed flex items-start gap-2">
+                                <Sparkles className="h-4 w-4 text-amber-300 mt-0.5 shrink-0" />
+                                {narratives.executiveSummary}
+                            </p>
+                        </div>
+
+                        {/* Meta row */}
+                        <div className="flex flex-wrap gap-6 pt-2 border-t border-white/10 text-xs text-indigo-300">
+                            <span className="flex items-center gap-1">
+                                <User2 className="h-3 w-3" />
+                                {memberName || "Candidate"}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {assessment.completedAt ? format(assessment.completedAt, "PPP") : "N/A"}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {totalTimeAccumulated ? `${Math.round(Number(totalTimeAccumulated) / 60)} mins` : "—"}
+                            </span>
+                            <Badge className="bg-white/15 text-white border-none text-[10px] uppercase tracking-wider">
+                                {assessment.status}
+                            </Badge>
+                        </div>
+                    </div>
+                </Card>
+            </section>
+
+            {/* ── Section 2: Role Fitment & Gap Analysis (Mode A only) ──────── */}
+            {isRoleBased && gapRows.length > 0 && (
+                <section className="space-y-4">
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                        <Target className="h-5 w-5 text-indigo-600" />
+                        Role Fitment & Gap Analysis
+                        <Badge variant="outline" className="ml-auto font-mono text-indigo-700 border-indigo-200 text-xs">
+                            Mode A — Role-Based
+                        </Badge>
+                    </h2>
+
+                    {narratives.gapInsight && (
+                        <Card className="border-indigo-100 bg-indigo-50/50">
+                            <CardContent className="p-4">
+                                <p className="text-sm text-indigo-800 leading-relaxed flex items-start gap-2">
+                                    <Sparkles className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+                                    {narratives.gapInsight}
+                                </p>
                             </CardContent>
                         </Card>
                     )}
-                </div>
-            </div>
+
+                    <div className="grid gap-3">
+                        {gapRows
+                            .sort((a, b) => GAP_BAND_SORT_ORDER[a.gap] - GAP_BAND_SORT_ORDER[b.gap])
+                            .map((row, i) => {
+                                const colours = BAND_COLOUR[row.gap];
+                                return (
+                                    <Card key={i} className={`border overflow-hidden ${colours.border} ${colours.bg}`}>
+                                        <CardContent className="p-4 flex items-center gap-4">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="font-bold text-sm text-gray-900">{row.competencyName}</span>
+                                                    <Badge variant="outline" className={`text-[10px] uppercase border px-2 ${colours.border} ${colours.text}`}>
+                                                        {row.gapLabel}
+                                                    </Badge>
+                                                    {row.category && (
+                                                        <Badge variant="outline" className="text-[10px] bg-gray-100 border-gray-200 text-gray-500">
+                                                            {row.category}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    <Progress value={row.achievedPct} className="h-1.5 flex-1" />
+                                                    <span className="text-xs font-bold text-gray-600 w-10 text-right">
+                                                        {Math.round(row.achievedPct)}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Required</p>
+                                                <p className="text-xs font-bold text-gray-700">{row.requiredLevel}</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })
+                        }
+                    </div>
+
+                    {!isB2C && <CompetencyGapAnalysis assessmentId={id} />}
+                </section>
+            )}
+
+            {/* ── Section 3: Competency Profile ────────────────────────────── */}
+            {/* Fix 1 + Fix 2: no instrument blocks; one card per synthesised competency */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                    <BrainCircuit className="h-5 w-5 text-indigo-600" />
+                    Competency Profile
+                    {!isRoleBased && (
+                        <Badge variant="outline" className="ml-auto font-mono text-gray-600 border-gray-300 text-xs">
+                            Mode B — Standalone
+                        </Badge>
+                    )}
+                </h2>
+
+                {/* Mode A — render gapRows (synthesised, one per assessed role competency) */}
+                {isRoleBased && gapRows.length > 0 && (
+                    <div className="grid gap-3">
+                        {gapRows
+                            .sort((a, b) => b.achievedPct - a.achievedPct)
+                            .map((row, i) => {
+                                const colours = BAND_COLOUR[row.gap];
+                                return (
+                                    <Card key={i} className={`border overflow-hidden ${colours.border}`}>
+                                        <CardContent className="p-4 flex items-center gap-4">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="font-bold text-sm text-gray-900">{row.competencyName}</span>
+                                                    <Badge variant="outline" className={`text-[10px] uppercase border px-2 ${colours.border} ${colours.text}`}>
+                                                        {row.gapLabel}
+                                                    </Badge>
+                                                    {row.category && (
+                                                        <Badge variant="outline" className="text-[10px] bg-gray-100 border-gray-200 text-gray-500">
+                                                            {row.category}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    <Progress value={row.achievedPct} className="h-1.5 flex-1" />
+                                                    <span className="text-xs font-bold text-gray-600 w-10 text-right">
+                                                        {Math.round(row.achievedPct)}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Score</p>
+                                                <p className="text-lg font-black text-gray-800">{Math.round(row.achievedPct)}%</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
+                    </div>
+                )}
+
+                {/* Mode B — standalone: all assessed competencies from the synthesised map */}
+                {!isRoleBased && standaloneCompetencies.length > 0 && (
+                    <div className="grid gap-3">
+                        {standaloneCompetencies
+                            .sort((a, b) => b.achievedPct - a.achievedPct)
+                            .map((comp, i) => (
+                                <Card key={i} className="border-gray-100 shadow-sm overflow-hidden">
+                                    <CardContent className="p-4 flex items-center gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-sm text-gray-900">{comp.name}</span>
+                                                <Badge variant="outline" className="text-[10px] bg-gray-50 border-gray-200 text-gray-500">
+                                                    {comp.standing}
+                                                </Badge>
+                                                {comp.category && (
+                                                    <Badge variant="outline" className="text-[10px] bg-gray-100 border-gray-200 text-gray-500">
+                                                        {comp.category}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <Progress value={comp.achievedPct} className="h-1.5 mt-2" />
+                                        </div>
+                                        <p className="text-xl font-black text-gray-800 shrink-0">
+                                            {Math.round(comp.achievedPct)}%
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                    </div>
+                )}
+
+                {/* Empty state */}
+                {competencyScores.size === 0 && (
+                    <Card className="border-dashed bg-slate-50/50">
+                        <CardContent className="p-8 text-center text-gray-500">
+                            <CheckCircle2 className="h-10 w-10 text-gray-200 mx-auto mb-3" />
+                            <p>No competency data available yet.</p>
+                            <p className="text-sm mt-1">Results will appear here once the assessment is completed.</p>
+                        </CardContent>
+                    </Card>
+                )}
+            </section>
+
+            {/* ── Section 4: Training Need Identification ───────────────────── */}
+            {isRoleBased && trainingNeeds.length > 0 && (
+                <section className="space-y-4">
+                    <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                        <BookOpen className="h-5 w-5 text-amber-600" />
+                        Training Need Identification
+                        <Badge className="ml-auto bg-amber-100 text-amber-800 border-none text-xs">
+                            {trainingNeeds.length} intervention{trainingNeeds.length !== 1 ? "s" : ""} recommended
+                        </Badge>
+                    </h2>
+                    <div className="grid gap-3">
+                        {trainingNeeds.map((need, i) => {
+                            const colours = BAND_COLOUR[need.gapBand as GapBand];
+                            return (
+                                <Card key={i} className={`border overflow-hidden ${colours.border}`}>
+                                    <div className={`h-1 w-full ${need.gapBand === "CRITICAL_GAP" ? "bg-red-500" : need.gapBand === "SIGNIFICANT_GAP" ? "bg-orange-500" : "bg-amber-400"}`} />
+                                    <CardContent className="p-4 space-y-2">
+                                        <div className="flex items-center justify-between flex-wrap gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <AlertTriangle className={`h-4 w-4 ${need.gapBand === "CRITICAL_GAP" ? "text-red-600" : "text-amber-600"}`} />
+                                                <span className="font-bold text-sm text-gray-900">{need.competencyName}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className={`text-[10px] uppercase border ${colours.border} ${colours.text}`}>
+                                                    {need.gapLabel}
+                                                </Badge>
+                                                <Badge variant="outline" className="text-[10px] bg-gray-50 border-gray-200 text-gray-500">
+                                                    Required: {need.requiredLevel}
+                                                </Badge>
+                                                <span className="text-xs font-bold text-gray-600">
+                                                    Score: {Math.round(need.achievedPct)}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p className="text-[13px] text-gray-600 leading-relaxed italic border-t pt-2 border-dashed border-gray-200">
+                                            {need.justification}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                    {isB2C && (
+                        <div className="text-right">
+                            <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" asChild>
+                                <Link href="/assessments/individuals/career">Update Career Goals</Link>
+                            </Button>
+                        </div>
+                    )}
+                </section>
+            )}
+
+            {/* ── Section 5: Performance Trajectory ────────────────────────── */}
+            <section className="space-y-4">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+                    <TrendingUp className="h-5 w-5 text-indigo-600" />
+                    Performance Trajectory
+                </h2>
+                <Card className="border-indigo-100 shadow-sm">
+                    <CardContent className="p-6 space-y-4">
+                        {isRoleBased && (
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${VERDICT_COLOUR[readiness.color] ?? "text-gray-700 bg-gray-100"}`}>
+                                <Star className="h-4 w-4" />
+                                {readiness.label} — {readiness.description}
+                            </div>
+                        )}
+
+                        <p className="text-sm text-gray-700 leading-relaxed flex items-start gap-2">
+                            <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5 shrink-0" />
+                            {narratives.capabilityTrajectory}
+                        </p>
+
+                        {careerCtx && (careerCtx.strengths.length > 0 || careerCtx.areasToImprove.length > 0 || careerCtx.certifications.length > 0) && (
+                            <div className="border-t pt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                                {careerCtx.strengths.length > 0 && (
+                                    <div>
+                                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Strengths</p>
+                                        <ul className="space-y-0.5">
+                                            {careerCtx.strengths.slice(0, 4).map((s, i) => (
+                                                <li key={i} className="text-xs text-gray-600 flex items-center gap-1">
+                                                    <span className="text-green-500">✓</span> {s}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {careerCtx.areasToImprove.length > 0 && (
+                                    <div>
+                                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Development Areas</p>
+                                        <ul className="space-y-0.5">
+                                            {careerCtx.areasToImprove.slice(0, 4).map((a, i) => (
+                                                <li key={i} className="text-xs text-gray-600 flex items-center gap-1">
+                                                    <span className="text-amber-500">→</span> {a}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {careerCtx.certifications.length > 0 && (
+                                    <div>
+                                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Certifications</p>
+                                        <ul className="space-y-0.5">
+                                            {careerCtx.certifications.slice(0, 3).map((c, i) => (
+                                                <li key={i} className="text-xs text-gray-600 flex items-center gap-1">
+                                                    <span className="text-indigo-500">◆</span> {c}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {careerCtx && careerCtx.learningPreferences.length > 0 && (
+                            <div className="border-t pt-3">
+                                <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-2">Preferred Learning Modes</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {careerCtx.learningPreferences.map((lp, i) => (
+                                        <Badge key={i} variant="outline" className="text-xs bg-indigo-50 border-indigo-200 text-indigo-700">
+                                            {lp}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {isB2C && (
+                    <div className="flex justify-end">
+                        <Button asChild className="bg-gray-900 hover:bg-gray-800">
+                            <Link href="/assessments/individuals/dashboard">Return to Dashboard</Link>
+                        </Button>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

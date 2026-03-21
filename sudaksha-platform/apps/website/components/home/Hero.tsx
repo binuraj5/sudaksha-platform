@@ -1,15 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { ArrowRight, Users, TrendingUp, Building, Target, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { CounselorModal } from '@/src/components/common/CounselorModal';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 export function Hero() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [counselorOpen, setCounselorOpen] = useState(false);
+  const { capture } = useCTACapture();
 
   const floatingStats = [
-    { value: '10,000+', label: 'Students Trained', icon: Users },
+    { value: '50,000+', label: 'Students Trained', icon: Users },
     { value: '85%+', label: 'Placement Rate', icon: TrendingUp },
     { value: '200+', label: 'Corporate Partners', icon: Building },
     { value: '12', label: 'Industry Verticals', icon: Target }
@@ -96,13 +101,18 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.6 }}
               className="flex flex-col sm:flex-row gap-3"
             >
-              <Link href="/courses" className="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
+              <Link
+                href="/courses"
+                onClick={() => capture({ sourcePage: '/', ctaLabel: 'Explore Programs', intent: 'browse_courses' })}
+                className="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center">
                 Explore Programs
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
-              <Link href="/consult" className="px-6 py-3 bg-white border-2 border-blue-500 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-300 flex items-center justify-center">
+              <button
+                onClick={() => { setCounselorOpen(true); capture({ sourcePage: '/', ctaLabel: 'Book Free Consultation', intent: 'counseling' }); }}
+                className="px-6 py-3 bg-white border-2 border-blue-500 text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-300 flex items-center justify-center">
                 Book Free Consultation
-              </Link>
+              </button>
             </motion.div>
 
             {/* Trust Badge */}
@@ -160,6 +170,7 @@ export function Hero() {
           </motion.div>
         </div>
       </div>
+      <CounselorModal isOpen={counselorOpen} onClose={() => setCounselorOpen(false)} sourcePage="/" />
     </div>
   );
 }

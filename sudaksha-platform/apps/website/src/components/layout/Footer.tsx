@@ -148,7 +148,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center px-4 max-w-screen-xl mx-auto">
             <p className="text-gray-400 text-sm">
-              &copy; 2024 Sudaksha. All rights reserved.
+              &copy; 2026 Sudaksha. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy-policy" className="text-gray-400 hover:text-white text-sm">

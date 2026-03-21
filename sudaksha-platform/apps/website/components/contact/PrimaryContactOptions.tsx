@@ -13,15 +13,15 @@ const contactOptions = [
     sections: [
       {
         title: 'Individuals',
-        contact: '+91-XXXXX-XXXXX',
+        contact: '+91 91210 44435',
       },
       {
         title: 'Corporates',
-        contact: '+91-XXXXX-XXXXX',
+        contact: '+91 91210 44435',
       },
       {
         title: 'Institutions',
-        contact: '+91-XXXXX-XXXXX',
+        contact: '+91 91210 44435',
       },
     ],
     hours: 'Mon-Sat, 9 AM - 8 PM IST',

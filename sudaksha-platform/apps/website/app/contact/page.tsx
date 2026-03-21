@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useCTACapture } from '@/hooks/useCTACapture';
 import { 
   Phone, 
   Mail, 
@@ -55,6 +56,8 @@ export default function ContactPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const { capture } = useCTACapture();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -62,18 +65,25 @@ export default function ContactPage() {
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await capture({
+      sourcePage: '/contact',
+      ctaLabel: 'Send Message',
+      ctaType: 'form_submit',
+      intent: 'general_inquiry',
+      name: formData.name,
+      email: formData.email,
+      message: formData.message,
+    });
     
     setIsSubmitting(false);
     setIsSubmitted(true);
     
-    // Reset form after 3 seconds
+    // Reset form after 5 seconds
     setTimeout(() => {
       setFormData({ name: '', email: '', message: '' });
       setIsSubmitted(false);
       setErrors({});
-    }, 3000);
+    }, 5000);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -91,7 +101,7 @@ export default function ContactPage() {
       icon: MessageSquare,
       title: 'Chat with Us',
       description: 'Instant support via WhatsApp',
-      action: 'https://wa.me/9191241044435',
+      action: 'https://wa.me/919121044435',
       color: 'from-green-500 to-green-600',
       hoverColor: 'hover:from-green-600 hover:to-green-700'
     },
@@ -99,7 +109,7 @@ export default function ContactPage() {
       icon: Phone,
       title: 'Book a Call',
       description: 'Schedule a consultation',
-      action: 'tel:+9191241044435',
+      action: 'tel:+919121044435',
       color: 'from-blue-500 to-blue-600',
       hoverColor: 'hover:from-blue-600 hover:to-blue-700'
     },
@@ -245,8 +255,8 @@ export default function ContactPage() {
                   <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-6 flex items-center justify-center">
                     <CheckCircle className="w-10 h-10 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Message Sent Successfully!</h3>
-                  <p className="text-blue-300">We'll get back to you within 24 hours.</p>
+                  <h3 className="text-2xl font-bold text-white mb-4">Thank you, {formData.name || 'friend'}!</h3>
+                  <p className="text-blue-300">We'll get back to you within 2 business hours.</p>
                 </div>
               )}
             </div>

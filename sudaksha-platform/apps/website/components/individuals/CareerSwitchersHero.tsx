@@ -15,6 +15,7 @@ interface CareerSwitchersHeroProps {
     primaryCTA: {
       text: string;
       href: string;
+      isExternal?: boolean;
     };
     secondaryCTA: {
       text: string;
@@ -193,6 +194,8 @@ export default function CareerSwitchersHero({ data }: CareerSwitchersHeroProps) 
           >
             <motion.a
               href={data.primaryCTA.href}
+              target={data.primaryCTA.isExternal ? "_blank" : undefined}
+              rel={data.primaryCTA.isExternal ? "noopener noreferrer" : undefined}
               variants={itemVariants}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

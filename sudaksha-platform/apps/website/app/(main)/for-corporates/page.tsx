@@ -1,10 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Users, Target, TrendingUp, Award, Clock, Globe } from 'lucide-react';
+import { QuoteRequestModal } from '@/src/components/common/QuoteRequestModal';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 export default function ForCorporates() {
+  const router = useRouter();
+  const { capture } = useCTACapture();
+  const [quoteOpen, setQuoteOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Hero Section */}
@@ -23,19 +31,25 @@ export default function ForCorporates() {
               Transform your workforce with industry-leading IT training programs tailored to your organization's needs
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/contact"
+              <button
+                onClick={() => {
+                  capture({ sourcePage: '/for-corporates', ctaLabel: 'Get Started', intent: 'corporate_quote', userType: 'corporate' });
+                  setQuoteOpen(true);
+                }}
                 className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Get Started
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link
-                href="/for-corporates/domestic"
+              </button>
+              <button
+                onClick={() => {
+                  capture({ sourcePage: '/for-corporates', ctaLabel: 'Explore Programs', intent: 'browse_courses', userType: 'corporate' });
+                  router.push('/for-corporates/domestic');
+                }}
                 className="inline-flex items-center px-8 py-4 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
               >
                 Explore Programs
-              </Link>
+              </button>
             </div>
           </motion.div>
         </div>
@@ -119,16 +133,21 @@ export default function ForCorporates() {
             <p className="text-xl text-blue-100 mb-8">
               Let us design a custom training program that meets your specific needs
             </p>
-            <Link
-              href="/contact"
+            <button
+              onClick={() => {
+                capture({ sourcePage: '/for-corporates', ctaLabel: 'Schedule a Consultation', intent: 'corporate_quote', userType: 'corporate' });
+                setQuoteOpen(true);
+              }}
               className="inline-flex items-center px-8 py-4 bg-white text-blue-600 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
             >
               Schedule a Consultation
               <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
+            </button>
           </motion.div>
         </div>
       </section>
+
+      <QuoteRequestModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} sourcePage="/for-corporates" />
     </div>
   );
 }

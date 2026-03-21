@@ -9,20 +9,7 @@ import { generateTNI, type GapPriority } from "@/lib/training-recommendations";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "TENANT_ADMIN", "DEPARTMENT_HEAD"];
 
-// JUNIOR=0, MIDDLE=1, SENIOR=2, EXPERT=3
-const LEVEL_INT: Record<string, number> = { JUNIOR: 0, MIDDLE: 1, SENIOR: 2, EXPERT: 3 };
-function pctToLevel(pct: number): string {
-    if (pct >= 75) return "EXPERT";
-    if (pct >= 50) return "SENIOR";
-    if (pct >= 25) return "MIDDLE";
-    return "JUNIOR";
-}
-function gapPriority(gap: number): GapPriority {
-    if (gap >= 2) return "HIGH";
-    if (gap === 1) return "MEDIUM";
-    if (gap === 0) return "NONE";
-    return "EXCEEDS";
-}
+import { getGapBand, GAP_BAND_PRIORITY, GapBand } from "@/lib/tni-utils";
 
 const PRIORITY_COLORS: Record<string, string> = {
     HIGH: "bg-red-100 text-red-700 border-red-200",
@@ -122,12 +109,13 @@ export default async function TNIPage({
         for (const rc of role.competencies) {
             const compId = rc.competencyId;
             const scores = compScores[compId];
-            const avgPct = scores?.length ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length : 0;
-            const achievedLevel = pctToLevel(avgPct);
-            const requiredLevelInt = LEVEL_INT[rc.requiredLevel] ?? 0;
-            const achievedLevelInt = LEVEL_INT[achievedLevel] ?? 0;
-            const gap = requiredLevelInt - achievedLevelInt;
-            const priority = gapPriority(gap);
+            
+            // Bug 1 Fix: Only include if componentResult exists for this session
+            if (!scores || scores.length === 0) continue;
+            
+            const avgPct = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
+            const gapBand = getGapBand(avgPct, rc.requiredLevel);
+            const priority = GAP_BAND_PRIORITY[gapBand];
 
             if (priority === "NONE" || priority === "EXCEEDS") continue;
 
@@ -141,10 +129,10 @@ export default async function TNIPage({
             competencyGapMap[compId].gaps.push({
                 memberId: assessment.memberId,
                 memberName: member.name ?? "Unknown",
-                gap,
-                priority,
+                gap: Math.max(0, 100 - avgPct), // using a generic positive gap visual for now
+                priority: priority as GapPriority,
                 requiredLevel: rc.requiredLevel,
-                achievedLevel,
+                achievedLevel: `${Math.round(avgPct)}%`,
             });
         }
     }

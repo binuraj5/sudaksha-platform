@@ -7,6 +7,7 @@ import {
   ArrowRight, Calendar, Award, Zap, Target, Shield, Building2,
   Wifi, Video, Headphones, BookOpen, AlertCircle
 } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 interface DeliveryOption {
   title: string;
@@ -304,13 +305,19 @@ export default function DeliveryFormats({ deliveryData, pricingData }: DeliveryF
           <div className="bg-gradient-to-r from-sudaksha-blue-50 to-sudaksha-orange-50 rounded-2xl p-8 max-w-4xl mx-auto border border-sudaksha-navy-200">
             <h3 className="text-2xl font-bold text-sudaksha-navy-900 mb-4">Need a Custom Solution?</h3>
             <p className="text-sudaksha-navy-700 mb-6">We can create tailored delivery and pricing models to meet your specific requirements. Let's discuss your needs.</p>
-            <motion.a href="#final-cta" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-sudaksha-blue-600 to-sudaksha-orange-500 text-white font-semibold rounded-lg shadow-cta hover:shadow-cta-hover transition-all duration-300 group">
+            <CTAButton
+              variant="custom"
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-sudaksha-blue-600 to-sudaksha-orange-500 text-white font-semibold rounded-lg shadow-cta hover:shadow-cta-hover transition-all duration-300 group"
+              ctx={{ page: 'Corporate Training', pageUrl: '/corporate-training', section: 'Delivery & Pricing', ctaLabel: 'Get Custom Quote', audienceType: 'corporate', intent: 'get_proposal' }}
+            >
               Get Custom Quote
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </motion.a>
+            </CTAButton>
           </div>
         </motion.div>
       </div>
+
+
     </section>
   );
 }

@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Star, Play } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 const testimonials = [
   {
@@ -64,6 +66,8 @@ const testimonials = [
 
 export function AlumniTestimonials() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { capture } = useCTACapture();
+  const router = useRouter();
 
   return (
     <div className="py-16 lg:py-24 bg-gray-50">
@@ -132,7 +136,11 @@ export function AlumniTestimonials() {
                   "{testimonial.quote}"
                 </p>
 
-                <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium flex items-center justify-center space-x-2">
+                <button 
+                  onClick={() => {
+                    capture({ sourcePage: '/why-sudaksha', ctaLabel: `Watch ${testimonial.name} Video`, intent: 'video_play' });
+                  }}
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium flex items-center justify-center space-x-2">
                   <Play className="w-4 h-4" />
                   <span>Watch {testimonial.videoTime}</span>
                 </button>
@@ -147,12 +155,15 @@ export function AlumniTestimonials() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center mt-12"
         >
-          <Link
-            href="/success-stories"
+          <button
+            onClick={() => {
+              capture({ sourcePage: '/why-sudaksha', ctaLabel: 'Watch 100+ More Success Stories', intent: 'view_success_stories' });
+              router.push('/success-stories');
+            }}
             className="inline-flex items-center px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
           >
             Watch 100+ More Success Stories
-          </Link>
+          </button>
         </motion.div>
       </div>
     </div>

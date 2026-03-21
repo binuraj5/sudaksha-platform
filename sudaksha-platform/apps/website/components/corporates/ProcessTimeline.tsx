@@ -1,6 +1,7 @@
 'use client';
 
 import { Target, Settings, ClipboardCheck, UserCheck, Activity, BarChart3 } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 export default function ProcessTimeline() {
   const processSteps = [
@@ -134,9 +135,13 @@ export default function ProcessTimeline() {
             <p className="text-lg mb-6 opacity-90">
               Let us walk you through how we'll transform your team's capabilities.
             </p>
-            <button className="inline-flex items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
+            <CTAButton 
+              variant="custom"
+              className="inline-flex justify-center items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Six-Sigma Curation Process', ctaLabel: 'Start Discovery Process', audienceType: 'corporate', intent: 'start_process' }}
+            >
               Start Discovery Process
-            </button>
+            </CTAButton>
           </div>
         </div>
       </div>

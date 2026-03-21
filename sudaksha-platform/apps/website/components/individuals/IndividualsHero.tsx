@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Users, Briefcase, TrendingUp, Code, Award } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 interface HeroSection {
   eyebrow: string;
@@ -26,6 +28,7 @@ const iconMap = {
 };
 
 export default function IndividualsHero({ data }: IndividualsHeroProps) {
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -170,14 +173,13 @@ export default function IndividualsHero({ data }: IndividualsHeroProps) {
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </motion.a>
               
-              <motion.a
-                href={data.secondaryCTA.href}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <CTAButton
+                variant="custom"
                 className="inline-flex items-center justify-center px-8 py-4 bg-white text-sudaksha-blue-600 font-semibold rounded-lg border-2 border-sudaksha-blue-200 hover:border-sudaksha-blue-300 hover:bg-sudaksha-blue-50 transition-all duration-300"
+                ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Hero', ctaLabel: data.secondaryCTA.text, audienceType: 'individual', intent: 'career_counseling' }}
               >
                 {data.secondaryCTA.text}
-              </motion.a>
+              </CTAButton>
             </motion.div>
           </motion.div>
 
@@ -233,7 +235,7 @@ export default function IndividualsHero({ data }: IndividualsHeroProps) {
                     <div className="text-center text-white p-4">
                       <Award className="w-12 h-12 mx-auto mb-3 animate-pulse-slow" />
                       <h3 className="text-lg font-bold mb-1">Proven Success</h3>
-                      <p className="text-xs opacity-90">10,000+ Placements</p>
+                      <p className="text-xs opacity-90">50,000+ Placements</p>
                       <p className="text-xs opacity-75">₹6.5 LPA Average</p>
                     </div>
                   </div>
@@ -273,6 +275,8 @@ export default function IndividualsHero({ data }: IndividualsHeroProps) {
 
       {/* Bottom Gradient Fade */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+
+
     </section>
   );
 }

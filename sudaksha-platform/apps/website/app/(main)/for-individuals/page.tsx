@@ -1,8 +1,19 @@
 'use client';
 
+import { useState } from 'react';
 import { GraduationCap, Briefcase, RefreshCw, Target, Code2, Users, Building, UserCheck, Heart, CreditCard, Award, Search, BookOpen, TrendingUp, Play, Star, Clock, DollarSign, Shield, ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { CounselorModal } from '@/src/components/common/CounselorModal';
+import { VideoModal } from '@/src/components/common/VideoModal';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 export default function ForIndividualsOverview() {
+  const router = useRouter();
+  const { capture } = useCTACapture();
+  const [counselorOpen, setCounselorOpen] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState({ name: '', story: '', role: '', company: '' });
+
   const pathways = [
     {
       id: 'freshers',
@@ -94,7 +105,7 @@ export default function ForIndividualsOverview() {
   ];
 
   const stats = [
-    { number: "10,000+", label: "Careers Transformed", icon: <TrendingUp className="w-6 h-6" /> },
+    { number: "50,000+", label: "Careers Transformed", icon: <TrendingUp className="w-6 h-6" /> },
     { number: "85%", label: "Placement Rate", icon: <Target className="w-6 h-6" /> },
     { number: "₹6.5 LPA", label: "Average Starting Salary", icon: <DollarSign className="w-6 h-6" /> },
     { number: "3-6 Months", label: "to Job-Ready", icon: <Clock className="w-6 h-6" /> }
@@ -139,7 +150,7 @@ export default function ForIndividualsOverview() {
     {
       icon: <Award className="w-8 h-8 text-yellow-600" />,
       title: "PROVEN TRACK RECORD",
-      description: "10,000+ successful placements. 4.8/5 rating from 3,500+ reviews. 92% would recommend to friends"
+      description: "50,000+ successful placements. 4.8/5 rating from 3,500+ reviews. 92% would recommend to friends"
     }
   ];
 
@@ -244,11 +255,17 @@ export default function ForIndividualsOverview() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <button className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors duration-200">
+            <button 
+              onClick={() => { capture({ sourcePage: '/for-individuals', ctaLabel: 'Find Your Program', intent: 'browse_courses' }); router.push('/courses'); }}
+              className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors duration-200"
+            >
               <Target className="w-5 h-5 mr-2 inline" />
               Find Your Program
             </button>
-            <button className="px-8 py-3 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors duration-200 border border-blue-500">
+            <button 
+              onClick={() => { capture({ sourcePage: '/for-individuals', ctaLabel: 'Talk to Career Counselor', intent: 'counseling' }); setCounselorOpen(true); }}
+              className="px-8 py-3 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors duration-200 border border-blue-500"
+            >
               <Users className="w-5 h-5 mr-2 inline" />
               Talk to Career Counselor
             </button>
@@ -373,7 +390,10 @@ export default function ForIndividualsOverview() {
                       <div className="text-sm font-semibold text-blue-600">
                         {pathway.successMetric}
                       </div>
-                      <button className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                      <button 
+                        onClick={() => { capture({ sourcePage: '/for-individuals', ctaLabel: pathway.cta, intent: 'browse_courses' }); router.push(pathway.ctaLink); }}
+                        className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                      >
                         {pathway.cta}
                         <ChevronRight className="w-5 h-5 ml-2 inline" />
                       </button>
@@ -442,7 +462,13 @@ export default function ForIndividualsOverview() {
                   "{story.quote}"
                 </blockquote>
                 
-                <button className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                <button 
+                  onClick={() => {
+                    setSelectedVideo({ name: story.name, story: story.quote, role: story.after.split(' @ ')[0] || '', company: story.after.split(' @ ')[1] || '' });
+                    setVideoModalOpen(true);
+                  }}
+                  className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
                   Watch Full Video
                 </button>
               </div>
@@ -491,20 +517,37 @@ export default function ForIndividualsOverview() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Ready to Transform Your Career?</h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join 10,000+ successful professionals who transformed their careers with Sudaksha. Your journey starts here.
+            Join 50,000+ successful professionals who transformed their careers with Sudaksha. Your journey starts here.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors duration-200">
+            <button 
+              onClick={() => { capture({ sourcePage: '/for-individuals', ctaLabel: 'Find Your Program (Footer)', intent: 'browse_courses' }); router.push('/courses'); }}
+              className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors duration-200"
+            >
               <Target className="w-5 h-5 mr-2 inline" />
               Find Your Program
             </button>
-            <button className="px-8 py-3 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors duration-200 border border-blue-500">
+            <button 
+              onClick={() => { capture({ sourcePage: '/for-individuals', ctaLabel: 'Talk to Career Counselor (Footer)', intent: 'counseling' }); setCounselorOpen(true); }}
+              className="px-8 py-3 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors duration-200 border border-blue-500"
+            >
               <Users className="w-5 h-5 mr-2 inline" />
               Talk to Career Counselor
             </button>
           </div>
         </div>
       </section>
+
+      <CounselorModal isOpen={counselorOpen} onClose={() => setCounselorOpen(false)} sourcePage="/for-individuals" />
+      <VideoModal 
+        isOpen={videoModalOpen} 
+        onClose={() => setVideoModalOpen(false)} 
+        sourcePage="/for-individuals"
+        studentName={selectedVideo.name}
+        story={selectedVideo.story}
+        role={selectedVideo.role}
+        company={selectedVideo.company}
+      />
     </div>
   );
 }

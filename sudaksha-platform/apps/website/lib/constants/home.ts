@@ -142,7 +142,7 @@ export const STATISTICS: StatItem[] = [
   { value: '50K', label: 'Students Trained', icon: 'Users' },
   { value: '30K', label: 'Professionals Trained', icon: 'Award' },
   { value: '3K', label: 'Expert Trainers', icon: 'UserCheck' },
-  { value: '80+', label: 'Corporate Partners', icon: 'Building' }
+  { value: '200+', label: 'Corporate Partners', icon: 'Building' }
 ];
 
 export const LEARNING_FORMATS: LearningFormat[] = [

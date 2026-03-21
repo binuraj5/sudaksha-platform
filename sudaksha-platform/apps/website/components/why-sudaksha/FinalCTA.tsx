@@ -1,12 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Users, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { CounselorModal } from '@/src/components/common/CounselorModal';
+import { DemoBookingModal } from '@/src/components/common/DemoBookingModal';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 export function FinalCTA() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [counselorOpen, setCounselorOpen] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
+  const { capture } = useCTACapture();
+  const router = useRouter();
 
   return (
     <div className="py-16 lg:py-24 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 relative overflow-hidden">
@@ -44,24 +53,33 @@ export function FinalCTA() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12"
           >
-            <Link
-              href="/courses"
+            <button
+              onClick={() => {
+                capture({ sourcePage: '/why-sudaksha', ctaLabel: 'Explore Programs', intent: 'browse_courses' });
+                router.push('/courses');
+              }}
               className="px-8 py-4 bg-white text-blue-600 rounded-xl hover:bg-gray-100 transition-colors duration-200 font-semibold text-lg shadow-lg hover:shadow-xl"
             >
               Explore Programs
-            </Link>
-            <Link
-              href="/contact"
+            </button>
+            <button
+              onClick={() => {
+                capture({ sourcePage: '/why-sudaksha', ctaLabel: 'Talk to Counselor', intent: 'counseling' });
+                setCounselorOpen(true);
+              }}
               className="px-8 py-4 border-2 border-white text-white rounded-xl hover:bg-white hover:text-blue-600 transition-all duration-200 font-semibold text-lg"
             >
               Talk to Counselor
-            </Link>
-            <Link
-              href="#demo"
+            </button>
+            <button
+              onClick={() => {
+                capture({ sourcePage: '/why-sudaksha', ctaLabel: 'Book Demo Class', intent: 'book_demo' });
+                setDemoOpen(true);
+              }}
               className="px-8 py-4 bg-blue-500 text-white rounded-xl hover:bg-blue-400 transition-colors duration-200 font-semibold text-lg"
             >
               Book Demo Class
-            </Link>
+            </button>
           </motion.div>
 
           <motion.div
@@ -72,7 +90,7 @@ export function FinalCTA() {
           >
             <div className="flex items-center space-x-2">
               <Users className="w-5 h-5" />
-              <span>10,000+ Students Trained</span>
+              <span>50,000+ Students Trained</span>
             </div>
             <div className="flex items-center space-x-2">
               <TrendingUp className="w-5 h-5" />
@@ -93,6 +111,9 @@ export function FinalCTA() {
           </motion.div>
         </motion.div>
       </div>
+
+      <CounselorModal isOpen={counselorOpen} onClose={() => setCounselorOpen(false)} sourcePage="/why-sudaksha" />
+      <DemoBookingModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} sourcePage="/why-sudaksha" />
     </div>
   );
 }

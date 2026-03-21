@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { DollarSign, TrendingUp, Calendar, Target, Calculator } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 export default function ROICalculator() {
   const [employees, setEmployees] = useState(50);
@@ -156,9 +157,13 @@ export default function ROICalculator() {
                 </div>
               </div>
 
-              <button className="w-full bg-white text-blue-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              <CTAButton 
+                variant="custom"
+                className="w-full bg-white text-blue-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'ROI Calculator', ctaLabel: 'Get Detailed ROI Analysis', audienceType: 'corporate', intent: 'roi_analysis' }}
+              >
                 Get Detailed ROI Analysis
-              </button>
+              </CTAButton>
             </div>
           </div>
         </div>

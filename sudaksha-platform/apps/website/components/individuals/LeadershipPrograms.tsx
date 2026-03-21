@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Award, TrendingUp, Clock, DollarSign, CheckCircle, ArrowRight, Users, Target, Zap } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 interface LeadershipProgram {
   id: string;
@@ -372,20 +373,20 @@ export default function LeadershipPrograms({ data }: LeadershipProgramsProps) {
 
                     {/* CTA */}
                     <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-8 py-3 bg-gradient-to-r from-sudaksha-purple-600 to-sudaksha-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                      <CTAButton
+                        variant="custom"
+                        className="px-8 py-3 bg-gradient-to-r from-sudaksha-purple-600 to-sudaksha-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+                        ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Leadership Programs', ctaLabel: 'Enroll Now', audienceType: 'individual', intent: 'career_counseling', prefill: { program: program.title } }}
                       >
                         Enroll Now
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-8 py-3 bg-white text-sudaksha-purple-600 font-semibold rounded-lg border-2 border-sudaksha-purple-200 hover:border-sudaksha-purple-300 hover:bg-sudaksha-purple-50 transition-all duration-300"
+                      </CTAButton>
+                      <CTAButton
+                        variant="custom"
+                        className="px-8 py-3 bg-white text-sudaksha-purple-600 font-semibold rounded-lg border-2 border-sudaksha-purple-200 hover:border-sudaksha-purple-300 hover:bg-sudaksha-purple-50 transition-all duration-300 transform hover:scale-105 active:scale-95"
+                        ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Leadership Programs', ctaLabel: 'Download Brochure', audienceType: 'individual', intent: 'download_brochure', prefill: { program: program.title } }}
                       >
                         Download Brochure
-                      </motion.button>
+                      </CTAButton>
                     </div>
                   </div>
                 </motion.div>
@@ -409,14 +410,14 @@ export default function LeadershipPrograms({ data }: LeadershipProgramsProps) {
             <p className="text-sudaksha-navy-700 mb-6 max-w-2xl mx-auto">
               Take the next step in your career journey. Our leadership programs are designed to help you transition from senior developer to architect and leadership roles.
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3 bg-gradient-to-r from-sudaksha-purple-600 to-sudaksha-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            <CTAButton
+              variant="custom"
+              className="px-8 py-3 bg-gradient-to-r from-sudaksha-purple-600 to-sudaksha-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 inline-block transform hover:scale-105 active:scale-95"
+              ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Leadership Programs Footer', ctaLabel: 'Schedule Leadership Consultation', audienceType: 'individual', intent: 'talk_to_expert' }}
             >
               Schedule Leadership Consultation
               <ArrowRight className="inline-block ml-2 w-5 h-5" />
-            </motion.button>
+            </CTAButton>
           </div>
         </motion.div>
       </div>

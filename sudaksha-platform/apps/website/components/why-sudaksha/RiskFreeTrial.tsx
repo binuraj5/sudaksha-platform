@@ -1,9 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Calendar, Users, Shield } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { DemoBookingModal } from '@/src/components/common/DemoBookingModal';
+import { useCTACapture } from '@/hooks/useCTACapture';
 
 const trialOptions = [
   {
@@ -44,6 +48,9 @@ const trialOptions = [
 
 export function RiskFreeTrial() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [demoOpen, setDemoOpen] = useState(false);
+  const { capture } = useCTACapture();
+  const router = useRouter();
 
   return (
     <div className="py-16 lg:py-24 bg-gray-50">
@@ -95,12 +102,19 @@ export function RiskFreeTrial() {
                 ))}
               </div>
 
-              <Link
-                href={option.href}
+              <button
+                onClick={() => {
+                  capture({ sourcePage: '/why-sudaksha', ctaLabel: option.action, intent: option.href === '#demo' ? 'book_demo' : 'view_success_stories' });
+                  if (option.href === '#demo') {
+                    setDemoOpen(true);
+                  } else {
+                    router.push('/success-stories');
+                  }
+                }}
                 className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-center block"
               >
                 {option.action}
-              </Link>
+              </button>
             </motion.div>
           ))}
         </div>
@@ -119,6 +133,8 @@ export function RiskFreeTrial() {
           </div>
         </motion.div>
       </div>
+
+      <DemoBookingModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} sourcePage="/why-sudaksha" />
     </div>
   );
 }

@@ -15,7 +15,7 @@ const mockData = {
   hero: {
     eyebrow: "FOR INDIVIDUALS - CAREER TRANSFORMATION",
     headline: "Transform Your Career, Transform Your Life",
-    subheadline: "From zero to job-ready in 4-6 months. 85%+ placement rate, 10,000+ success stories, and lifetime career support.",
+    subheadline: "From zero to job-ready in 4-6 months. 85%+ placement rate, 50,000+ success stories, and lifetime career support.",
     valuePropositions: [
       { id: 1, text: "Programs: 9 Career-launch programs for freshers" },
       { id: 2, text: "Professionals: Weekend programs for working professionals" },
@@ -24,7 +24,7 @@ const mockData = {
     ],
     primaryCTA: { text: "Explore Programs", href: "#programs" },
     secondaryCTA: { text: "Talk to Counselor", href: "#counseling" },
-    trustBanner: "10,000+ Placements | 85%+ Placement Rate | ₹6.5 LPA Average Salary | 200+ Hiring Partners"
+    trustBanner: "50,000+ Placements | 85%+ Placement Rate | ₹6.5 LPA Average Salary | 200+ Hiring Partners"
   },
   audienceSelector: {
     headline: "Choose Your Career Path",
@@ -1199,7 +1199,7 @@ const mockData = {
       { id: 3, text: "4 Specialization Tracks (Dev, Data, QA, Tech Sales)", icon: "TrendingUp" },
       { id: 4, text: "800+ Success Stories, 60% Overall Placement Rate", icon: "Users" }
     ],
-    primaryCTA: { text: "Take Free Assessment", href: "#assessment" },
+    primaryCTA: { text: "Take Free Assessment", href: "https://assessments.sudaksha.com/assessments", isExternal: true },
     secondaryCTA: { text: "Book Free Counseling", href: "#counseling" },
     trustBanner: "800+ Career Switchers | 60% Placement Rate | ₹5-12 LPA Starting | 8-13 Month Journey",
     successMetrics: [
@@ -1476,6 +1476,8 @@ export default function IndividualsPage() {
 
       {/* Section 3: Career Switchers Complete Journey */}
       <section id="switchers" className="py-16 bg-white">
+        <div id="assessment"></div>
+        <div id="counseling"></div>
         <CareerSwitchersHero data={mockData.careerSwitchersHero} />
         <CareerSwitchersJourney data={mockData.careerSwitchersJourney} />
       </section>

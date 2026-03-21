@@ -10,7 +10,7 @@ import { FinalCTA } from '@/components/why-sudaksha/FinalCTA';
 
 export const metadata: Metadata = {
   title: 'Why Sudaksha - 85% Placement Rate, 6 LPA+ Salary | Career Transformation',
-  description: 'Discover why 10,000+ students choose Sudaksha. Practitioner trainers, project-based learning, comprehensive placement support, and pay-after-placement options.',
+  description: 'Discover why 50,000+ students choose Sudaksha. Practitioner trainers, project-based learning, comprehensive placement support, and pay-after-placement options.',
   keywords: 'why sudaksha, placement guarantee, salary increase, career transformation, practitioner trainers, project based learning',
 };
 

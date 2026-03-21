@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Users, TrendingUp, Award, Zap } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 interface StatItem {
   value: string;
@@ -132,9 +133,13 @@ export default function CorporateStats() {
             <p className="text-lg mb-6 opacity-90">
               Let us show you how we can achieve similar results for your organization.
             </p>
-            <button className="inline-flex items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
+            <CTAButton 
+              variant="custom"
+              className="inline-flex justify-center items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Proven Impact', ctaLabel: 'Schedule Consultation', audienceType: 'corporate', intent: 'schedule_call' }}
+            >
               Schedule Consultation
-            </button>
+            </CTAButton>
           </div>
         </div>
       </div>

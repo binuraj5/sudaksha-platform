@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowRight, Users, BookOpen, Target, TrendingUp, Brain, ArrowDownCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 export default function BrainCirculationVision() {
   const [activePhase, setActivePhase] = useState<number | null>(null);
@@ -247,9 +248,13 @@ export default function BrainCirculationVision() {
 
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
-          <button className="px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-lg">
+          <CTAButton 
+            variant="custom"
+            className="px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-lg"
+            ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Brain Circulation', ctaLabel: 'Schedule Strategy Session', audienceType: 'corporate', intent: 'schedule_call' }}
+          >
             Schedule Strategy Session
-          </button>
+          </CTAButton>
         </div>
       </div>
     </section>

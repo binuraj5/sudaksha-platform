@@ -73,7 +73,7 @@ export function FinalCTA() {
             </div>
 
             <div className="text-blue-200 text-sm">
-              Sudaksha Institute of Technology | 📍 Bangalore | Hyderabad | Pune | 📧 hello@sudaksha.com | 📞 +91-XXXXX-XXXXX
+              Sudaksha Institute of Technology | 📍 Bangalore | Hyderabad | Pune | 📧 hello@sudaksha.com | 📞 +91 91210 44435
             </div>
           </motion.div>
         </motion.div>

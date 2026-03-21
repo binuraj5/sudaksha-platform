@@ -8,22 +8,22 @@ const departments = [
   {
     name: 'Admissions & Enrollment',
     email: 'admissions@sudaksha.com',
-    phone: '+91-XXXXX-XXXXX',
+    phone: '+91 91210 44435',
   },
   {
     name: 'Corporate Training',
     email: 'corporate@sudaksha.com',
-    phone: '+91-XXXXX-XXXXX',
+    phone: '+91 91210 44435',
   },
   {
     name: 'Institution Partnerships',
     email: 'institutions@sudaksha.com',
-    phone: '+91-XXXXX-XXXXX',
+    phone: '+91 91210 44435',
   },
   {
     name: 'Career Switchers',
     email: 'careerswitch@sudaksha.com',
-    phone: '+91-XXXXX-XXXXX',
+    phone: '+91 91210 44435',
   },
   {
     name: 'Placement Support (Current Students)',

@@ -86,7 +86,7 @@ export default function LiveChatWidget() {
     // Simulate bot response
     setTimeout(() => {
       const botResponse = {
-        text: 'Thanks for your message! Our team will get back to you soon. For immediate assistance, you can also call us at +91-XXXXX-XXXXX or WhatsApp us.',
+        text: 'Thanks for your message! Our team will get back to you soon. For immediate assistance, you can also call us at +91 91210 44435 or WhatsApp us.',
         isUser: false,
         timestamp: new Date()
       };

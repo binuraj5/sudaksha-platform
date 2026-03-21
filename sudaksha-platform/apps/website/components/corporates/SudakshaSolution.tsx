@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Target, Users, Eye, Briefcase, Zap } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 export default function SudakshaSolution() {
   const benefits = [
@@ -43,7 +44,7 @@ export default function SudakshaSolution() {
       title: 'EMPLOYMENT INTEGRATION',
       description: 'Train-Hire-Deploy (THD) model for new talent',
       features: [
-        'Deploy-Hire-Train (DHT) for rapid scaling',
+        'Hire-Train-Deploy (HTD) for rapid scaling',
         'Direct pipeline to trained, job-ready professionals',
         'Reduce hiring risk with pre-trained candidates',
         'Ongoing upskilling as projects evolve'
@@ -108,9 +109,13 @@ export default function SudakshaSolution() {
             <p className="text-lg mb-6 opacity-90">
               Let us show you how precision-curated training can solve your specific business challenges.
             </p>
-            <button className="inline-flex items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
+            <CTAButton 
+              variant="custom"
+              className="inline-flex justify-center items-center px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              ctx={{ page: 'Corporates', pageUrl: '/corporates', section: 'Sudaksha Approach', ctaLabel: 'Schedule Discovery Call', audienceType: 'corporate', intent: 'schedule_call' }}
+            >
               Schedule Discovery Call
-            </button>
+            </CTAButton>
           </div>
         </div>
       </div>

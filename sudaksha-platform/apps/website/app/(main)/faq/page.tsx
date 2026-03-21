@@ -13,11 +13,11 @@ export default function FAQPage() {
             questions: [
                 {
                     question: 'What is Sudaksha?',
-                    answer: 'Sudaksha is a leading skill development platform offering comprehensive training programs for individuals, institutions, and corporations across Africa, MENA, and other emerging markets. We specialize in IT, non-IT, functional, and personal development courses.',
+                    answer: 'Sudaksha is a leading skill development platform offering comprehensive training programs for individuals, institutions, and corporations across India and emerging markets. We specialize in IT, non-IT, functional, and personal development courses.',
                 },
                 {
                     question: 'Where is Sudaksha located?',
-                    answer: 'Our headquarters is located in Hyderabad, India, with operations across multiple countries in Africa and the MENA region. We offer both in-person and online training options.',
+                    answer: 'Our headquarters is located in Hyderabad, India. We offer both in-person and online training options to cater to learners nationwide.',
                 },
                 {
                     question: 'What makes Sudaksha different from other training providers?',

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Industry-Specific Training Solutions | Sudaksha</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #09090f;
+    --bg-card: rgba(255,255,255,0.03);
+    --bg-card-hover: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.07);
+    --border-active: rgba(0,212,255,0.5);
+    --accent-blue: #00d4ff;
+    --accent-gold: #f5a623;
+    --accent-gold-dim: rgba(245,166,35,0.15);
+    --text-primary: #f0f0f5;
+    --text-secondary: rgba(240,240,245,0.55);
+    --text-tertiary: rgba(240,240,245,0.35);
+    --tab-active-bg: rgba(0,212,255,0.08);
+    --demand-bg: rgba(245,166,35,0.07);
+    --demand-border: rgba(245,166,35,0.35);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+
+  .section-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+  }
+
+  .section-sub {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 52px;
+  }
+
+  /* ── INDUSTRY TABS ── */
+  .industry-rail {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 36px;
+    scrollbar-width: none;
+  }
+  .industry-rail::-webkit-scrollbar { display: none; }
+
+  .ind-pill {
+    flex-shrink: 0;
+    padding: 8px 18px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ind-pill:hover {
+    border-color: rgba(0,212,255,0.3);
+    color: var(--text-primary);
+    background: rgba(0,212,255,0.05);
+  }
+  .ind-pill.active {
+    border-color: var(--accent-blue);
+    background: rgba(0,212,255,0.1);
+    color: var(--accent-blue);
+    box-shadow: 0 0 20px rgba(0,212,255,0.15);
+  }
+  .ind-pill .pill-icon { font-size: 14px; }
+
+  /* ── INDUSTRY HERO ── */
+  .industry-hero {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-left { display: flex; align-items: center; gap: 16px; }
+  .hero-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .hero-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .hero-tag {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 28px;
+  }
+  .hero-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-blue);
+  }
+  .hero-stat-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .demand-panel { order: -1; }
+  }
+
+  /* ── CATEGORY TABS ── */
+  .cat-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+
+  .cat-tab {
+    padding: 10px 18px;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    margin-bottom: -1px;
+  }
+  .cat-tab:hover { color: var(--text-primary); }
+  .cat-tab.active {
+    color: var(--accent-blue);
+    border-bottom-color: var(--accent-blue);
+    background: var(--tab-active-bg);
+    border-radius: 6px 6px 0 0;
+  }
+
+  /* ── PROGRAM GRID ── */
+  .program-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .program-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .program-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-blue), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .program-card:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(0,212,255,0.2);
+    transform: translateY(-2px);
+  }
+  .program-card:hover::before { opacity: 1; }
+
+  .prog-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+  .prog-enquire {
+    font-size: 11px;
+    color: var(--accent-blue);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .program-card:hover .prog-enquire { opacity: 1; }
+
+  /* ── DEMAND PANEL ── */
+  .demand-panel {
+    background: var(--demand-bg);
+    border: 1px solid var(--demand-border);
+    border-radius: 16px;
+    padding: 24px;
+    position: sticky;
+    top: 24px;
+  }
+  .demand-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .demand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(245,166,35,0.2);
+    border: 1px solid rgba(245,166,35,0.4);
+    border-radius: 100px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-gold);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .demand-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+  }
+
+  .demand-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(245,166,35,0.06);
+    border: 1px solid rgba(245,166,35,0.15);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .demand-item:last-child { margin-bottom: 0; }
+  .demand-item:hover {
+    background: rgba(245,166,35,0.12);
+    border-color: rgba(245,166,35,0.3);
+  }
+  .demand-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    margin-top: 5px;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(245,166,35,0.6);
+  }
+  .demand-prog-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+  .demand-prog-tag {
+    font-size: 11px;
+    color: var(--accent-gold);
+    margin-top: 3px;
+    opacity: 0.8;
+  }
+
+  /* ── CTA BAR ── */
+  .cta-bar {
+    margin-top: 40px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(245,166,35,0.05));
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .cta-text-group .cta-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .cta-text-group .cta-headline {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .cta-btn {
+    padding: 14px 28px;
+    background: var(--accent-blue);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .cta-btn:hover {
+    background: #33ddff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0,212,255,0.3);
+  }
+
+  /* ── FADE ANIM ── */
+  .fade-in {
+    animation: fadeIn 0.25s ease forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,212,255,0.12);
+    color: var(--accent-blue);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<section class="section">
+  <p class="section-eyebrow">Precision-Built for Your Sector</p>
+  <h2 class="section-title">Industry-Specific Training Solutions</h2>
+  <p class="section-sub">We speak your industry's language — domain expertise, regulatory context, and technology depth, all in one program.</p>
+
+  <!-- Industry Rail -->
+  <div class="industry-rail" id="industryRail"></div>
+
+  <!-- Industry Hero -->
+  <div class="industry-hero" id="industryHero"></div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+    <div class="left-panel">
+      <!-- Category Tabs -->
+      <div class="cat-tabs" id="catTabs"></div>
+      <!-- Programs -->
+      <div class="program-grid fade-in" id="programGrid"></div>
+    </div>
+
+    <!-- Demand Panel -->
+    <div class="demand-panel" id="demandPanel"></div>
+  </div>
+
+  <!-- CTA Bar -->
+  <div class="cta-bar" id="ctaBar"></div>
+</section>
+
+<script>
+const INDUSTRIES = [
+  {
+    id: 'fintech', label: 'FinTech', icon: '🏦',
+    tagline: 'Build secure, compliant financial systems your regulators trust',
+    stats: { programs: '48', sectors: 'Banking & Payments' },
+    demand: [
+      { name: 'Microservices Migration for Banking', tag: 'Architecture' },
+      { name: 'Fraud Detection with Machine Learning', tag: 'AI/ML' },
+      { name: 'Cloud-Native Banking on AWS', tag: 'Cloud' },
+      { name: 'API Security & PCI-DSS Compliance', tag: 'Security' }
+    ],
+    categories: {
+      domain: ['Core Banking Systems Architecture','Payment Gateway Design & Integration','Digital Lending Platform Development','RBI/SEBI Regulatory Compliance','KYC/AML Process Engineering','Credit Risk Modelling Frameworks','Fraud Detection System Design','Wealth Management Platforms','Open Banking & API Standards','NBFC Operations & Compliance'],
+      technology: ['Java Spring Boot for FinTech','Microservices & Event-Driven Architecture','Apache Kafka for Financial Streaming','AWS/Azure Cloud for Banking','Cybersecurity for Financial Systems','Blockchain & Smart Contracts','Python for Quantitative Finance','DevSecOps for FinTech','Data Engineering for Financial Analytics','OAuth 2.0 & API Security'],
+      behavioural: ['Regulatory Communication & Reporting','Risk Culture & Ethics in Finance','Cross-Functional Agile Collaboration','Stakeholder Presentations for Financial Products','Conflict Resolution in High-Stakes Environments','Presenting to SEBI/RBI Auditors','Building Trust with Compliance Teams'],
+      cognitive: ['Analytical Thinking for Risk Assessment','Decision-Making Under Uncertainty','Systems Thinking for Financial Architecture','Problem Framing for FinTech Challenges','Data-Driven Decision Making','Root Cause Analysis in Production Incidents'],
+      specialist: ['SWIFT Messaging Systems Certification','PCI-DSS Level 1 Compliance','FIX Protocol for Trading Systems','ISO 20022 Migration Readiness','Actuarial Modelling Fundamentals','FEMA & Cross-Border Payment Regulations']
+    }
+  },
+  {
+    id: 'ecommerce', label: 'E-Commerce', icon: '🛒',
+    tagline: 'Scale high-transaction platforms that handle millions without breaking',
+    stats: { programs: '52', sectors: 'Retail & Marketplace' },
+    demand: [
+      { name: 'Headless Commerce Migration (Shopify/Magento)', tag: 'Architecture' },
+      { name: 'Personalisation Engine with ML', tag: 'AI/ML' },
+      { name: 'High-Scale API Architecture', tag: 'Backend' },
+      { name: 'Mobile Commerce App Development', tag: 'Mobile' }
+    ],
+    categories: {
+      domain: ['E-Commerce Platform Architecture','Catalogue & Inventory Management Systems','Order Management & Fulfilment Workflows','Returns & Refunds Process Design','Marketplace Seller Operations','Digital Marketing for E-Commerce','Conversion Rate Optimisation','Customer Lifecycle Management','D2C Brand Operations','Omnichannel Retail Operations'],
+      technology: ['React/Next.js Storefront Development','Headless Commerce (Shopify/Magento)','Elasticsearch for Product Search','Redis for Cart & Session Management','Node.js for High-Throughput APIs','AWS Scaling for E-Commerce','CDN & Web Performance Optimisation','ML-Based Recommendation Engines','Data Pipelines for E-Commerce Analytics','React Native for Mobile Commerce'],
+      behavioural: ['Customer-Centric Product Thinking','Agile for E-Commerce Teams','Vendor & Seller Communication','Cross-Border Trade Communication','Escalation Handling & SLA Management'],
+      cognitive: ['User Journey Mapping & Optimisation','Funnel Analysis for Conversion','Pricing Strategy Thinking','A/B Testing Mindset & Methodology','Demand Forecasting Logic'],
+      specialist: ['Logistics API Integration (Shiprocket/Delhivery)','Payment Gateway Integration (Razorpay/Stripe)','GST & E-Invoicing for E-Commerce','Fraud Prevention in Online Transactions','Platform SEO & Structured Data Markup']
+    }
+  },
+  {
+    id: 'healthcare', label: 'Healthcare', icon: '🏥',
+    tagline: 'HIPAA-compliant systems that clinicians trust and patients depend on',
+    stats: { programs: '46', sectors: 'Hospitals & HealthTech' },
+    demand: [
+      { name: 'EHR/EMR System Integration', tag: 'Integration' },
+      { name: 'FHIR R4 API Development', tag: 'Standards' },
+      { name: 'AI-Powered Clinical Decision Support', tag: 'AI/ML' },
+      { name: 'HIPAA Compliance Certification', tag: 'Compliance' }
+    ],
+    categories: {
+      domain: ['Electronic Health Records (EHR/EMR) Systems','Hospital Information Systems (HIS)','HIPAA & HL7 FHIR Compliance','Telemedicine Platform Development','Medical Billing & Coding Systems','Clinical Workflow Design','Patient Data Privacy & Governance','Health Insurance Processing (TPA)','Diagnostic Imaging Systems (DICOM)','Pharmacy Management Systems'],
+      technology: ['FHIR R4 API Development','Secure Healthcare Data Pipelines','AI/ML for Clinical Decision Support','HIPAA-Compliant Cloud (AWS/Azure)','Mobile Health App Development','IoT for Patient Monitoring','Healthcare Interoperability Systems','DevSecOps for Healthcare','Healthcare Data Warehousing','NLP for Medical Records Processing'],
+      behavioural: ['Patient-Centred Communication','Cross-Disciplinary Team Collaboration','Regulatory Reporting & Documentation','Empathy in Digital Health Product Design','Change Management in Clinical Environments'],
+      cognitive: ['Clinical Systems Thinking','Risk Assessment in Patient Safety','Evidence-Based Decision Making','Lean Process Improvement for Healthcare','Data Interpretation for Clinical Insights'],
+      specialist: ['DICOM Standards & Imaging Workflows','ICD-10 Coding Certification','HL7 v2/v3 & FHIR R4 Standards','Telemedicine Regulatory Framework (India)','NABH Accreditation Preparedness']
+    }
+  },
+  {
+    id: 'pharma', label: 'Pharma', icon: '💊',
+    tagline: 'GxP-compliant systems that pass FDA, EMA, and CDSCO audits first time',
+    stats: { programs: '44', sectors: 'Pharma & Biotech' },
+    demand: [
+      { name: 'GMP/GLP Compliance Training', tag: 'Regulatory' },
+      { name: 'Clinical Data Management Systems', tag: 'Technology' },
+      { name: 'Pharmacovigilance Certification', tag: 'Drug Safety' },
+      { name: 'Computer Systems Validation (CSV)', tag: 'Compliance' }
+    ],
+    categories: {
+      domain: ['GMP/GLP Regulatory Compliance','Clinical Trial Data Management','Drug Safety & Pharmacovigilance','Regulatory Submissions (CDSCO/FDA/EMA)','Quality Assurance in Manufacturing','Cold Chain & Logistics Compliance','Serialisation & Track & Trace','Medical Affairs Operations','Patent & IP Fundamentals','Drug Discovery Informatics'],
+      technology: ['LIMS (Lab Information Management Systems)','Clinical Data Management Systems (CDMS)','Python for Pharma Data Analytics','AI for Drug Discovery Acceleration','Electronic Batch Records (EBR)','Computer Systems Validation (CSV/IQ/OQ/PQ)','eCTD Submission Systems','SAP for Pharma Operations','21 CFR Part 11 Compliance Systems','Bioinformatics Foundations'],
+      behavioural: ['Regulatory Audit Communication & Preparation','Scientific Writing & Technical Documentation','Cross-Functional Project Management in CROs','GMP Culture & Compliance Mindset','Vendor & CRO Relationship Management'],
+      cognitive: ['Root Cause Analysis (CAPA/RCA)','Risk-Based Thinking in Quality Systems','Hypothesis-Driven Research Thinking','Data Integrity Mindset','Process Deviation Analysis & Prevention'],
+      specialist: ['ICH Guidelines (Q, E, S, M series)','GAMP 5 Certification Preparation','FDA 483 Response Writing','Pharmacovigilance Reporting (E2B/E2E)','Electronic Common Technical Document (eCTD)']
+    }
+  },
+  {
+    id: 'logistics', label: 'Logistics', icon: '🚛',
+    tagline: 'Real-time supply chains that survive disruption and scale with demand',
+    stats: { programs: '42', sectors: 'SCM & 3PL/4PL' },
+    demand: [
+      { name: 'WMS/TMS Platform Integration', tag: 'Systems' },
+      { name: 'Demand Forecasting with ML', tag: 'AI/ML' },
+      { name: 'Last-Mile Tech Stack Optimisation', tag: 'Operations' },
+      { name: 'Cold Chain Compliance Certification', tag: 'Compliance' }
+    ],
+    categories: {
+      domain: ['Supply Chain Design & Optimisation','Warehouse Management Systems (WMS)','Transportation Management Systems (TMS)','Last-Mile Delivery Operations','Freight & Customs Compliance','Cold Chain Logistics Management','Reverse Logistics Design','3PL/4PL Operations Management','Demand Planning & S&OP','Procurement & Vendor Management'],
+      technology: ['SAP SCM / Oracle SCM','Python for Supply Chain Analytics','IoT for Fleet & Asset Tracking','ML for Demand Forecasting','RPA in Logistics Operations','API Integration (FedEx/DHL/Delhivery)','Power BI/Tableau Dashboards for SCM','Blockchain for Supply Chain Transparency','RFID & Barcode Systems','ERP Integration for Logistics'],
+      behavioural: ['Supplier & Vendor Negotiation','Crisis Communication in Supply Disruptions','Cross-Border Trade Communication','Distributed Team Coordination','Escalation & Exception Management'],
+      cognitive: ['Systems Thinking for Supply Networks','Risk Modelling for Supply Disruptions','Scenario Planning & Resilience Thinking','Root Cause Analysis for Logistics Delays','Lean & Six Sigma Thinking for SCM'],
+      specialist: ['Incoterms 2020 Certification','Customs & Trade Compliance','Hazardous Goods Handling (ADR/IATA)','APICS CSCP/CPIM Exam Preparation','GST & E-Way Bill Compliance']
+    }
+  },
+  {
+    id: 'edtech', label: 'EdTech', icon: '🎓',
+    tagline: 'Scalable learning platforms built on sound pedagogy and solid engineering',
+    stats: { programs: '40', sectors: 'EdTech & eLearning' },
+    demand: [
+      { name: 'LMS Platform Architecture & Build', tag: 'Platform' },
+      { name: 'AI Tutor & Chatbot Integration', tag: 'AI/ML' },
+      { name: 'Video Learning Infrastructure', tag: 'Media' },
+      { name: 'Learner Analytics Dashboard', tag: 'Analytics' }
+    ],
+    categories: {
+      domain: ['LMS Architecture & Feature Design','Instructional Design & Curriculum Development','Assessment Engine Design','Student Journey & Engagement Design','Live Class Platform Operations','EdTech Product Management','Content Licensing & IP Management','Learner Analytics & Reporting','B2B Institutional Sales for EdTech','Adaptive Learning Frameworks'],
+      technology: ['React/Next.js for EdTech Platforms','Video Infrastructure (Agora/Jitsi/Zoom SDK)','Node.js Backend for LMS','PostgreSQL/MongoDB for Learning Data','AWS Scaling for EdTech','Real-Time Collaboration Tooling','Gamification Engineering','Mobile-First Learning App Development','AI Tutors & Chatbot Integration','Proctoring & Assessment Technology'],
+      behavioural: ['Learner Empathy & UX Thinking','EdTech Sales to Educational Institutions','Educator Communication & Facilitation','Cross-Functional EdTech Team Collaboration','Content Creation with Subject Matter Experts'],
+      cognitive: ['Learning Science & Pedagogy Principles','Outcome-Based Curriculum Design','Learning Analytics Interpretation','Retention & Engagement Psychology','Problem-Based Learning Design Frameworks'],
+      specialist: ['SCORM/xAPI/LTI Standards Implementation','Accessibility (WCAG 2.1) for EdTech','Video CDN Optimisation Strategies','Proctoring System Integration','EdTech Regulatory Compliance (NEP 2020)']
+    }
+  },
+  {
+    id: 'government', label: 'Government', icon: '🏛️',
+    tagline: 'E-governance systems built to serve citizens at national scale',
+    stats: { programs: '38', sectors: 'Public Sector & GovTech' },
+    demand: [
+      { name: 'E-Governance Platform Development', tag: 'Platform' },
+      { name: 'Cybersecurity for Critical Infrastructure', tag: 'Security' },
+      { name: 'Citizen Services App Development', tag: 'Mobile' },
+      { name: 'Data Governance & Open Data', tag: 'Data' }
+    ],
+    categories: {
+      domain: ['E-Governance Platform Design','Public Service Delivery Systems','Digital India Compliance Framework','RTI & Transparency Systems','Government ERP (NIC/PFMS)','Citizen Portal Development','Revenue & Land Records Systems','Smart City Technology','National ID Systems (Aadhaar/DigiLocker)','Public Procurement Systems (GeM)'],
+      technology: ['Java EE / Spring for Government Systems','API Setu & NDEAR Integration','NIC Cloud & Meghraj Platform','Cybersecurity for Critical Infrastructure','Blockchain for Public Records','GIS & Spatial Data Systems','Mobile Apps for Citizen Services','Data Governance & Open Data Platforms','DevOps for Government IT','Accessibility (GIGW Standards)'],
+      behavioural: ['Stakeholder Management in Government','Policy Implementation Communication','Interdepartmental Coordination','Change Management in Public Sector','Compliance Documentation & Writing'],
+      cognitive: ['Policy Analysis & Systems Thinking','Risk Management in Public Projects','Evidence-Based Governance Thinking','Process Re-engineering for Public Delivery','Budget Planning & Prioritisation'],
+      specialist: ['CERT-In Cybersecurity Compliance','NeGP/Digital India Framework','GFR & Public Procurement Rules','Data Localisation & IT Act Compliance','GeM Vendor & Procurement Certification']
+    }
+  },
+  {
+    id: 'defence', label: 'Defence', icon: '🛡️',
+    tagline: 'Mission-critical systems where failure is not an option',
+    stats: { programs: '36', sectors: 'Defence & Aerospace' },
+    demand: [
+      { name: 'Cybersecurity for Defence Systems', tag: 'Security' },
+      { name: 'Embedded Systems for Military Hardware', tag: 'Embedded' },
+      { name: 'AI-Powered Surveillance Systems', tag: 'AI/ML' },
+      { name: 'Secure Communication Systems', tag: 'Comms' }
+    ],
+    categories: {
+      domain: ['Defence Acquisition & Procurement (DAP 2020)','Military-Grade Cybersecurity Frameworks','Command & Control System Design','Satellite & Communication Systems','Embedded Systems for Defence Applications','Defence ERP (DRDO/Ordnance)','ITAR/Export Control Compliance','Military Simulation & Modelling','Intelligence Systems Design','Logistics for Defence Supply Chain'],
+      technology: ['Embedded C/C++ for Defence Systems','RTOS (Real-Time Operating Systems)','Secure Communications (PKI/Encryption)','GIS & Mapping for Defence Operations','Cybersecurity (NCSC/NIST Frameworks)','FPGA/DSP Programming','AI for Surveillance & Threat Detection','Unmanned Systems Software','Defence-Grade DevSecOps','Radar & Signal Processing'],
+      behavioural: ['Mission-Oriented Communication Standards','Classified Information Handling Protocols','Leadership Under High-Pressure Conditions','Cross-Force Coordination','Risk Communication in Operational Environments'],
+      cognitive: ['Strategic & Tactical Decision Making','Threat Modelling & Red Team Thinking','Systems Engineering Mindset','Adversarial Problem Solving','Mission Planning & Contingency Logic'],
+      specialist: ['MIL-STD Standards Compliance','NATO Interoperability Standards','DRDO Vendor Certification Requirements','DO-178C Avionics Software Standards','Export Control (ITAR/EAR) Certification']
+    }
+  },
+  {
+    id: 'aviation', label: 'Aviation', icon: '✈️',
+    tagline: 'Safety-critical software certified to DO-178C where lives depend on it',
+    stats: { programs: '40', sectors: 'Airlines & MRO' },
+    demand: [
+      { name: 'DO-178C Avionics Software Compliance', tag: 'Certification' },
+      { name: 'Flight Data Analytics (FDM/FOQA)', tag: 'Analytics' },
+      { name: 'MRO ERP Implementation (AMOS/SAP)', tag: 'Systems' },
+      { name: 'Cybersecurity for Avionics Systems', tag: 'Security' }
+    ],
+    categories: {
+      domain: ['Aviation Safety Management Systems (SMS)','Airline Operations & MRO Processes','Air Traffic Management Systems','Aircraft Maintenance Engineering','Ground Operations & Ramp Safety','Airline Revenue Management','Crew Resource Management (CRM)','Airport IT Systems (DCS/CUTE)','Cargo & Freight Operations','DGCA Regulatory Compliance'],
+      technology: ['ARINC 653 / AFDX Networking','DO-178C Avionics Software Development','Aircraft Health Monitoring Systems','Flight Data Analytics (FDM/FOQA)','MRO ERP (AMOS/SAP PM)','Cloud for Airline Operations','Cybersecurity for Aviation (SITA/ACARS)','GIS for Airport Management','IoT for Predictive Maintenance','Digital Twin for Fleet Management'],
+      behavioural: ['CRM — Crew & Team Communication','Safety Culture & Reporting Frameworks','High-Stakes Decision Communication','Cross-Cultural Communication in Aviation','Fatigue Management & Awareness'],
+      cognitive: ['Safety-Critical Systems Thinking','Human Factors & Error Management','Risk-Based Decision Making in Aviation','Incident Investigation Methodology','Situational Awareness Training'],
+      specialist: ['IATA DGR (Dangerous Goods) Certification','ICAO Standards & Recommended Practices','EASA/FAA Regulatory Frameworks','DO-254 Hardware Compliance','SMS & ISMS for Aviation Organisations']
+    }
+  },
+  {
+    id: 'travel', label: 'Travel & Hospitality', icon: '🌏',
+    tagline: 'Seamless booking experiences and personalised journeys at global scale',
+    stats: { programs: '38', sectors: 'OTA & Hotel Chains' },
+    demand: [
+      { name: 'GDS API Integration (Amadeus/Sabre)', tag: 'Integration' },
+      { name: 'Dynamic Pricing & Revenue Engine', tag: 'Revenue Mgmt' },
+      { name: 'Mobile Travel App Development', tag: 'Mobile' },
+      { name: 'AI Personalisation for Travel', tag: 'AI/ML' }
+    ],
+    categories: {
+      domain: ['Global Distribution Systems (GDS — Amadeus/Sabre)','Online Travel Agency (OTA) Platform Design','Hotel Property Management Systems (PMS)','Revenue Management & Dynamic Pricing','Loyalty Program Architecture','Travel API Integration (Flights/Hotels/Cars)','MICE & Events Management','Destination Management Operations','Booking Engine Design & Optimisation','Guest Experience Design'],
+      technology: ['React/Node.js for Travel Platforms','Amadeus/Sabre/Galileo API Integration','Multi-Currency Payment Integration','AI for Personalised Travel Recommendations','Mobile App for Travel & Hospitality','Revenue Optimisation with Data Analytics','CRM for Hotel Chains','Channel Manager Integration','Cloud Scaling for Peak Season Traffic','AI Chatbots for Guest Services'],
+      behavioural: ['Guest-First Service Excellence Culture','Cross-Cultural Communication Training','Upselling & Consultative Sales Techniques','Crisis Communication (Cancellations/Delays)','24/7 Operations Team Coordination'],
+      cognitive: ['Revenue Optimisation & Yield Management','Demand Forecasting & Pricing Logic','Customer Journey Mapping for Travel','Problem Solving in Real-Time Operations','Service Recovery & Guest Retention'],
+      specialist: ['IATA Travel Agent Certification','GDS Certification (Amadeus/Sabre)','PCI-DSS for Travel Payment Systems','Revenue Management (CRME Exam Prep)','Sustainable Tourism Practices']
+    }
+  },
+  {
+    id: 'retail', label: 'Retail & FMCG', icon: '🏪',
+    tagline: 'Omnichannel retail and FMCG operations engineered for consumer scale',
+    stats: { programs: '42', sectors: 'Retail & Consumer Goods' },
+    demand: [
+      { name: 'Omnichannel Platform Integration', tag: 'Integration' },
+      { name: 'Demand Forecasting with ML', tag: 'AI/ML' },
+      { name: 'Retail Analytics Dashboard Build', tag: 'Analytics' },
+      { name: 'Trade Promotion Optimisation', tag: 'Revenue' }
+    ],
+    categories: {
+      domain: ['Retail Analytics & Category Management','Trade Promotion Management','Planogram & Merchandising Optimisation','Omnichannel Retail Operations','FMCG Supply Chain & Distribution','Retail ERP (SAP Retail/Oracle)','POS Systems & Payment Integration','Consumer Insights & Market Research','Private Label Development','Modern Trade vs General Trade Operations'],
+      technology: ['SAP Retail / Oracle Retail Implementation','POS & mPOS System Integration','React Native for Retail Mobile Apps','Power BI/Tableau for Retail Analytics','ML for Demand Forecasting','RFID & Smart Inventory Management','Loyalty Program Technology Stack','CRM for Retail (Salesforce/Zoho)','E-Commerce Omnichannel Integration','IoT for Smart Shelving'],
+      behavioural: ['Sales Force Effectiveness & Coaching','Negotiation with Modern Trade Buyers','Consumer Communication & Brand Voice','Field Force Management','Customer Complaint Handling & Recovery'],
+      cognitive: ['Shopper Psychology & Buying Behaviour','Category Strategy Thinking','Margin & Profitability Analysis','Innovation Pipeline Development','Competitive Landscape Assessment'],
+      specialist: ['GS1 Barcode & Standards Compliance','FSSAI Compliance for FMCG','APMC & Trade Regulation','ECR (Efficient Consumer Response) Practices','Nielsen/IRI Retail Data Analytics']
+    }
+  },
+  {
+    id: 'realestate', label: 'Real Estate', icon: '🏗️',
+    tagline: 'PropTech platforms and RERA-compliant operations for modern real estate',
+    stats: { programs: '36', sectors: 'PropTech & Developers' },
+    demand: [
+      { name: 'PropTech Platform Development', tag: 'Platform' },
+      { name: 'AI-Powered Property Valuation', tag: 'AI/ML' },
+      { name: 'Smart Building IoT Systems', tag: 'IoT' },
+      { name: 'RERA Compliance Certification', tag: 'Compliance' }
+    ],
+    categories: {
+      domain: ['Real Estate ERP & Platform Design','RERA Compliance & Legal Framework','Property Management Systems','Real Estate CRM & Lead Management','Construction Project Management','Home Loan & Mortgage Processing','Co-Working Space Operations','PropTech Platform Architecture','Real Estate Financial Modelling','Tenant & Lease Management Systems'],
+      technology: ['React/Node.js for PropTech Platforms','GIS & Location Intelligence Systems','3D Visualisation (BIM/AR for Properties)','Salesforce/HubSpot CRM Integration','Payment Systems for Real Estate','Market Intelligence Data Analytics','AI for Automated Property Valuation','IoT for Smart Building Management','Mobile App for Property Search','Document Management & e-Signing Systems'],
+      behavioural: ['Sales Negotiation & Deal Closing','Customer Trust & Relationship Building','Legal & Documentation Communication','Investor Presentation & Pitch Skills','Conflict Resolution in Property Disputes'],
+      cognitive: ['Property Valuation Thinking Frameworks','Market Analysis & Investment Logic','Risk Assessment in Real Estate Projects','Financial Modelling for Developers','Urban Planning & Development Thinking'],
+      specialist: ['RERA Registration & Compliance','BIM (Building Information Modelling)','LEED/GRIHA Green Building Certification','Real Estate Finance & Structuring','Property Law Essentials for Developers']
+    }
+  }
+];
+
+const CATEGORY_LABELS = {
+  domain: 'Domain-Specific',
+  technology: 'Technology',
+  behavioural: 'Behavioural',
+  cognitive: 'Cognitive',
+  specialist: 'Specialist'
+};
+
+let activeIndustry = 'fintech';
+let activeCategory = 'domain';
+
+function getIndustry(id) {
+  return INDUSTRIES.find(i => i.id === id);
+}
+
+function renderIndustryRail() {
+  const rail = document.getElementById('industryRail');
+  rail.innerHTML = INDUSTRIES.map(ind => `
+    <button class="ind-pill ${ind.id === activeIndustry ? 'active' : ''}" onclick="selectIndustry('${ind.id}')">
+      <span class="pill-icon">${ind.icon}</span>${ind.label}
+    </button>
+  `).join('');
+}
+
+function renderIndustryHero() {
+  const ind = getIndustry(activeIndustry);
+  document.getElementById('industryHero').innerHTML = `
+    <div class="hero-left">
+      <div class="hero-icon">${ind.icon}</div>
+      <div>
+        <div class="hero-name">${ind.label}</div>
+        <div class="hero-tag">${ind.tagline}</div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">${ind.stats.programs}+</div>
+        <div class="hero-stat-label">Programs Available</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">5</div>
+        <div class="hero-stat-label">Training Categories</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCatTabs() {
+  document.getElementById('catTabs').innerHTML = Object.entries(CATEGORY_LABELS).map(([key, label]) => {
+    const ind = getIndustry(activeIndustry);
+    const count = ind.categories[key].length;
+    return `<button class="cat-tab ${key === activeCategory ? 'active' : ''}" onclick="selectCategory('${key}')">
+      ${label}<span class="count-badge">${count}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderPrograms() {
+  const ind = getIndustry(activeIndustry);
+  const programs = ind.categories[activeCategory];
+  const grid = document.getElementById('programGrid');
+  grid.className = 'program-grid fade-in';
+  grid.innerHTML = programs.map(prog => `
+    <div class="program-card">
+      <div class="prog-name">${prog}</div>
+      <div class="prog-enquire">Enquire →</div>
+    </div>
+  `).join('');
+}
+
+function renderDemandPanel() {
+  const ind = getIndustry(activeIndustry);
+  document.getElementById('demandPanel').innerHTML = `
+    <div class="demand-header">
+      <span class="demand-badge">🔥 High Demand</span>
+    </div>
+    <div class="demand-title">Solutions in Demand</div>
+    ${ind.demand.map(d => `
+      <div class="demand-item">
+        <div class="demand-dot"></div>
+        <div>
+          <div class="demand-prog-name">${d.name}</div>
+          <div class="demand-prog-tag">${d.tag}</div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderCTA() {
+  const ind = getIndustry(activeIndustry);
+  document.getElementById('ctaBar').innerHTML = `
+    <div class="cta-text-group">
+      <div class="cta-label">Ready to start?</div>
+      <div class="cta-headline">Design Your ${ind.label} Training Program</div>
+    </div>
+    <button class="cta-btn">Schedule Discovery Call →</button>
+  `;
+}
+
+function selectIndustry(id) {
+  activeIndustry = id;
+  activeCategory = 'domain';
+  renderAll();
+}
+
+function selectCategory(key) {
+  activeCategory = key;
+  renderCatTabs();
+  renderPrograms();
+}
+
+function renderAll() {
+  renderIndustryRail();
+  renderIndustryHero();
+  renderCatTabs();
+  renderPrograms();
+  renderDemandPanel();
+  renderCTA();
+}
+
+renderAll();
+</script>
+</body>
+</html>

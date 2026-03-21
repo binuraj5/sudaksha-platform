@@ -2,33 +2,7 @@ import { getApiSession } from "@/lib/get-session";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// JUNIOR=0, MIDDLE=1, SENIOR=2, EXPERT=3 — matches schema ProficiencyLevel enum
-const LEVEL_INT: Record<string, number> = {
-    JUNIOR: 0,
-    MIDDLE: 1,
-    SENIOR: 2,
-    EXPERT: 3,
-};
-
-/** Convert a 0–100 percentage score to a 0–3 proficiency integer */
-function percentageToLevelInt(pct: number): number {
-    if (pct >= 75) return 3; // EXPERT
-    if (pct >= 50) return 2; // SENIOR
-    if (pct >= 25) return 1; // MIDDLE
-    return 0;                // JUNIOR
-}
-
-function levelIntToLabel(n: number): string {
-    return ["JUNIOR", "MIDDLE", "SENIOR", "EXPERT"][n] ?? "JUNIOR";
-}
-
-/** Gap priority per FSD spec */
-function gapPriority(gap: number): "HIGH" | "MEDIUM" | "NONE" | "EXCEEDS" {
-    if (gap >= 2) return "HIGH";
-    if (gap === 1) return "MEDIUM";
-    if (gap === 0) return "NONE";
-    return "EXCEEDS"; // gap < 0
-}
+import { getGapBand, GAP_BAND_PRIORITY, GAP_BAND_LABEL, GapBand } from "@/lib/tni-utils";
 
 export async function GET(
     request: Request,
@@ -166,15 +140,18 @@ function buildAnalysis(
     roleName: string,
     userName: string
 ) {
-    const analysis = roleCompetencies.map(rc => {
+    const analysisRaw = roleCompetencies.map(rc => {
         const compId = rc.competencyId;
-        const avgPct = competencyScores[compId]
-            ? competencyScores[compId].total / competencyScores[compId].count
-            : 0;
+        
+        // BUG 1 FIX: Skip if not assessed
+        if (!competencyScores[compId] || competencyScores[compId].count === 0) {
+            return null;
+        }
 
-        const requiredLevelInt = LEVEL_INT[rc.requiredLevel] ?? 0;
-        const achievedLevelInt = percentageToLevelInt(avgPct);
-        const gap = requiredLevelInt - achievedLevelInt;
+        const avgPct = competencyScores[compId].total / competencyScores[compId].count;
+
+        const gapBand = getGapBand(avgPct, rc.requiredLevel);
+        const priority = GAP_BAND_PRIORITY[gapBand];
 
         return {
             competencyId: compId,
@@ -182,17 +159,19 @@ function buildAnalysis(
             category: rc.competency.category,
             // Legacy percentage fields (preserved for existing UI)
             actualScore: Math.round(avgPct),
-            requiredScore: requiredLevelInt * 25 + 12, // midpoint of band for display
+            requiredScore: 0, // No longer using integer offset
             // New integer-level fields
             requiredLevel: rc.requiredLevel as string,
-            requiredLevelInt,
-            achievedLevel: levelIntToLabel(achievedLevelInt),
-            achievedLevelInt,
-            gap,
-            priority: gapPriority(gap),
-            isMet: gap <= 0,
+            requiredLevelInt: 0,
+            achievedLevel: `${Math.round(avgPct)}%`,
+            achievedLevelInt: 0,
+            gap: gapBand,
+            priority,
+            isMet: priority === "NONE",
         };
     });
+
+    const analysis = analysisRaw.filter((a): a is NonNullable<typeof a> => a !== null);
 
     return {
         roleName,

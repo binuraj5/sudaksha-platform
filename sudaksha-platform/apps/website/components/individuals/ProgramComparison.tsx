@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Check, X, Info } from 'lucide-react';
+import { CTAButton } from '@/components/universal/CTAButton';
 
 interface ComparisonTable {
   headers: string[];
@@ -231,13 +232,13 @@ export default function ProgramComparison({ data }: ProgramComparisonProps) {
             <p className="text-sudaksha-navy-700 mb-6 max-w-2xl mx-auto">
               Our career counselors can help you select the right program based on your background, interests, and career goals. Get personalized guidance to make the best decision for your future.
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3 bg-gradient-to-r from-sudaksha-blue-600 to-sudaksha-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            <CTAButton
+              variant="custom"
+              className="px-8 py-3 bg-gradient-to-r from-sudaksha-blue-600 to-sudaksha-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 inline-block"
+              ctx={{ page: 'Individuals', pageUrl: '/individuals', section: 'Program Comparison', ctaLabel: 'Schedule Career Counseling', audienceType: 'individual', intent: 'career_counseling' }}
             >
               Schedule Career Counseling
-            </motion.button>
+            </CTAButton>
           </div>
         </motion.div>
       </div>
