@@ -9,6 +9,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { GlobalCTAForm } from '@/components/common/GlobalCTAForm';
+import { CounselorModal } from '@/components/common/CounselorModal';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CourseViewClientProps {
@@ -18,6 +19,7 @@ interface CourseViewClientProps {
 export default function CourseViewClient({ course }: CourseViewClientProps) {
   const [expandedModule, setExpandedModule] = useState<number | null>(0);
   const [showEnrollForm, setShowEnrollForm] = useState(false);
+  const [counselorOpen, setCounselorOpen] = useState(false);
   const [ctaSource, setCtaSource] = useState('Enroll Now - Detail Page');
 
   const handleEnrollClick = (source: string) => {
@@ -290,7 +292,10 @@ export default function CourseViewClient({ course }: CourseViewClientProps) {
               <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-6 text-white text-center">
                 <h3 className="font-bold text-lg mb-2">Need Guidance?</h3>
                 <p className="text-indigo-100 text-sm mb-4">Talk to our career counselors to find the right path for you.</p>
-                <button className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-semibold transition-colors w-full border border-white/20">
+                <button 
+                  onClick={() => setCounselorOpen(true)}
+                  className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-semibold transition-colors w-full border border-white/20"
+                >
                   Request Call Back
                 </button>
               </div>
@@ -307,6 +312,12 @@ export default function CourseViewClient({ course }: CourseViewClientProps) {
         ctaSubject={`Course Inquiry: ${course.title}`}
         sourceButton={ctaSource}
         sourcePage="Course Detail Page"
+      />
+      
+      <CounselorModal
+        isOpen={counselorOpen}
+        onClose={() => setCounselorOpen(false)}
+        sourcePage={`/courses/${course.slug || 'unknown'}`}
       />
     </div>
   );
