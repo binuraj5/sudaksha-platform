@@ -392,7 +392,7 @@ export function ApprovalQueuePage() {
                                         <TableCell className="text-right">
                                             {req.status === "PENDING" ? (
                                                 <div className="flex items-center justify-end gap-2">
-                                                    {req.type === "COMPETENCY" ? (
+                                                    {req.type === "COMPETENCY" && (req as any).isEmployeeRequest ? (
                                                         <Button
                                                             size="sm"
                                                             className="bg-indigo-600 hover:bg-indigo-700 text-white h-8"

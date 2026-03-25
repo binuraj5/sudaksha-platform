@@ -101,6 +101,7 @@ export async function GET(req: NextRequest) {
             requests.map(async (req) => {
                 let entityName = "Unknown Entity";
                 let entityDescription = "";
+                let isEmployeeRequest = false;
                 const originalData = req.originalData as any;
 
                 if (req.type === "ROLE") {
@@ -129,9 +130,11 @@ export async function GET(req: NextRequest) {
                     if (competency) {
                         entityName = competency.name;
                         entityDescription = competency.description || "";
+                        isEmployeeRequest = false;
                     } else if (originalData?.name) {
                         entityName = originalData.name;
                         entityDescription = originalData.description || "";
+                        isEmployeeRequest = true;
                     }
                 } else if ((req.type as string) === "ASSESSMENT_REQUEST") {
                     // Assessment requests store everything in modifiedData
@@ -147,6 +150,7 @@ export async function GET(req: NextRequest) {
                     ...req,
                     entityName,
                     entityDescription,
+                    isEmployeeRequest,
                     modifiedData: req.modifiedData ?? null,
                     requesterName: (req.modifiedData as any)?.memberName || requester?.name || requester?.email || null,
                     requesterEmail: requester?.email || null,
