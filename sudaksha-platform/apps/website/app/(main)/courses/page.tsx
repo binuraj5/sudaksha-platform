@@ -5,9 +5,9 @@ import { Search, Grid, List, Filter, X, ChevronDown, ChevronUp } from 'lucide-re
 
 import { CourseCard } from '@/components/courses/course-card';
 import { NewFilters } from '@/components/courses/new-filters';
-import { useInfiniteCourses } from '@/hooks/use-courses';
-import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
+import { useCourses } from '@/hooks/use-courses';
 import { DarkModeToggle } from '@/components/ui/dark-mode-toggle';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { Course } from '@/types/course';
 
@@ -24,6 +24,7 @@ function CoursesPageContent() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // New filter state
   const [filters, setFilters] = useState({
@@ -64,8 +65,8 @@ function CoursesPageContent() {
   // Debounce search
   const debouncedSearch = searchTerm.length > 2 ? searchTerm : '';
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } = useInfiniteCourses({
-    page: 1,
+  const { data, isLoading, error } = useCourses({
+    page: currentPage,
     search: debouncedSearch,
     categories: [],
     courseTypes: filters.types as any,
@@ -80,14 +81,13 @@ function CoursesPageContent() {
     domain: filters.domain === 'All' ? undefined : [filters.domain] as any,
   });
 
-  const fetchedCourses = data?.pages.flatMap(page => page.courses) || [];
-  const courses = fetchedCourses;
+  const courses = data?.courses || [];
+  const pagination = data?.pagination || { page: 1, totalPages: 1, hasNextPage: false, hasPrevPage: false };
 
-  const loadMoreRef = useInfiniteScroll({
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage
-  });
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, filters]);
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -270,18 +270,38 @@ function CoursesPageContent() {
                     ))}
                   </div>
 
-                  {/* Infinite Scroll Trigger */}
-                  <div ref={loadMoreRef.loadMoreRef} className="py-8 text-center">
-                    {isFetchingNextPage && (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-gray-600">Loading more courses...</span>
+                  {/* Pagination Controls */}
+                  {pagination.totalPages > 1 && (
+                    <div className="py-8 flex items-center justify-between border-t border-gray-100 mt-6">
+                      <button
+                        onClick={() => {
+                          setCurrentPage(p => Math.max(1, p - 1));
+                          window.scrollTo({ top: 300, behavior: 'smooth' });
+                        }}
+                        disabled={!pagination.hasPrevPage}
+                        className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Previous
+                      </button>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-700">
+                          Page <span className="font-semibold text-gray-900">{pagination.page}</span> of <span className="font-semibold text-gray-900">{pagination.totalPages}</span>
+                        </span>
                       </div>
-                    )}
-                    {!hasNextPage && courses.length > 0 && (
-                      <p className="text-gray-500 text-sm">You've reached the end of the course catalog</p>
-                    )}
-                  </div>
+
+                      <button
+                        onClick={() => {
+                          setCurrentPage(p => p + 1);
+                          window.scrollTo({ top: 300, behavior: 'smooth' });
+                        }}
+                        disabled={!pagination.hasNextPage}
+                        className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </ErrorBoundary>
