@@ -8,7 +8,6 @@ import { NewFilters } from '@/components/courses/new-filters';
 import { useCourses } from '@/hooks/use-courses';
 import { DarkModeToggle } from '@/components/ui/dark-mode-toggle';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { Course } from '@/types/course';
 
 const popularTags = [
