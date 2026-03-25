@@ -78,17 +78,23 @@ The JSON must match this exact structure:
   ]
 }`;
 
-    const userMessage = `Create a professional course with these requirements:
-- Topic/Concept: ${prompt}
-- Domain: ${domain || "IT"}
-- Category: ${category || "Software Development"}
-- Industry Focus: ${industry || "Generic"}
-- Target Level: ${targetLevel || "Intermediate"}
-- Course Type: ${courseType || "Technology"}
-- Delivery Mode: ${deliveryMode || "Live Online"}
-- Duration: approximately ${durationHours} hours
+    const userMessage = `Create a highly professional and specialized course curriculum based on the following strict parameters provided by the user:
 
-Generate a complete, realistic course with 5-7 modules, each with 3-5 chapters. Include 6-8 learning objectives, 3-5 deliverables, and 5-7 skill tags.`;
+- **Core Topic/Concept**: ${prompt}
+- **Domain**: ${domain || "IT"}
+- **Category Focus**: ${category || "Software Development"}
+- **Industry Context**: ${industry || "Generic"}
+- **Target Audience Level**: ${targetLevel || "Intermediate"}
+- **Course Type Structure**: ${courseType || "Technology"}
+- **Primary Delivery Mode**: ${deliveryMode || "Live Online"}
+- **Estimated Duration**: approximately ${durationHours} hours
+
+CRITICAL INSTRUCTIONS:
+1. The entire curriculum, including the description, modules, objectives, and projects, MUST be specifically tailored to the "${industry || "Generic"}" industry and the "${targetLevel || "Intermediate"}" audience level. Do not generate beginner content if the target level is Advanced, and ensure real-world examples fit the specific industry.
+2. Generate a complete, realistic course featuring exactly 5-7 modules. Each module must contain 3-5 individual chapters.
+3. Formulate 6-8 distinct learning objectives that outline the skills students will acquire.
+4. Specify 3-5 capstone deliverables or projects representing practical application of the knowledge.
+5. Provide 5-7 relevant, modern skill tags.`;
 
     const response = await generateChatCompletion([
       { role: "system", content: systemPrompt },
@@ -134,7 +140,8 @@ Generate a complete, realistic course with 5-7 modules, each with 3-5 chapters. 
     course.hasProcessFrameworks = course.hasProcessFrameworks ?? false;
     course.hasPersonalActivities = course.hasPersonalActivities ?? false;
     course.certification = course.certification ?? false;
-    course.audienceLevel = course.audienceLevel ?? "ALL_LEVELS";
+    course.certification = course.certification ?? false;
+    course.audienceLevel = course.audienceLevel ?? (course.targetLevel ? String(course.targetLevel).toUpperCase().replace(/\s+/g, '_') : "ALL_LEVELS");
 
     return NextResponse.json({ success: true, course });
   } catch (error: any) {

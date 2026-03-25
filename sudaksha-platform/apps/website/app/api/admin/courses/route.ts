@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         courseType: body.courseType ?? "Technology",
         targetLevel: body.targetLevel ?? "Beginner",
         industry: body.industry ?? "Generic/All Industries",
-        audienceLevel: (body.audienceLevel ?? "ALL_LEVELS") as any,
+        audienceLevel: (body.audienceLevel ? body.audienceLevel : (body.targetLevel ? body.targetLevel.toUpperCase().replace(/\s+/g, '_') : "ALL_LEVELS")) as any,
         deliveryMode: toDeliveryMode(body.deliveryMode),
         duration: Math.round(body.durationHours ?? 40),
         price: body.price ?? 0,
