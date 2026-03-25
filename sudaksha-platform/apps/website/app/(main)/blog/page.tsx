@@ -33,18 +33,22 @@ export default function BlogPage() {
     const fetchBlogs = async () => {
         setLoading(true);
         try {
-            // Replaced broken fetch with static data to fix infinite load / blank page blanking
-            const mockBlogs: Blog[] = [
-                { id: '1', title: 'How to land your first tech job in 2026', slug: 'land-tech-job', excerpt: 'A complete guide to standing out...', author: 'Prakash R', authorImage: null, category: 'Career Guidance', imageUrl: null, publishedAt: '2026-03-01T00:00:00Z', readTime: 5 },
-                { id: '2', title: 'Why Full Stack is still the most sought after skill', slug: 'full-stack-demand', excerpt: 'Deep dive into IT trends...', author: 'Sudaksha Team', authorImage: null, category: 'Technology', imageUrl: null, publishedAt: '2026-02-15T00:00:00Z', readTime: 8 }
-            ];
+            const params = new URLSearchParams();
+            if (selectedCategory !== 'all') params.set('category', selectedCategory);
+            params.set('page', page.toString());
             
-            const filtered = selectedCategory === 'all' ? mockBlogs : mockBlogs.filter(b => b.category === selectedCategory);
+            const res = await fetch(`/api/blog?${params.toString()}`);
+            const data = await res.json();
             
-            setBlogs(filtered);
-            setPagination({ page: 1, limit: 12, total: filtered.length, totalPages: 1 });
+            if (data.success) {
+                setBlogs(data.blogs || []);
+                if (data.pagination) setPagination(data.pagination);
+            } else {
+                setBlogs([]);
+            }
         } catch (error) {
             console.error('Error fetching blogs:', error);
+            setBlogs([]);
         } finally {
             setLoading(false);
         }
