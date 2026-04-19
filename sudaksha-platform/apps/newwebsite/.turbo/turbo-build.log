@@ -1,0 +1,48 @@
+
+> @sudaksha/newwebsite@1.0.0 build C:\Users\Administrator\Documents\GitHub\SudakshaNWS\sudaksha-platform\apps\newwebsite
+> next build
+
+   ▲ Next.js 15.1.0
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/18) ...
+   Generating static pages (4/18) 
+   Generating static pages (8/18) 
+   Generating static pages (13/18) 
+ ✓ Generating static pages (18/18)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                     Size     First Load JS
+┌ ○ /                                           6.48 kB         116 kB
+├ ○ /_not-found                                 980 B           106 kB
+├ ○ /about                                      193 B           109 kB
+├ ƒ /api/contact                                136 B           106 kB
+├ ○ /contact                                    1.41 kB         107 kB
+├ ○ /enterprise                                 193 B           109 kB
+├ ○ /institutions                               193 B           109 kB
+├ ○ /professionals                              193 B           109 kB
+├ ○ /robots.txt                                 0 B                0 B
+├ ○ /samyak                                     1.53 kB         111 kB
+├ ○ /scip                                       193 B           109 kB
+├ ○ /sitemap.xml                                0 B                0 B
+├ ○ /thinking                                   193 B           109 kB
+├ ● /thinking/[slug]                            193 B           109 kB
+├   ├ /thinking/why-competency-frameworks-fail
+├   └ /thinking/irt-vs-classical-testing
+└ ○ /what-we-do                                 193 B           109 kB
++ First Load JS shared by all                   105 kB
+  ├ chunks/443-f8f928031b0d7dd9.js              50.5 kB
+  ├ chunks/a2bb08df-3f866c9149bd58bb.js         52.9 kB
+  └ other shared chunks (total)                 1.98 kB
+
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

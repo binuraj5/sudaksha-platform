@@ -3,55 +3,54 @@
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-const faqs = [
-  {
-    question: 'Which program is best for freshers?',
-    answer: 'Depends on interest. Most popular: Java Full Stack (enterprise), MERN Stack (startups), Data Science (analytics). Take assessment to find your fit.',
-  },
-  {
-    question: 'Do you provide placement guarantee?',
-    answer: 'We guarantee placement support (not placement itself, as no one can legally). 85% of students get placed within 6 months.',
-  },
-  {
-    question: 'Can I pay after getting a job?',
-    answer: 'Yes! Pay After Placement option available for select programs. Learn more',
-  },
-  {
-    question: 'I\'m 35 years old. Can I switch to tech?',
-    answer: 'Yes! We\'ve helped 800+ career switchers aged 25-42. Read their stories',
-  },
-  {
-    question: 'How long does it take to become job-ready?',
-    answer: '3-6 months for intensive programs, 6-8 months for weekend batches.',
-  },
-  {
-    question: 'What\'s the difference between online and offline classes?',
-    answer: 'Online: Flexible timing, same curriculum. Offline: Bangalore campus, networking. Both have same placement support.',
-  },
-  {
-    question: 'Do you provide job referrals?',
-    answer: 'Yes! We have partnerships with 200+ companies and provide direct referrals. Many students get interviews before completing the course.',
-  },
-  {
-    question: 'What if I miss classes?',
-    answer: 'Recorded sessions available. Weekend batches for working professionals. Doubt-clearing sessions every week.',
-  },
-  {
-    question: 'Can I get a demo class before joining?',
-    answer: 'Absolutely! Free demo classes every Saturday & Sunday. Experience our teaching methodology.',
-  },
-  {
-    question: 'What documents do I need for enrollment?',
-    answer: 'ID proof, educational certificates. No experience required for most programs. Detailed list provided after admission.',
-  },
-];
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  featured: boolean;
+}
 
 export function QuickFAQ() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
-  const [openItems, setOpenItems] = useState<Set<number>>(new Set([0, 1])); // First two items open by default
+  const [openItems, setOpenItems] = useState<Set<number>>(new Set([0, 1]));
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFAQs();
+  }, []);
+
+  const fetchFAQs = async () => {
+    try {
+      const res = await fetch('/api/admin/faqs');
+      const data = await res.json();
+      
+      if (data.success && data.faqs) {
+        // Get featured FAQs and limit to 10
+        const featuredFaqs = data.faqs
+          .filter((faq: FAQ) => faq.featured)
+          .slice(0, 10);
+        
+        // If less than 10 featured, fill with regular FAQs
+        if (featuredFaqs.length < 10) {
+          const regularFaqs = data.faqs
+            .filter((faq: FAQ) => !faq.featured)
+            .slice(0, 10 - featuredFaqs.length);
+          setFaqs([...featuredFaqs, ...regularFaqs]);
+        } else {
+          setFaqs(featuredFaqs);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch FAQs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleItem = (index: number) => {
     const newOpenItems = new Set(openItems);
@@ -62,6 +61,17 @@ export function QuickFAQ() {
     }
     setOpenItems(newOpenItems);
   };
+
+  if (loading) {
+    return (
+      <div className="py-16 lg:py-24 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading FAQs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-16 lg:py-24 bg-gray-50">

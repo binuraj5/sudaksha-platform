@@ -1,8 +1,10 @@
 import { Metadata } from 'next';
 import { Hero } from '@/components/home/Hero';
+import { AnnouncementStrip } from '@/components/home/AnnouncementStrip';
 import { AudienceSelector } from '@/components/home/AudienceSelector';
 import { CourseRecommendations } from '@/components/home/CourseRecommendations';
 import { StatisticsBar } from '@/components/home/StatisticsBar';
+import { OurWorkPreview } from '@/components/home/OurWorkPreview';
 import { FinalCTA } from '@/components/home/FinalCTA';
 
 export const metadata: Metadata = {
@@ -28,8 +30,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <Hero />
+      <AnnouncementStrip />
       <AudienceSelector />
       <CourseRecommendations />
+      <OurWorkPreview />
       <StatisticsBar />
       <FinalCTA />
     </div>

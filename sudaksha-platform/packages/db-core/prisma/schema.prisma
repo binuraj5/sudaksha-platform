@@ -2830,3 +2830,205 @@ enum MemberStatus {
   INACTIVE
   INVITED
 }
+
+// ─── HOMEPAGE MANAGEMENT ─────────────────────────────────────────────────────
+
+model HomepageHero {
+  id                  String    @id @default(cuid())
+  isActive            Boolean   @default(false)
+  headline            String
+  subHeadline         String?
+  badgeText           String?
+  primaryCtaLabel     String
+  primaryCtaUrl       String
+  secondaryCtaLabel   String?
+  secondaryCtaUrl     String?
+  backgroundType      HeroBgType @default(COLOR)
+  backgroundValue     String?
+  overlayOpacity      Float      @default(0.5)
+  textTheme           HeroTextTheme @default(LIGHT)
+  publishedAt         DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model Announcement {
+  id          String             @id @default(cuid())
+  message     String
+  ctaLabel    String?
+  ctaUrl      String?
+  type        AnnouncementType   @default(INFO)
+  isActive    Boolean            @default(false)
+  startsAt    DateTime           @default(now())
+  expiresAt   DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+enum HeroBgType {
+  COLOR
+  IMAGE
+  GRADIENT
+}
+
+enum HeroTextTheme {
+  LIGHT
+  DARK
+}
+
+enum AnnouncementType {
+  INFO
+  PROMOTIONAL
+  URGENT
+  SUCCESS
+}
+
+// ─── OFFLINE CORPORATE ENGAGEMENT REGISTRY ───────────────────────────────────
+
+model OfflineBatch {
+  id                  String              @id @default(cuid())
+  slug                String              @unique
+  
+  // Program details
+  programTitle        String
+  programDescription  String
+  outcomes            String?             @db.Text
+  skillsCovered       String[]
+  durationDays        Int?
+  durationHours       Int?
+  
+  // Client details
+  clientName          String?
+  clientCompanyDescription String?           // e.g., "Biggest Steel Manufacturer in South India"
+  clientIndustry      String
+  clientSize          CompanySize?
+  clientLogoUrl       String?
+  showClientName      Boolean             @default(true)  // If false, show clientCompanyDescription instead
+  
+  // Contact (internal only — never exposed in public API)
+  clientContactName   String?
+  clientContactEmail  String?
+  clientContactPhone  String?
+  
+  // Engagement details
+  participantCount    Int
+  startDate           DateTime
+  endDate             DateTime?
+  deliveryMode        OfflineDeliveryMode @default(ONSITE)
+  city                String?
+  country             String              @default("India")
+  
+  // Outcome metrics
+  completionRate      Int?                // percentage
+  satisfactionScore   Decimal?            // out of 5
+  certificationIssued Boolean             @default(false)
+  participantTestimonial String?          @db.Text
+  testimonialAuthor   String?
+  testimonialDesig    String?
+  
+  // Publishing
+  status              OfflineBatchStatus  @default(DRAFT)
+  isPublic            Boolean             @default(false)
+  featuredOnHomepage  Boolean             @default(false)
+  coverImageUrl       String?
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+enum OfflineDeliveryMode {
+  ONSITE
+  OFFSITE
+  HYBRID
+}
+
+enum OfflineBatchStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CompanySize {
+  STARTUP
+  SME
+  ENTERPRISE
+  GOVERNMENT
+}
+
+enum TestimonialMediaType {
+  TEXT
+  IMAGE
+  VIDEO
+  EMAIL_SCREENSHOT
+}
+
+model Testimonial {
+  id              String                  @id @default(cuid())
+  content         String                  @db.Text
+  author          String
+  company         String?
+  role            String?
+  rating          Int                     @default(5)
+  mediaType       TestimonialMediaType    @default(TEXT)
+  mediaUrl        String?                 // URL for image, video, or email screenshot
+  verified        Boolean                 @default(false)
+  featured        Boolean                 @default(false)
+  status          String                  @default("PUBLISHED")
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([featured])
+  @@index([status])
+}
+
+model FAQ {
+  id              String                  @id @default(cuid())
+  question        String
+  answer          String                  @db.Text
+  category        String
+  order           Int                     @default(0)
+  featured        Boolean                 @default(false)
+  status          String                  @default("PUBLISHED")
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([category])
+  @@index([featured])
+}
+
+model SuccessStory {
+  id              String                  @id @default(cuid())
+  headline        String
+  company         String
+  results         Json?                   // e.g., { "placement": "95%", "salaryIncrease": "40%" }
+  fullStory       String                  @db.Text
+  imageUrl        String?
+  featured        Boolean                 @default(false)
+  status          String                  @default("DRAFT")
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([featured])
+  @@index([status])
+}
+
+model JobPosting {
+  id              String                  @id @default(cuid())
+  title           String
+  company         String
+  description     String                  @db.Text
+  location        String
+  jobType         String                  // e.g., "Full-time", "Contract"
+  salary          String?
+  requirements    Json                    // Array of required skills
+  postedAt        DateTime                @default(now())
+  expiresAt       DateTime?
+  status          String                  @default("ACTIVE")
+  featured        Boolean                 @default(false)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([status])
+  @@index([featured])
+}

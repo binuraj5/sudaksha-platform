@@ -33,7 +33,7 @@ export const IndividualRegistrationForm = () => {
                 throw new Error(result.message || "Something went wrong");
             }
 
-            router.push("/verify-email");
+            router.push("/assessments/verify-email");
         } catch (err: any) {
             setError(err.message);
         } finally {

@@ -160,11 +160,7 @@ export async function requestRoleWithCompetencies(
         }
 
         const u = session.user as any;
-        const tenantId = u.tenantId;
-
-        if (!tenantId) {
-            throw new Error("User does not belong to an organization.");
-        }
+        const tenantId = u.tenantId || "INDIVIDUALS";
 
         // Store the exact payload JSON that the Role generator produced,
         // so that the Admin can inspect it and instantiate it later.

@@ -2758,6 +2758,7 @@ enum ApprovalStatus {
 enum ApprovalType {
   ROLE
   COMPETENCY
+  ASSESSMENT_REQUEST
 }
 
 enum SurveyQuestionType {
@@ -2828,4 +2829,129 @@ enum MemberStatus {
   ACTIVE
   INACTIVE
   INVITED
+}
+
+// ─── HOMEPAGE MANAGEMENT ─────────────────────────────────────────────────────
+
+model HomepageHero {
+  id                String        @id @default(cuid())
+  isActive          Boolean       @default(false)
+  headline          String
+  subHeadline       String?
+  badgeText         String?
+  primaryCtaLabel   String
+  primaryCtaUrl     String
+  secondaryCtaLabel String?
+  secondaryCtaUrl   String?
+  backgroundType    HeroBgType    @default(COLOR)
+  backgroundValue   String?
+  overlayOpacity    Float         @default(0.5)
+  textTheme         HeroTextTheme @default(LIGHT)
+  publishedAt       DateTime?
+  expiresAt         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model Announcement {
+  id        String           @id @default(cuid())
+  message   String
+  ctaLabel  String?
+  ctaUrl    String?
+  type      AnnouncementType @default(INFO)
+  isActive  Boolean          @default(false)
+  startsAt  DateTime         @default(now())
+  expiresAt DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum HeroBgType {
+  COLOR
+  IMAGE
+  GRADIENT
+}
+
+enum HeroTextTheme {
+  LIGHT
+  DARK
+}
+
+enum AnnouncementType {
+  INFO
+  PROMOTIONAL
+  URGENT
+  SUCCESS
+}
+
+// ─── OFFLINE CORPORATE ENGAGEMENT REGISTRY ───────────────────────────────────
+
+model OfflineBatch {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  // Program details
+  programTitle       String
+  programDescription String
+  outcomes           String?  @db.Text
+  skillsCovered      String[]
+  durationDays       Int?
+  durationHours      Int?
+
+  // Client details
+  clientName               String?
+  clientCompanyDescription String? // e.g., "Biggest Steel Manufacturer in South India"
+  clientIndustry           String
+  clientSize               CompanySize?
+  clientLogoUrl            String?
+  showClientName           Boolean      @default(true) // If false, show clientCompanyDescription instead
+
+  // Contact (internal only — never exposed in public API)
+  clientContactName  String?
+  clientContactEmail String?
+  clientContactPhone String?
+
+  // Engagement details
+  participantCount Int
+  startDate        DateTime
+  endDate          DateTime?
+  deliveryMode     OfflineDeliveryMode @default(ONSITE)
+  city             String?
+  country          String              @default("India")
+
+  // Outcome metrics
+  completionRate         Int? // percentage
+  satisfactionScore      Decimal? // out of 5
+  certificationIssued    Boolean  @default(false)
+  participantTestimonial String?  @db.Text
+  testimonialAuthor      String?
+  testimonialDesig       String?
+
+  // Publishing
+  status             OfflineBatchStatus @default(DRAFT)
+  isPublic           Boolean            @default(false)
+  featuredOnHomepage Boolean            @default(false)
+  coverImageUrl      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OfflineDeliveryMode {
+  ONSITE
+  OFFSITE
+  HYBRID
+}
+
+enum OfflineBatchStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CompanySize {
+  STARTUP
+  SME
+  ENTERPRISE
+  GOVERNMENT
 }

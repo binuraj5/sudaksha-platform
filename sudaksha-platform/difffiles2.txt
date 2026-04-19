@@ -1,0 +1,16 @@
+﻿sudaksha-platform/apps/website/app/(main)/corporate-training/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/category/functional/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/category/it/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/category/non-it/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/category/personal/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/domain/ai-ml/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/domain/cloud-devops/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/domain/cybersecurity/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/domain/data-analytics/page.tsx
+sudaksha-platform/apps/website/app/(main)/courses/domain/software-development/page.tsx
+sudaksha-platform/apps/website/app/(main)/page.tsx
+sudaksha-platform/apps/website/components/home/Hero.tsx
+sudaksha-platform/apps/website/next-env.d.ts
+sudaksha-platform/apps/website/src/components/admin/AdminSidebar.tsx
+sudaksha-platform/apps/website/tsconfig.tsbuildinfo
+sudaksha-platform/packages/db-core/prisma/schema.prisma

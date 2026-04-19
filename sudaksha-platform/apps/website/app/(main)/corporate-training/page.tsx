@@ -1,10 +1,14 @@
 import Link from 'next/link';
 import { Building2, Users, Award, TrendingUp } from 'lucide-react';
+import { RecentEngagements } from '@/components/corporate/RecentEngagements';
 
 export const metadata = {
     title: 'Corporate Training Solutions | Sudaksha - Upskill Your Workforce',
     description: 'Transform your workforce with customized corporate training programs designed to meet your specific business needs.',
 };
+
+// Prevent prerendering for this page since it uses dynamic data from the database
+export const revalidate = 0;
 
 export default function CorporateTrainingPage() {
     return (
@@ -43,6 +47,8 @@ export default function CorporateTrainingPage() {
                     </div>
                 </div>
             </section>
+
+            <RecentEngagements />
 
             <section className="py-16 bg-white">
                 <div className="container mx-auto px-4 text-center">

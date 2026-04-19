@@ -197,16 +197,10 @@ export function OnboardingWizard({ redirectTo = "/assessments/individuals/dashbo
                                                 <DialogHeader className="sr-only">
                                                     <DialogTitle>Request a New Role</DialogTitle>
                                                 </DialogHeader>
-                                                {tenantId ? (
-                                                    <CreateRoleWizard
-                                                        mode="REQUEST"
-                                                        onSuccess={() => setIsRoleModalOpen(false)}
-                                                    />
-                                                ) : (
-                                                    <div className="p-8 text-center text-gray-500">
-                                                        Loading tenant information...
-                                                    </div>
-                                                )}
+                                                <CreateRoleWizard
+                                                    mode="REQUEST"
+                                                    onSuccess={() => setIsRoleModalOpen(false)}
+                                                />
                                             </DialogContent>
                                         </Dialog>
                                     </div>

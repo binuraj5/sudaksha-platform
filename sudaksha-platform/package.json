@@ -7,7 +7,15 @@
         "dev:portal": "turbo run dev --filter=@sudaksha/portal",
         "dev:newwebsite": "turbo run dev --filter=@sudaksha/newwebsite",
         "build": "turbo run build",
-        "lint": "turbo run lint"
+        "lint": "turbo run lint",
+        "seed:offlinebatches": "ts-node seed-offlinebatches.ts",
+        "check:batch": "ts-node check-and-fix-batch.ts",
+        "check:visibility": "ts-node check-program-visibility.ts",
+        "fix:visibility": "ts-node fix-program-visibility.ts",
+        "db:migrate": "pnpm --filter=@sudaksha/db-core exec prisma migrate dev",
+        "db:generate": "pnpm --filter=@sudaksha/db-core exec prisma generate",
+        "db:studio": "pnpm --filter=@sudaksha/db-core exec prisma studio",
+        "db:push": "pnpm --filter=@sudaksha/db-core exec prisma db push"
     },
     "devDependencies": {
         "turbo": "latest"

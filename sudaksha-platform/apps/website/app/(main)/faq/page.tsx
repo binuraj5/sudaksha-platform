@@ -1,107 +1,56 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Search } from 'lucide-react';
+
+interface FAQ {
+    id: string;
+    question: string;
+    answer: string;
+    category: string;
+    order: number;
+    featured: boolean;
+}
 
 export default function FAQPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [openIndex, setOpenIndex] = useState<number | null>(0);
+    const [loading, setLoading] = useState(true);
+    const [faqs, setFaqs] = useState<Array<{ category: string; questions: FAQ[] }>>([]);
 
-    const faqs = [
-        {
-            category: 'General',
-            questions: [
-                {
-                    question: 'What is Sudaksha?',
-                    answer: 'Sudaksha is a leading skill development platform offering comprehensive training programs for individuals, institutions, and corporations across India and emerging markets. We specialize in IT, non-IT, functional, and personal development courses.',
-                },
-                {
-                    question: 'Where is Sudaksha located?',
-                    answer: 'Our headquarters is located in Hyderabad, India. We offer both in-person and online training options to cater to learners nationwide.',
-                },
-                {
-                    question: 'What makes Sudaksha different from other training providers?',
-                    answer: 'Sudaksha focuses on practical, industry-aligned training with a unique emphasis on brain circulation and creating skilled workforces in emerging markets. We offer customized programs, experienced trainers, and strong placement support.',
-                },
-            ],
-        },
-        {
-            category: 'Courses & Programs',
-            questions: [
-                {
-                    question: 'What types of courses do you offer?',
-                    answer: 'We offer courses across four main categories: IT (software development, data analytics, cloud, AI/ML, cybersecurity), Non-IT (project management, business analysis), Functional (domain-specific skills), and Personal Development (soft skills, leadership).',
-                },
-                {
-                    question: 'How long are the courses?',
-                    answer: 'Course duration varies based on the program. We offer short-term workshops (1-2 days), intensive bootcamps (4-12 weeks), and comprehensive programs (3-6 months). Check individual course pages for specific durations.',
-                },
-                {
-                    question: 'Are the courses online or in-person?',
-                    answer: 'We offer multiple delivery modes: fully online (live instructor-led), in-person (at our centers or your location), and hybrid (combination of both). The available modes are specified on each course page.',
-                },
-                {
-                    question: 'Do you offer certifications?',
-                    answer: 'Yes, all our courses include a Sudaksha completion certificate. Many of our programs also prepare you for industry-recognized certifications from providers like AWS, Microsoft, Google, PMI, and others.',
-                },
-            ],
-        },
-        {
-            category: 'Enrollment & Pricing',
-            questions: [
-                {
-                    question: 'How do I enroll in a course?',
-                    answer: 'Browse our course catalog, select your desired course, and click "Enroll Now" or "Contact Us". Our team will guide you through the enrollment process, payment options, and batch schedules.',
-                },
-                {
-                    question: 'What are the payment options?',
-                    answer: 'We accept various payment methods including credit/debit cards, bank transfers, and installment plans. Corporate clients can request invoice-based billing. Contact us for specific payment arrangements.',
-                },
-                {
-                    question: 'Do you offer group discounts?',
-                    answer: 'Yes! We offer attractive discounts for group enrollments (3+ individuals) and special corporate packages. Contact our sales team for customized pricing.',
-                },
-                {
-                    question: 'What is your refund policy?',
-                    answer: 'We offer a refund within 7 days of course commencement if you\'re not satisfied. Please refer to our Terms of Service for complete refund policy details.',
-                },
-            ],
-        },
-        {
-            category: 'Corporate Training',
-            questions: [
-                {
-                    question: 'Do you offer customized corporate training?',
-                    answer: 'Yes, we specialize in customized training programs tailored to your organization\'s specific needs, skill gaps, and business objectives. We can deliver training at your location or our facilities.',
-                },
-                {
-                    question: 'What is the minimum group size for corporate training?',
-                    answer: 'We can accommodate groups of any size, from small teams of 5 to large batches of 100+. We\'ll design the program to suit your group size and learning objectives.',
-                },
-                {
-                    question: 'How do you measure training effectiveness?',
-                    answer: 'We use pre and post-training assessments, practical projects, feedback surveys, and performance metrics to measure learning outcomes and ROI. We provide detailed reports to corporate clients.',
-                },
-            ],
-        },
-        {
-            category: 'Placement & Support',
-            questions: [
-                {
-                    question: 'Do you provide placement assistance?',
-                    answer: 'Yes, we offer comprehensive placement support including resume building, interview preparation, and job referrals to our corporate partners. Placement success depends on individual performance and market conditions.',
-                },
-                {
-                    question: 'Do you guarantee job placement?',
-                    answer: 'While we provide strong placement support and have excellent placement rates, we cannot guarantee job placement as it depends on various factors including market conditions, individual skills, and performance.',
-                },
-                {
-                    question: 'What kind of support is available after course completion?',
-                    answer: 'We offer lifetime access to course materials, alumni network access, continued career guidance, and updates on new courses and industry trends.',
-                },
-            ],
-        },
-    ];
+    useEffect(() => {
+        fetchFAQs();
+    }, []);
+
+    const fetchFAQs = async () => {
+        try {
+            const res = await fetch('/api/admin/faqs');
+            const data = await res.json();
+            
+            if (data.success && data.faqs) {
+                // Group FAQs by category
+                const grouped: { [key: string]: FAQ[] } = {};
+                data.faqs.forEach((faq: FAQ) => {
+                    if (!grouped[faq.category]) {
+                        grouped[faq.category] = [];
+                    }
+                    grouped[faq.category].push(faq);
+                });
+
+                // Convert to array and sort by category name
+                const categorized = Object.entries(grouped).map(([category, questions]) => ({
+                    category,
+                    questions: questions.sort((a, b) => a.order - b.order),
+                })).sort((a, b) => a.category.localeCompare(b.category));
+
+                setFaqs(categorized);
+            }
+        } catch (error) {
+            console.error('Failed to fetch FAQs:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const filteredFAQs = faqs.map(category => ({
         ...category,
@@ -111,6 +60,17 @@ export default function FAQPage() {
                 faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
         ),
     })).filter(category => category.questions.length > 0);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading FAQs...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">

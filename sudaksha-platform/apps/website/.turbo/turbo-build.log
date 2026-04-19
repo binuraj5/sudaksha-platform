@@ -14,19 +14,162 @@
 
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
   Creating an optimized production build ...
-✓ Compiled successfully in 33.8s
+✓ Compiled successfully in 62s
   Running TypeScript ...
-Failed to compile.
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/110) ...
+  Generating static pages using 7 workers (27/110) 
+  Generating static pages using 7 workers (54/110) 
+  Generating static pages using 7 workers (82/110) 
+✓ Generating static pages using 7 workers (110/110) in 3.3s
+  Finalizing page optimization ...
 
-./components/assessments/AIGenerateQuestions.tsx:26:10
-Type error: Module '"@prisma/client"' has no exported member 'QuestionType'.
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ○ /about
+├ ƒ /admin
+├ ƒ /admin/analytics
+├ ƒ /admin/audit
+├ ƒ /admin/batches
+├ ƒ /admin/blog
+├ ƒ /admin/communication
+├ ƒ /admin/conflicts
+├ ƒ /admin/courses
+├ ƒ /admin/enrollments
+├ ○ /admin/forgot-password
+├ ƒ /admin/homepage/announcements
+├ ƒ /admin/homepage/hero
+├ ○ /admin/login
+├ ƒ /admin/master-data
+├ ƒ /admin/offlinebatches
+├ ƒ /admin/offlinebatches/[id]/edit
+├ ƒ /admin/offlinebatches/new
+├ ƒ /admin/trainers
+├ ƒ /admin/users
+├ ƒ /admin/webinars
+├ ƒ /api/admin/analytics
+├ ƒ /api/admin/assessment-components/[id]/questions/ai-generate
+├ ƒ /api/admin/audit
+├ ƒ /api/admin/batches
+├ ƒ /api/admin/batches/[id]
+├ ƒ /api/admin/batches/[id]/students
+├ ƒ /api/admin/batches/[id]/students/[enrollmentId]
+├ ƒ /api/admin/blog
+├ ƒ /api/admin/blog/[id]
+├ ƒ /api/admin/communication/campaigns
+├ ƒ /api/admin/communication/capture
+├ ƒ /api/admin/communication/leads
+├ ƒ /api/admin/communication/leads/[id]
+├ ƒ /api/admin/communication/templates
+├ ƒ /api/admin/competencies/[id]/approve-global
+├ ƒ /api/admin/conflicts
+├ ƒ /api/admin/conflicts/action
+├ ƒ /api/admin/courses
+├ ƒ /api/admin/courses/[id]
+├ ƒ /api/admin/enrollments
+├ ƒ /api/admin/homepage/announcements
+├ ƒ /api/admin/homepage/announcements/[id]
+├ ƒ /api/admin/homepage/announcements/[id]/activate
+├ ƒ /api/admin/homepage/hero
+├ ƒ /api/admin/homepage/hero/[id]
+├ ƒ /api/admin/homepage/hero/[id]/activate
+├ ƒ /api/admin/master-data
+├ ƒ /api/admin/offlinebatches
+├ ƒ /api/admin/offlinebatches/[id]
+├ ƒ /api/admin/trainers
+├ ƒ /api/admin/trainers/[id]
+├ ƒ /api/admin/trainers/bulk
+├ ƒ /api/admin/users
+├ ƒ /api/admin/webinars
+├ ƒ /api/admin/webinars/[id]
+├ ƒ /api/ai/courses
+├ ƒ /api/approvals
+├ ƒ /api/approvals/[id]/review
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/b2c/register
+├ ƒ /api/auth/init-super-admin
+├ ƒ /api/auth/login
+├ ƒ /api/auth/login-debug
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/register
+├ ƒ /api/auth/register-client
+├ ƒ /api/auth/register-individual
+├ ƒ /api/auth/reset-password
+├ ƒ /api/blog
+├ ƒ /api/blog/[slug]
+├ ƒ /api/corporate/our-work
+├ ƒ /api/courses
+├ ƒ /api/courses/[slug]/curriculum-pdf
+├ ƒ /api/forms/submit
+├ ƒ /api/profile/role-request
+├ ƒ /api/questions/ai-generate
+├ ƒ /api/track/event
+├ ƒ /api/webinars
+├ ƒ /api/webinars/[id]/register
+├ ○ /blog
+├ ƒ /blog/[slug]
+├ ○ /calendar
+├ ○ /career-paths
+├ ƒ /career/pulse
+├ ○ /careers
+├ ƒ /careers/[id]
+├ ○ /certification
+├ ○ /consult
+├ ○ /contact
+├ ƒ /corporate-training
+├ ○ /corporates
+├ ○ /corporates/domestic
+├ ƒ /corporates/industries/[slug]
+├ ○ /corporates/international
+├ ○ /courses
+├ ƒ /courses/[slug]
+├ ○ /courses/category/functional
+├ ○ /courses/category/it
+├ ○ /courses/category/non-it
+├ ○ /courses/category/personal
+├ ○ /courses/domain/ai-ml
+├ ○ /courses/domain/cloud-devops
+├ ○ /courses/domain/cybersecurity
+├ ○ /courses/domain/data-analytics
+├ ○ /courses/domain/software-development
+├ ○ /courses/level/career-switch
+├ ○ /courses/level/freshers
+├ ○ /courses/level/junior
+├ ○ /courses/level/mid
+├ ○ /courses/level/senior
+├ ○ /custom-programs
+├ ○ /debug
+├ ○ /demo
+├ ○ /enterprise-solutions
+├ ○ /faq
+├ ○ /for-corporates
+├ ○ /for-individuals
+├ ○ /for-individuals/freshers
+├ ○ /for-institutions
+├ ○ /individuals
+├ ƒ /individuals/catalog
+├ ƒ /individuals/dashboard
+├ ○ /institutions
+├ ƒ /our-work
+├ ƒ /our-work/[slug]
+├ ○ /placement-support
+├ ○ /platform
+├ ○ /privacy-policy
+├ ○ /resources
+├ ƒ /resources/interview/[slug]
+├ ƒ /resources/roadmap/[slug]
+├ ○ /sitemap
+├ ○ /skill-assessment
+├ ○ /success-stories
+├ ƒ /surveys/take/[id]
+├ ○ /terms-of-service
+├ ○ /webinars
+└ ○ /why-sudaksha
 
-[0m [90m 24 |[39m [36mimport[39m { toast } [36mfrom[39m [32m"sonner"[39m[33m;[39m
- [90m 25 |[39m [36mimport[39m { [33mScrollArea[39m } [36mfrom[39m [32m"@/components/ui/scroll-area"[39m[33m;[39m
-[31m[1m>[22m[39m[90m 26 |[39m [36mimport[39m { [33mQuestionType[39m } [36mfrom[39m [32m"@prisma/client"[39m[33m;[39m
- [90m    |[39m          [31m[1m^[22m[39m
- [90m 27 |[39m [36mimport[39m { [33mQuestionEditDialog[39m } [36mfrom[39m [32m"@/components/assessments/QuestionEditDialog"[39m[33m;[39m
- [90m 28 |[39m
- [90m 29 |[39m [36minterface[39m [33mAIQuestion[39m {[0m
-Next.js build worker exited with code: 1 and signal: null
- ELIFECYCLE  Command failed with exit code 1.
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

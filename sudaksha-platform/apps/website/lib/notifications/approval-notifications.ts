@@ -16,7 +16,7 @@ export async function notifyApprovalDecision(requestId: string) {
             }
         });
 
-        if (!request) return;
+        if (!request || !request.tenant) return;
 
         const admins = request.tenant.members;
         const status = request.status;

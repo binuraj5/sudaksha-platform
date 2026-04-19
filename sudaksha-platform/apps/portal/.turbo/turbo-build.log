@@ -14,5 +14,22 @@
 
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
   Creating an optimized production build ...
-✓ Compiled successfully in 68s
+✓ Compiled successfully in 99.4min
   Running TypeScript ...
+Failed to compile.
+
+./app/assessments/org/[slug]/employees/[id]/page.tsx:39:7
+Type error: Type '{ orgUnit: { id: string; createdAt: Date; updatedAt: Date; tenantId: string; type: UnitType; name: string; isActive: boolean; code: string; description: string | null; parentId: string | null; managerId: string | null; } | null; } & { ...; }' is not assignable to type 'MemberData'.
+  Types of property 'phone' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+
+[0m [90m 37 |[39m       tenantId[33m=[39m{tenant[33m.[39mid}
+ [90m 38 |[39m       memberId[33m=[39m{id}
+[31m[1m>[22m[39m[90m 39 |[39m       memberData[33m=[39m{member}
+ [90m    |[39m       [31m[1m^[22m[39m
+ [90m 40 |[39m       userRole[33m=[39m{userRole}
+ [90m 41 |[39m       userId[33m=[39m{userId}
+ [90m 42 |[39m     [33m/[39m[33m>[39m[0m
+Next.js build worker exited with code: 1 and signal: null
+ ELIFECYCLE  Command failed with exit code 1.

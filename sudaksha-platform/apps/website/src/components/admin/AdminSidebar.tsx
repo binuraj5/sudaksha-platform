@@ -22,6 +22,13 @@ import {
   Plus,
   LogOut,
   Search,
+  Building2,
+  Bell,
+  LayoutTemplate,
+  MessageSquare,
+  Award,
+  Briefcase,
+  HelpCircle,
 } from 'lucide-react';
 import CommandPalette from '@/components/admin/CommandPalette';
 import UniversalModal from '@/components/admin/UniversalModal';
@@ -33,12 +40,19 @@ const NAV_ITEMS = [
   { href: '/admin/blog', label: 'Blog', icon: FileText },
   { href: '/admin/webinars', label: 'Webinars', icon: Video },
   { href: '/admin/batches', label: 'Batches', icon: Calendar },
+  { href: '/admin/offlinebatches', label: 'Corp Engagements', icon: Building2 },
   { href: '/admin/trainers', label: 'Trainers', icon: Users },
   { href: '/admin/conflicts', label: 'Conflicts', icon: AlertTriangle, badge: 3 },
   { href: '/admin/audit', label: 'Audit Trail', icon: Target },
   { href: '/admin/communication', label: 'Communication', icon: Mail },
   { href: '/admin/master-data', label: 'Master Data', icon: Database },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/homepage/hero', label: 'Hero Config', icon: LayoutTemplate },
+  { href: '/admin/homepage/announcements', label: 'Announcements', icon: Bell },
+  { href: '/admin/testimonials', label: 'Testimonials', icon: MessageSquare },
+  { href: '/admin/success-stories', label: 'Success Stories', icon: Award },
+  { href: '/admin/faqs', label: 'FAQs', icon: HelpCircle },
+  { href: '/admin/job-postings', label: 'Job Postings', icon: Briefcase },
 ];
 
 interface AdminSidebarProps {
