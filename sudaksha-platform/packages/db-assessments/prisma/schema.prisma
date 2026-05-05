@@ -866,10 +866,15 @@ model ComponentQuestion {
   linkedIndicators String[]
   explanation      String?
   metadata         Json?
+  // SEPL/INT/2026/IMPL-GAPS-01 Step G13 — per-cohort SJT item pools (Patent C-09)
+  targetCohort     String?                     // null = all cohorts; STUDENT | PROFESSIONAL | CORPORATE
+  itemPoolTag      String?                     // groups questions into pools for random selection
   component        AssessmentModelComponent    @relation(fields: [componentId], references: [id], onDelete: Cascade)
   responses        ComponentQuestionResponse[]
 
   @@index([componentId])
+  @@index([targetCohort])
+  @@index([itemPoolTag])
 }
 
 model AssessmentModel {
@@ -892,6 +897,11 @@ model AssessmentModel {
   passingScore             Int?                       @default(60)
   durationMinutes          Int?
   maxAttempts              Int                        @default(3)
+  // SEPL/INT/2026/IMPL-GAPS-01 Step G14 — retake lockout (Patent C-09)
+  minRetakeIntervalDays    Int                        @default(90)
+  // SEPL/INT/2026/IMPL-GAPS-01 Step G15 — browser lockdown mode (Patent C-09)
+  requiresBrowserLockdown  Boolean                    @default(false)
+  lockdownConfig           Json                       @default("{}")
   randomizeQuestions       Boolean                    @default(false)
   showResultsImmediately   Boolean                    @default(true)
   status                   AssessmentStatus           @default(DRAFT)
@@ -1331,6 +1341,13 @@ model Member {
   reports                  Report[]
   roleAssignmentRequests   RoleAssignmentRequest[]
   surveyResponses          SurveyResponse[]
+  assessmentDeltas         AssessmentDelta[] @relation("MemberDeltas")
+  careerFitScores          CareerFitScore[]  @relation("MemberCareerFit")
+  // SEPL/INT/2026/IMPL-GAPS-01 Step G17 — milestone micro-assessments (Patent C-04, C-06)
+  microAssessments         MicroAssessment[]
+  // SEPL/INT/2026/IMPL-PHASE3-01 Step T3 — TDAS responses & results
+  trainingResponses        TrainingSessionResponse[] @relation("MemberTrainingResponses")
+  trainingResults          TrainingSessionResult[]   @relation("MemberTrainingResults")
 
   @@unique([tenantId, enrollmentNumber])
   @@unique([tenantId, employeeId])
@@ -1392,6 +1409,11 @@ model Activity {
   code              String               @default("PROJ001")
   metadata          Json?
   ownerId           String?
+  // SEPL/INT/2026/IMPL-GAPS-01 Step G16 — LMS module delivery fields (Patent C-04, C-05)
+  contentUrl         String?              // URL to learning content (video, doc, SCORM)
+  estimatedMinutes   Int                  @default(30)
+  moduleOrder        Int                  @default(0)
+  completionCriteria String               @default("TIME_SPENT")  // TIME_SPENT | QUIZ_PASS | MANUAL
   owner             Member?              @relation("ProjectOwner", fields: [ownerId], references: [id])
   tenant            Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   assessments       ActivityAssessment[]
@@ -1399,6 +1421,11 @@ model Activity {
   members           ActivityMember[]
   orgUnits          ActivityOrgUnit[]
   memberAssessments MemberAssessment[]
+  // SEPL/INT/2026/IMPL-GAPS-01 Step G17 — milestone micro-assessments
+  microAssessments  MicroAssessment[]
+  // SEPL/INT/2026/IMPL-PHASE3-01 Step T2 — Training Delivery Assessment System
+  trainingSessions  TrainingSession[]         @relation("ActivityTrainingSessions")
+  questionBank      TrainingSessionQuestion[] @relation("ActivityQuestionBank")
 
   @@unique([tenantId, slug])
   @@index([tenantId])
@@ -1413,12 +1440,17 @@ model ActivityMember {
   role       String?
   joinedAt   DateTime  @default(now())
   leftAt     DateTime?
+  // SEPL/INT/2026/IMPL-GAPS-01 Step G16 — LMS completion tracking
+  status      String    @default("ENROLLED")  // ENROLLED | IN_PROGRESS | COMPLETED
+  completedAt DateTime?
+  progressPct Int       @default(0)           // 0–100 derived progress
   activity   Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
   member     Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@unique([activityId, memberId])
   @@index([activityId])
   @@index([memberId])
+  @@index([status])
 }
 
 model ActivityOrgUnit {
@@ -1494,6 +1526,14 @@ model MemberAssessment {
   @@index([activityId])
   @@index([assessmentModelId])
   @@index([status])
+  competencyScores   CompetencyScore[]
+  deltaAsBaseline    AssessmentDelta[] @relation("DeltaBaseline")
+  deltaAsFollowup    AssessmentDelta[] @relation("DeltaFollowup")
+  careerFitScores    CareerFitScore[]  @relation("AssessmentCareerFit")
+  scipDimensionScores SCIPDimensionScore[]
+  biasFlags          BiasFlag[]
+  isBaseline         Boolean           @default(false)
+  baselineSessionId  String?
 }
 
 model ActivityAssessment {
@@ -1696,6 +1736,8 @@ model Role {
   roleAssignmentRequestsFromProfile RoleAssignmentRequest[] @relation("RoleAssignmentRequestRole")
   competencies                      RoleCompetency[]
   users                             User[]                  @relation("UserRole")
+
+  careerFitScores                   CareerFitScore[]        @relation("RoleCareerFit")
 
   @@index([scope])
   @@index([tenantId])
@@ -2594,6 +2636,8 @@ enum ModelSourceType {
   COMPETENCY_BASED
   CUSTOM
   TEMPLATE
+  SCIP
+  ADAPT_16
 }
 
 enum ModelVisibility {
@@ -2668,6 +2712,11 @@ enum MemberRole {
   CLASS_TEACHER
   EMPLOYEE
   INDIVIDUAL
+  // SEPL/INT/2026/IMPL-PHASE3-01 Step T4 — TDAS roles
+  TRAINER
+  SUDAKSHA_OBSERVER
+  SUDAKSHA_ADMIN
+  OPS_DELIVERY
 }
 
 enum UnitType {
@@ -2834,4 +2883,261 @@ enum MemberStatus {
   ACTIVE
   INACTIVE
   INVITED
+}
+
+// CompetencyScore — SEPL/INT/2026/IMPL-STEPS-01 Step 3
+// Stores per-competency calibrated score for any assessment type
+// ADDITIVE — does not modify any existing model
+model CompetencyScore {
+  id                 String           @id @default(cuid())
+  memberAssessmentId String
+  memberAssessment   MemberAssessment @relation(fields: [memberAssessmentId], references: [id], onDelete: Cascade)
+  competencyCode     String
+  competencyId       String?
+  assessmentType     String           @default("RBCA")
+  layerScores        Json             @default("{}")
+  compositeRawScore  Float            @default(0)
+  normalisedScore    Float?
+  proficiencyLevel   Int              @default(1)
+  percentileRank     Int?
+  biasFlag           String?
+  cohortType         String           @default("PROFESSIONAL")
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([memberAssessmentId, competencyCode, assessmentType])
+  @@index([memberAssessmentId])
+  @@index([competencyCode])
+  @@index([assessmentType])
+}
+
+// AssessmentDelta — SEPL/INT/2026/IMPL-STEPS-01 Step 5
+model AssessmentDelta {
+  id                     String           @id @default(cuid())
+  memberId               String
+  member                 Member           @relation("MemberDeltas", fields: [memberId], references: [id], onDelete: Cascade)
+  baselineAssessmentId   String
+  baselineAssessment     MemberAssessment @relation("DeltaBaseline", fields: [baselineAssessmentId], references: [id])
+  followupAssessmentId   String
+  followupAssessment     MemberAssessment @relation("DeltaFollowup", fields: [followupAssessmentId], references: [id])
+  deltaScores            Json             @default("{}")
+  overallDelta           Float?
+  attributedActivityId   String?
+  assessmentType         String           @default("RBCA")
+  calculatedAt           DateTime         @default(now())
+
+  @@index([memberId])
+  @@index([baselineAssessmentId])
+}
+
+// CareerFitScore — SEPL/INT/2026/IMPL-STEPS-01 Step 5
+model CareerFitScore {
+  id                   String           @id @default(cuid())
+  memberId             String
+  member               Member           @relation("MemberCareerFit", fields: [memberId], references: [id], onDelete: Cascade)
+  roleId               String
+  role                 Role             @relation("RoleCareerFit", fields: [roleId], references: [id])
+  memberAssessmentId   String
+  memberAssessment     MemberAssessment @relation("AssessmentCareerFit", fields: [memberAssessmentId], references: [id])
+  fitScore             Float
+  gapAnalysis          Json             @default("{}")
+  instrumentsUsed      String[]         @default([])
+  rank                 Int?
+  calculatedAt         DateTime         @default(now())
+
+  @@unique([memberId, roleId, memberAssessmentId])
+  @@index([memberId])
+  @@index([fitScore])
+}
+
+// MicroAssessment — SEPL/INT/2026/IMPL-GAPS-01 Step G17
+// Patent claims C-04, C-06 — milestone micro-assessments fired at module completion
+model MicroAssessment {
+  id              String    @id @default(cuid())
+  memberId        String
+  member          Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  activityId      String
+  activity        Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  competencyCode  String    // Competency.id (or .name fallback) — keyed to CompetencyScore.competencyCode
+  questions       Json      // [{ id, text, options? }, ...] — selected question IDs + presented text
+  responses       Json?     // [{ questionId, answer, isCorrect, pointsAwarded }] — populated on submit
+  score           Float?    // 0–100 normalised score
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([memberId])
+  @@index([activityId])
+  @@index([competencyCode])
+  @@index([completedAt])
+}
+
+// SCIPDimensionScore — SEPL/INT/2026/IMPL-STEPS-01 Step 22
+model SCIPDimensionScore {
+  id                 String           @id @default(cuid())
+  memberAssessmentId String
+  memberAssessment   MemberAssessment @relation(fields: [memberAssessmentId], references: [id], onDelete: Cascade)
+  dimension          String           // COG | OCEAN | RIASEC | EI | VALUES
+  rawScore           Float
+  normalisedScore    Float?
+  percentileRank     Int?
+  subScores          Json             @default("{}")
+  createdAt          DateTime         @default(now())
+
+  @@unique([memberAssessmentId, dimension])
+  @@index([memberAssessmentId])
+}
+
+// BiasFlag — SEPL/INT/2026/IMPL-GAPS-01 Step G1
+// Patent claim C-03: bias detection sub-module
+model BiasFlag {
+  id                 String           @id @default(cuid())
+  memberAssessmentId String
+  memberAssessment   MemberAssessment @relation(fields: [memberAssessmentId], references: [id], onDelete: Cascade)
+  flagType           String           // EXTREME_RESPONSE | ACQUIESCENCE | SOCIAL_DESIRABILITY
+  severity           String           // LOW | MEDIUM | HIGH
+  affectedLayer      String           // L1 (self-report is always the affected layer)
+  correctionApplied  Boolean          @default(false)
+  w1CorrectionFactor Float?           // the downweight applied to w1 (e.g. 0.5 = halved)
+  detectedAt         DateTime         @default(now())
+  details            Json             @default("{}")
+
+  @@index([memberAssessmentId])
+  @@index([flagType])
+}
+
+// NormativeProfile — SEPL/INT/2026/IMPL-GAPS-01 Step G2
+// Patent claim C-03 — normative calibration against cohort-specific bands
+model NormativeProfile {
+  id             String   @id @default(cuid())
+  competencyCode String
+  cohortType     String   // STUDENT | PROFESSIONAL | CORPORATE
+  assessmentType String   @default("ADAPT_16")
+  sampleSize     Int      @default(0)
+  meanScore      Float    @default(50.0)
+  stdDeviation   Float    @default(15.0)
+  // Percentile band thresholds (raw score cutoffs)
+  p30Threshold   Float    @default(40.0) // Below = Emerging (L1)
+  p60Threshold   Float    @default(55.0) // Below = Developing (L2)
+  p85Threshold   Float    @default(72.0) // Below = Proficient (L3), above = Advanced (L4)
+  lastUpdated    DateTime @default(now())
+  isCalibrated   Boolean  @default(false) // false = placeholder, true = real pilot data
+
+  // NormativeProfile: enforced uniqueness per cohort+assessment
+  @@unique([competencyCode, cohortType, assessmentType])
+  @@index([competencyCode])
+  @@index([cohortType])
+}
+
+// ── PHASE 3: TRAINING DELIVERY ASSESSMENT SYSTEM ────────────────────────────
+// SEPL/INT/2026/IMPL-PHASE3-01 Step T2
+// Owner: SEPL Ops/Delivery Team or Trainer
+// Instrument type: TDAS (Training Delivery Assessment System)
+
+model TrainingSession {
+  id                    String                    @id @default(cuid())
+  activityId            String
+  activity              Activity                  @relation("ActivityTrainingSessions", fields: [activityId], references: [id])
+  tenantId              String
+  clientId              String?
+  trainerId             String?
+  moduleTitle           String
+  sessionDate           DateTime
+  sessionNumber         Int                       @default(1)
+  totalParticipants     Int                       @default(0)
+  questionCount         Int                       @default(10)
+  durationMinutes       Int                       @default(10)
+  status                String                    @default("DRAFT")
+  // DRAFT | ACTIVE | COMPLETED | CANCELLED
+  randomSeed            String?                   // stored so same session can be reproduced
+  startedAt             DateTime?
+  completedAt           DateTime?
+  createdBy             String                    // memberId of ops user or trainer
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  // Selected question IDs are derived at runtime from randomSeed (see T7
+  // sessionQuestionSelector). TrainingSessionResponse links session ↔ question
+  // ↔ member as the canonical record of which questions were actually answered.
+  // SEPL/INT/2026/IMPL-PHASE3-01 Step T3
+  responses             TrainingSessionResponse[]
+  results               TrainingSessionResult[]
+
+  @@index([activityId])
+  @@index([tenantId])
+  @@index([trainerId])
+  @@index([sessionDate])
+  @@index([status])
+}
+
+model TrainingSessionQuestion {
+  id                    String           @id @default(cuid())
+  activityId            String           // scoped to module — same question bank feeds all sessions
+  activity              Activity         @relation("ActivityQuestionBank", fields: [activityId], references: [id])
+  questionText          String
+  questionType          String           @default("MULTIPLE_CHOICE")
+  // MULTIPLE_CHOICE | TRUE_FALSE | SHORT_ANSWER | RATING
+  options               Json             @default("[]")
+  // Array of { id, text, isCorrect, competencyCode }
+  correctOptionId       String?
+  competencyCode        String?          // links to ADAPT-16 competency code
+  difficultyLevel       Int              @default(2)
+  // 1=Easy 2=Medium 3=Hard
+  targetCohort          String?          // null=all | STUDENT | PROFESSIONAL | CORPORATE
+  isActive              Boolean          @default(true)
+  uploadedBy            String           // memberId of ops user or trainer
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  // SEPL/INT/2026/IMPL-PHASE3-01 Step T3
+  responses             TrainingSessionResponse[]
+
+  @@index([activityId])
+  @@index([competencyCode])
+  @@index([isActive])
+}
+
+// SEPL/INT/2026/IMPL-PHASE3-01 Step T3 — TDAS response & result models
+
+model TrainingSessionResponse {
+  id                    String                   @id @default(cuid())
+  sessionId             String
+  session               TrainingSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId            String
+  question              TrainingSessionQuestion  @relation(fields: [questionId], references: [id])
+  memberId              String
+  member                Member                   @relation("MemberTrainingResponses", fields: [memberId], references: [id])
+  selectedOptionId      String?
+  shortAnswerText       String?
+  isCorrect             Boolean?
+  pointsAwarded         Float                    @default(0)
+  responseTimeMs        Int?                     // milliseconds — fed into Phase 2 time-anomaly detection
+  submittedAt           DateTime                 @default(now())
+
+  @@unique([sessionId, questionId, memberId])
+  @@index([sessionId])
+  @@index([memberId])
+  @@index([questionId])
+}
+
+model TrainingSessionResult {
+  id                    String           @id @default(cuid())
+  sessionId             String
+  session               TrainingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  memberId              String
+  member                Member           @relation("MemberTrainingResults", fields: [memberId], references: [id])
+  totalQuestions        Int
+  correctAnswers        Int
+  rawScore              Float            // percentage 0–100
+  normalisedScore       Float?           // after Phase 2 normative calibration
+  proficiencyLevel      Int?             // 1–4 after calibration
+  percentileRank        Int?
+  biasFlags             Json             @default("[]")  // stored from Phase 2 BiasFlag engine
+  deltaFromLastSession  Float?           // vs previous session for same activity
+  competencyScoreIds    String[]         @default([])    // linked CompetencyScore IDs
+  completedAt           DateTime         @default(now())
+  createdAt             DateTime         @default(now())
+
+  @@unique([sessionId, memberId])
+  @@index([sessionId])
+  @@index([memberId])
 }

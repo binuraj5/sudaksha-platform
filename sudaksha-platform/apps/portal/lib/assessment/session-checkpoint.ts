@@ -154,3 +154,52 @@ export async function getResumeState(uamId: string): Promise<SectionResumeState 
         lastActivityAt: uam.lastActivityAt ?? null,
     };
 }
+
+/**
+ * Get the full resume state for a ProjectUserAssessment (org/institutional flow).
+ * Mirrors getResumeState but queries via projectUserAssessmentId.
+ */
+export async function getProjectResumeState(puaId: string): Promise<SectionResumeState | null> {
+    const pua = await (prisma as any).projectUserAssessment.findUnique({
+        where: { id: puaId },
+        select: {
+            id: true,
+            updatedAt: true,
+            componentResults: {
+                orderBy: { createdAt: "asc" },
+                select: {
+                    id: true,
+                    componentId: true,
+                    status: true,
+                    score: true,
+                    percentage: true,
+                    completedAt: true,
+                    sectionError: true,
+                    retryCount: true,
+                    component: {
+                        select: { name: true, componentType: true, order: true }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!pua) return null;
+
+    const all: SectionSummary[] = pua.componentResults ?? [];
+    const completedSections = all.filter(c => c.status === "COMPLETED");
+    const inProgressSection = all.find(c => c.status === "ACTIVE") ?? null;
+    const failedSection = all.find(c => c.status === "DRAFT" && c.sectionError) ?? null;
+    const nextPendingSection = all.find(c => c.status === "DRAFT" && !c.sectionError) ?? null;
+
+    return {
+        uamId: pua.id,   // field reused — holds puaId for org flow
+        completedSections,
+        inProgressSection: inProgressSection ?? null,
+        failedSection: failedSection ?? null,
+        nextPendingSection: nextPendingSection ?? null,
+        canResume: !!(inProgressSection || failedSection),
+        isComplete: all.length > 0 && all.every(c => c.status === "COMPLETED"),
+        lastActivityAt: pua.updatedAt ?? null,
+    };
+}

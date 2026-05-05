@@ -83,6 +83,8 @@ export function AssessmentRunner({ userAssessment, initialSectionIndex = 0 }: As
     const [currentQIndex, setCurrentQIndex] = useState(0);
     const [timerTick, setTimerTick] = useState(0);
     const timeUpSubmittedRef = useRef(false);
+    // SEPL/INT/2026/IMPL-GAPS-01 Step G12 — per-question response timing for anomaly detection
+    const questionStartTimeRef = useRef<Record<string, number>>({});
     const router = useRouter();
 
     const components = (model?.components || []) as any[];
@@ -97,6 +99,16 @@ export function AssessmentRunner({ userAssessment, initialSectionIndex = 0 }: As
         const id = setInterval(() => setTimerTick((t) => t + 1), 1000);
         return () => clearInterval(id);
     }, [step]);
+
+    // SEPL/INT/2026/IMPL-GAPS-01 Step G12 — record question start time on view
+    useEffect(() => {
+        if (step !== "COMPONENT_RUNNING") return;
+        const questions = (runnerState?.questions ?? []) as { id?: string }[];
+        const q = questions[currentQIndex];
+        if (q?.id && questionStartTimeRef.current[q.id] == null) {
+            questionStartTimeRef.current[q.id] = Date.now();
+        }
+    }, [step, currentQIndex, runnerState]);
 
     useEffect(() => {
         if (step !== "COMPONENT_RUNNING" || !activeComponent?.id || !runnerState?.userComponentId) return;
@@ -148,9 +160,15 @@ export function AssessmentRunner({ userAssessment, initialSectionIndex = 0 }: As
     };
 
     const saveResponse = useCallback(
-        async (questionId: string, responseData: unknown) => {
+        async (questionId: string, responseData: unknown, questionType?: string) => {
             if (!runnerState?.userComponentId) return;
             try {
+                // SEPL/INT/2026/IMPL-GAPS-01 Step G12 — compute time spent on this question
+                const startedAt = questionStartTimeRef.current[questionId];
+                const timeSpent = startedAt
+                    ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000))
+                    : null;
+
                 await fetch("/api/assessments/runner/response", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -159,8 +177,26 @@ export function AssessmentRunner({ userAssessment, initialSectionIndex = 0 }: As
                         questionId,
                         responseData,
                         maxPoints: 1,
+                        ...(timeSpent != null ? { timeSpent } : {}),
                     }),
                 });
+
+                // Fire-and-forget NLP evaluation for reflective writing questions.
+                // TODO: confirm exact questionType string from DB — using ESSAY per SEPL/INT/2026/IMPL-STEPS-01 Step 9.
+                // Institutional users use the same MemberAssessment model — TODO: verify flow in Step 22+.
+                const ESSAY_TYPES = ["ESSAY", "OPEN_TEXT"];
+                if (questionType && ESSAY_TYPES.includes(questionType.toUpperCase())) {
+                    fetch("/api/assessments/runner/response/evaluate", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            userComponentId: runnerState.userComponentId,
+                            questionId,
+                        }),
+                    }).catch((e) =>
+                        console.error("[NLP Evaluate] Fire-and-forget failed:", e)
+                    );
+                }
             } catch (e) {
                 console.error("Save response failed", e);
             }
@@ -742,7 +778,7 @@ export function AssessmentRunner({ userAssessment, initialSectionIndex = 0 }: As
                             question={currentQ}
                             value={answers[currentQ.id]}
                             onChange={(v) => setAnswers((prev) => ({ ...prev, [currentQ.id]: v }))}
-                            onSave={saveResponse}
+                            onSave={(qId, data) => saveResponse(qId, data, currentQ.questionType)}
                         />
 
                         <div className="flex justify-between pt-6 border-t pt-6">

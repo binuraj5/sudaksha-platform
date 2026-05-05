@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
-import { saveCheckpoint } from "@/lib/assessment/session-checkpoint";
+import { saveCheckpoint, saveProjectCheckpoint } from "@/lib/assessment/session-checkpoint";
 
 /**
  * POST /api/assessments/runner/[id]/pause
@@ -54,12 +54,13 @@ export async function POST(
             }
         }
 
-        // Project flow — just save metadata checkpoint
+        // Org / Institutional flow — save project checkpoint before returning
         const pua = await prisma.projectUserAssessment.findFirst({
-            where: { id: assessmentId, userId: session.user.id ?? "" },
+            where: { id: assessmentId, userId: (session.user as { id: string }).id },
             select: { id: true }
         });
         if (pua) {
+            await saveProjectCheckpoint(pua.id).catch(() => { });
             return NextResponse.json({
                 ok: true,
                 resumeUrl: `/assessments/take/${assessmentId}`,

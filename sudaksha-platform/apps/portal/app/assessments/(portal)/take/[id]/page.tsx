@@ -2,6 +2,7 @@ import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import { AssessmentRunnerWithBoundary } from "@/components/assessments/AssessmentRunnerWithBoundary";
+import { LockdownAssessmentWrapper } from "@/components/assessments/LockdownAssessmentWrapper";
 
 export default async function AssessmentTakePage({
     params,
@@ -108,9 +109,16 @@ export default async function AssessmentTakePage({
         }
     }
 
+    // SEPL/INT/2026/IMPL-GAPS-01 Step G15 — proctored mode browser lockdown
+    const lockdownEnabled = Boolean(
+        (userAssessment as any).projectAssignment?.model?.requiresBrowserLockdown,
+    );
+
     return (
         <div className="min-h-screen bg-white">
-            <AssessmentRunnerWithBoundary userAssessment={userAssessment} initialSectionIndex={initialSectionIndex} />
+            <LockdownAssessmentWrapper enabled={lockdownEnabled} assessmentId={id}>
+                <AssessmentRunnerWithBoundary userAssessment={userAssessment} initialSectionIndex={initialSectionIndex} />
+            </LockdownAssessmentWrapper>
         </div>
     );
 }

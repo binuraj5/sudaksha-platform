@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
+import { filterQuestionsByCohort, resolveMemberCohort } from "@/lib/assessment/selectItemPool";
 
 export async function GET(
     _req: NextRequest,
@@ -29,12 +30,15 @@ export async function GET(
                 where: { componentId },
                 orderBy: { order: "asc" },
             });
-            return NextResponse.json(questions);
+            // SEPL/INT/2026/IMPL-GAPS-01 Step G13 — cohort filtering for org/B2B users
+            // Org users are CORPORATE by default (project assessments)
+            const filtered = filterQuestionsByCohort(questions, 'CORPORATE');
+            return NextResponse.json(filtered);
         }
 
         const member = await prisma.member.findFirst({
             where: { email: session.user.email ?? "" },
-            select: { id: true },
+            select: { id: true, type: true, tenant: { select: { type: true } } },
         });
         if (member) {
             const memberAssessment = await prisma.memberAssessment.findFirst({
@@ -49,7 +53,10 @@ export async function GET(
                     where: { componentId },
                     orderBy: { order: "asc" },
                 });
-                return NextResponse.json(questions);
+                // SEPL/INT/2026/IMPL-GAPS-01 Step G13 — resolve cohort + filter SJT pool
+                const cohort = resolveMemberCohort(member.type, member.tenant?.type ?? null);
+                const filtered = filterQuestionsByCohort(questions, cohort);
+                return NextResponse.json(filtered);
             }
         }
 

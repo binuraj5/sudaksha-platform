@@ -117,7 +117,7 @@ export default async function TNIPage({
             const gapBand = getGapBand(avgPct, rc.requiredLevel);
             const priority = GAP_BAND_PRIORITY[gapBand];
 
-            if (priority === "NONE" || priority === "EXCEEDS") continue;
+            if ((priority as string) === "NONE" || (priority as string) === "EXCEEDS") continue;
 
             if (!competencyGapMap[compId]) {
                 competencyGapMap[compId] = {

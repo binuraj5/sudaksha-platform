@@ -1,0 +1,113 @@
+// ── PHASE 3: TRAINING DELIVERY ASSESSMENT SYSTEM ────────────────────────────
+// SEPL/INT/2026/IMPL-PHASE3-01 Step T2
+// Owner: SEPL Ops/Delivery Team or Trainer
+// Instrument type: TDAS (Training Delivery Assessment System)
+
+model TrainingSession {
+  id                    String                    @id @default(cuid())
+  activityId            String
+  activity              Activity                  @relation("ActivityTrainingSessions", fields: [activityId], references: [id])
+  tenantId              String
+  clientId              String?
+  trainerId             String?
+  moduleTitle           String
+  sessionDate           DateTime
+  sessionNumber         Int                       @default(1)
+  totalParticipants     Int                       @default(0)
+  questionCount         Int                       @default(10)
+  durationMinutes       Int                       @default(10)
+  status                String                    @default("DRAFT")
+  // DRAFT | ACTIVE | COMPLETED | CANCELLED
+  randomSeed            String?                   // stored so same session can be reproduced
+  startedAt             DateTime?
+  completedAt           DateTime?
+  createdBy             String                    // memberId of ops user or trainer
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  // Selected question IDs are derived at runtime from randomSeed (see T7
+  // sessionQuestionSelector). TrainingSessionResponse links session ↔ question
+  // ↔ member as the canonical record of which questions were actually answered.
+  // SEPL/INT/2026/IMPL-PHASE3-01 Step T3
+  responses             TrainingSessionResponse[]
+  results               TrainingSessionResult[]
+
+  @@index([activityId])
+  @@index([tenantId])
+  @@index([trainerId])
+  @@index([sessionDate])
+  @@index([status])
+}
+
+model TrainingSessionQuestion {
+  id                    String           @id @default(cuid())
+  activityId            String           // scoped to module — same question bank feeds all sessions
+  activity              Activity         @relation("ActivityQuestionBank", fields: [activityId], references: [id])
+  questionText          String
+  questionType          String           @default("MULTIPLE_CHOICE")
+  // MULTIPLE_CHOICE | TRUE_FALSE | SHORT_ANSWER | RATING
+  options               Json             @default("[]")
+  // Array of { id, text, isCorrect, competencyCode }
+  correctOptionId       String?
+  competencyCode        String?          // links to ADAPT-16 competency code
+  difficultyLevel       Int              @default(2)
+  // 1=Easy 2=Medium 3=Hard
+  targetCohort          String?          // null=all | STUDENT | PROFESSIONAL | CORPORATE
+  isActive              Boolean          @default(true)
+  uploadedBy            String           // memberId of ops user or trainer
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  // SEPL/INT/2026/IMPL-PHASE3-01 Step T3
+  responses             TrainingSessionResponse[]
+
+  @@index([activityId])
+  @@index([competencyCode])
+  @@index([isActive])
+}
+
+// SEPL/INT/2026/IMPL-PHASE3-01 Step T3 — TDAS response & result models
+
+model TrainingSessionResponse {
+  id                    String                   @id @default(cuid())
+  sessionId             String
+  session               TrainingSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId            String
+  question              TrainingSessionQuestion  @relation(fields: [questionId], references: [id])
+  memberId              String
+  member                Member                   @relation("MemberTrainingResponses", fields: [memberId], references: [id])
+  selectedOptionId      String?
+  shortAnswerText       String?
+  isCorrect             Boolean?
+  pointsAwarded         Float                    @default(0)
+  responseTimeMs        Int?                     // milliseconds — fed into Phase 2 time-anomaly detection
+  submittedAt           DateTime                 @default(now())
+
+  @@unique([sessionId, questionId, memberId])
+  @@index([sessionId])
+  @@index([memberId])
+  @@index([questionId])
+}
+
+model TrainingSessionResult {
+  id                    String           @id @default(cuid())
+  sessionId             String
+  session               TrainingSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  memberId              String
+  member                Member           @relation("MemberTrainingResults", fields: [memberId], references: [id])
+  totalQuestions        Int
+  correctAnswers        Int
+  rawScore              Float            // percentage 0–100
+  normalisedScore       Float?           // after Phase 2 normative calibration
+  proficiencyLevel      Int?             // 1–4 after calibration
+  percentileRank        Int?
+  biasFlags             Json             @default("[]")  // stored from Phase 2 BiasFlag engine
+  deltaFromLastSession  Float?           // vs previous session for same activity
+  competencyScoreIds    String[]         @default([])    // linked CompetencyScore IDs
+  completedAt           DateTime         @default(now())
+  createdAt             DateTime         @default(now())
+
+  @@unique([sessionId, memberId])
+  @@index([sessionId])
+  @@index([memberId])
+}

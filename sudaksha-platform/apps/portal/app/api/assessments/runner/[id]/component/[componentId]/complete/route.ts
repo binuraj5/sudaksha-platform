@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import { saveCheckpoint, saveProjectCheckpoint } from "@/lib/assessment/session-checkpoint";
+import { computeAndStoreCompetencyScores } from "@/lib/scoring/computeCompetencyScores";
+import { computeSCIPScores } from "@/lib/scoring/computeSCIPScores";
+import { computeAndStoreDelta, flagAsBaseline } from "@/lib/scoring/computeAssessmentDelta";
+import { computeCareerFitScores } from "@/lib/scoring/computeCareerFitScores";
+import { detectAndFlagTimeAnomaly } from "@/lib/assessment/detectTimeAnomaly";
 
 /** Score a single response against the question; returns { isCorrect, pointsAwarded }. */
 function scoreResponse(
@@ -348,6 +353,49 @@ export async function POST(
                             passed: passed ?? undefined,
                         },
                     });
+
+                    // SEPL/INT/2026/IMPL-GAPS-01 Step G12 — response-time anomaly detection
+                    // Patent claim C-09 — fires on every assessment completion, regardless of
+                    // SCIP vs RBCA. Persists a BiasFlag if anomalies exceed threshold.
+                    detectAndFlagTimeAnomaly(assessmentId)
+                        .catch((err) => console.error('[TimeAnomaly] Detection failed:', err));
+
+                    // Fire-and-forget: compute competency scores asynchronously
+                    // Does not block the response — failure is logged, not thrown
+                    const assessmentModelConfig = memberAssessment.assessmentModel as any;
+                    if (assessmentModelConfig?.sourceType === 'SCIP') {
+                        computeSCIPScores(assessmentId)
+                            .catch((err: any) => console.error('[SCIPScore] Async compute error:', err));
+                    } else {
+                        computeAndStoreCompetencyScores(
+                            uam.id,          // UserAssessmentModel ID — service looks up components via userAssessmentModelId
+                            'RBCA',          // default — update when ADAPT-16 and SCIP are wired in Step 22+
+                            'PROFESSIONAL'   // member.type not in select scope; use cohort default
+                        )
+                            .then(async () => {
+                                // Check if this member has any prior completed assessment
+                                const priorCompleted = await prisma.memberAssessment.count({
+                                    where: {
+                                        member: { id: member.id },
+                                        status: 'COMPLETED',
+                                        id: { not: assessmentId },
+                                    },
+                                });
+
+                                if (priorCompleted === 0) {
+                                    // First completion — flag as baseline
+                                    flagAsBaseline(assessmentId).catch(() => { });
+                                } else {
+                                    // Subsequent completion — compute delta against baseline
+                                    computeAndStoreDelta(member.id, assessmentId, 'RBCA')
+                                        .catch((err) => console.error('[AssessmentDelta] Delta compute failed:', err));
+                                }
+
+                                computeCareerFitScores(member.id)
+                                    .catch((err) => console.error('[CareerFit] Compute failed:', err));
+                            })
+                            .catch((err: any) => console.error('[CompetencyScore] Async compute error:', err));
+                    }
                 }
 
                 return NextResponse.json({

@@ -40,11 +40,33 @@ export function StartAssessmentButton({
             });
             const data = await res.json().catch(() => ({}));
 
+            // SEPL/INT/2026/IMPL-GAPS-01 Step G14 — friendly retake-lockout messaging
+            if (res.status === 403 && data?.error === "RETAKE_LOCKED") {
+                const when = data.retakeAvailableAt
+                    ? new Date(data.retakeAvailableAt).toLocaleDateString(undefined, {
+                          day: "numeric", month: "long", year: "numeric",
+                      })
+                    : null;
+                toast.error(
+                    when
+                        ? `Retake locked. You can retake this assessment on ${when}.`
+                        : data.message || "This assessment is currently locked for retake."
+                );
+                return;
+            }
+            if (res.status === 403 && data?.error === "RETAKE_LIMIT_REACHED") {
+                toast.error(
+                    data.message ||
+                        `Maximum attempts reached (${data.maxAttempts ?? "limit"}). No further retakes available.`
+                );
+                return;
+            }
+
             if (!res.ok) {
                 throw new Error(data.error || "Failed to start assessment");
             }
 
-            const memberAssessmentId = data.memberAssessmentId;
+            const memberAssessmentId = data.memberAssessmentId ?? data.assessmentId;
             if (memberAssessmentId) {
                 router.push(`/assessments/take/${memberAssessmentId}`);
             }

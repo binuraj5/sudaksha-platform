@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { filterQuestionsByCohort, resolveMemberCohort } from "@/lib/assessment/selectItemPool";
 
 /**
  * POST /api/assessments/runner/[id]/component/[componentId]/start
@@ -66,6 +67,9 @@ export async function POST(
         });
 
         if (projectAssessment) {
+            // SEPL/INT/2026/IMPL-GAPS-01 Step G13 — cohort filtering for org users
+            // Org users go through ProjectUserAssessment, default cohort = CORPORATE.
+            const orgFilteredQuestions = filterQuestionsByCohort(component.questions as any[], 'CORPORATE');
             let userComponent = await prisma.userAssessmentComponent.findFirst({
                 where: {
                     projectUserAssessmentId: assessmentId,
@@ -98,7 +102,9 @@ export async function POST(
                     }
                     throw createError;
                 }
-            } else if (userComponent.status === "DRAFT") {
+            } else if (userComponent.status === "DRAFT" || userComponent.status === "ACTIVE") {
+                // DRAFT = never started / reset; ACTIVE = interrupted mid-session (network drop etc.)
+                // Reset startedAt so timeSpent in /complete only counts the current session.
                 userComponent = await prisma.userAssessmentComponent.update({
                     where: { id: userComponent.id },
                     data: { status: "ACTIVE", startedAt: new Date() }
@@ -107,7 +113,7 @@ export async function POST(
 
             return NextResponse.json({
                 userComponentId: userComponent.id,
-                questions: useRuntimeAI ? [] : (isVoiceInterview ? component.questions : component.questions),
+                questions: useRuntimeAI ? [] : orgFilteredQuestions,
                 maxScore,
                 ...(useRuntimeAI && { useRuntimeAI: true, totalRuntimeQuestions }),
                 ...(isVoiceInterview && {
@@ -118,7 +124,7 @@ export async function POST(
                         competencyName: componentConfig!.competencyName,
                         targetLevel: componentConfig!.targetLevel,
                     },
-                    voiceQuestionId: component.questions[0]?.id ?? null,
+                    voiceQuestionId: orgFilteredQuestions[0]?.id ?? null,
                 }),
                 ...(isVideoInterview && {
                     useVideoInterview: true,
@@ -129,7 +135,7 @@ export async function POST(
                         competencyName: componentConfig!.competencyName,
                         targetLevel: componentConfig!.targetLevel,
                     },
-                    videoQuestionId: component.questions[0]?.id ?? null,
+                    videoQuestionId: orgFilteredQuestions[0]?.id ?? null,
                 }),
                 ...(isConversationalInterview && {
                     useConversationalInterview: true,
@@ -138,13 +144,13 @@ export async function POST(
                         competencyName: componentConfig!.competencyName,
                         targetLevel: componentConfig!.targetLevel,
                     },
-                    conversationalQuestionId: component.questions[0]?.id ?? null,
+                    conversationalQuestionId: orgFilteredQuestions[0]?.id ?? null,
                 }),
                 ...(isAdaptiveAI && {
                     useAdaptiveInterview: true,
                     adaptiveAssessmentId: assessmentId,
                     adaptiveComponentId: componentId,
-                    adaptiveQuestionId: component.questions[0]?.id ?? null,
+                    adaptiveQuestionId: orgFilteredQuestions[0]?.id ?? null,
                     adaptiveCompetencyId: (component as any).competencyId ?? "",
                     adaptiveTargetLevel: (component as any).targetLevel ?? componentConfig?.targetLevel ?? "JUNIOR",
                 }),
@@ -156,7 +162,7 @@ export async function POST(
                         targetLevel: panelConfig?.targetLevel ?? "",
                         durationMinutes: panelConfig?.durationMinutes ?? 60,
                     },
-                    panelQuestionId: component.questions[0]?.id ?? null,
+                    panelQuestionId: orgFilteredQuestions[0]?.id ?? null,
                 }),
             });
         }
@@ -164,13 +170,20 @@ export async function POST(
         // 2. B2C: MemberAssessment – create UserAssessmentModel and UserAssessmentComponent (Member has email; session.user.id may be member.id, so resolve User by email)
         const member = await prisma.member.findFirst({
             where: { email: session.user.email ?? "" },
-            select: { id: true, email: true, name: true }
+            // SEPL/INT/2026/IMPL-GAPS-01 Step G13 — also fetch type + tenant.type for cohort resolution
+            select: {
+                id: true, email: true, name: true, type: true,
+                tenant: { select: { type: true } },
+            }
         });
         if (member) {
             const memberAssessment = await prisma.memberAssessment.findFirst({
                 where: { id: assessmentId, memberId: member.id }
             });
             if (memberAssessment) {
+                // SEPL/INT/2026/IMPL-GAPS-01 Step G13 — resolve cohort + filter SJT pool
+                const memberCohort = resolveMemberCohort(member.type, member.tenant?.type ?? null);
+                const memberFilteredQuestions = filterQuestionsByCohort(component.questions as any[], memberCohort);
                 // UserAssessmentModel.userId must reference User.id. For Member-only login, session.user.id is member.id, so resolve or create User by email.
                 const emailNorm = (session.user.email ?? member.email).trim().toLowerCase();
                 let user = await prisma.user.findFirst({
@@ -250,7 +263,9 @@ export async function POST(
                         }
                         throw createError;
                     }
-                } else if (userComponent.status === "DRAFT") {
+                } else if (userComponent.status === "DRAFT" || userComponent.status === "ACTIVE") {
+                    // DRAFT = never started / reset; ACTIVE = interrupted mid-session (network drop etc.)
+                    // Reset startedAt so timeSpent in /complete only counts the current session.
                     userComponent = await prisma.userAssessmentComponent.update({
                         where: { id: userComponent.id },
                         data: { status: "ACTIVE", startedAt: new Date() }
@@ -259,7 +274,7 @@ export async function POST(
 
                 return NextResponse.json({
                     userComponentId: userComponent.id,
-                    questions: useRuntimeAI ? [] : component.questions,
+                    questions: useRuntimeAI ? [] : memberFilteredQuestions,
                     maxScore,
                     ...(useRuntimeAI && { useRuntimeAI: true, totalRuntimeQuestions }),
                     ...(isVoiceInterview && {
@@ -270,7 +285,7 @@ export async function POST(
                             competencyName: componentConfig!.competencyName,
                             targetLevel: componentConfig!.targetLevel,
                         },
-                        voiceQuestionId: component.questions[0]?.id ?? null,
+                        voiceQuestionId: memberFilteredQuestions[0]?.id ?? null,
                     }),
                     ...(isVideoInterview && {
                         useVideoInterview: true,
@@ -281,7 +296,7 @@ export async function POST(
                             competencyName: componentConfig!.competencyName,
                             targetLevel: componentConfig!.targetLevel,
                         },
-                        videoQuestionId: component.questions[0]?.id ?? null,
+                        videoQuestionId: memberFilteredQuestions[0]?.id ?? null,
                     }),
                     ...(isConversationalInterview && {
                         useConversationalInterview: true,
@@ -290,13 +305,13 @@ export async function POST(
                             competencyName: componentConfig!.competencyName,
                             targetLevel: componentConfig!.targetLevel,
                         },
-                        conversationalQuestionId: component.questions[0]?.id ?? null,
+                        conversationalQuestionId: memberFilteredQuestions[0]?.id ?? null,
                     }),
                     ...(isAdaptiveAI && {
                         useAdaptiveInterview: true,
                         adaptiveAssessmentId: assessmentId,
                         adaptiveComponentId: componentId,
-                        adaptiveQuestionId: component.questions[0]?.id ?? null,
+                        adaptiveQuestionId: memberFilteredQuestions[0]?.id ?? null,
                     }),
                     ...(isPanelInterview && {
                         usePanelInterview: true,
@@ -306,7 +321,7 @@ export async function POST(
                             targetLevel: panelConfig?.targetLevel ?? "",
                             durationMinutes: panelConfig?.durationMinutes ?? 60,
                         },
-                        panelQuestionId: component.questions[0]?.id ?? null,
+                        panelQuestionId: memberFilteredQuestions[0]?.id ?? null,
                     }),
                 });
             }

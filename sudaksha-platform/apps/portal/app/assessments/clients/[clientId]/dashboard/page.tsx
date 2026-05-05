@@ -6,7 +6,8 @@ import { StatsGrid } from "@/components/Dashboard/StatsGrid";
 import { GapAnalysisChart } from "@/components/Dashboard/GapAnalysisChart";
 import { RecentActivity } from "@/components/Dashboard/RecentActivity";
 import { QuickActions } from "@/components/Dashboard/QuickActions";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileBarChart } from "lucide-react";
+import Link from "next/link";
 
 // Fetch data directly in Server Component for initial load
 async function getDashboardData(clientId: string) {
@@ -51,6 +52,13 @@ export default async function ClientDashboardPage({
                     </h1>
                     <p className="text-gray-500 font-medium">Talent Intelligence & Assessment Overview</p>
                 </div>
+                <Link
+                    href={`/assessments/reports/corporate/${clientId}`}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shrink-0"
+                >
+                    <FileBarChart className="h-4 w-4" />
+                    View Full Report
+                </Link>
             </header>
 
             <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="animate-spin text-gray-400" /></div>}>

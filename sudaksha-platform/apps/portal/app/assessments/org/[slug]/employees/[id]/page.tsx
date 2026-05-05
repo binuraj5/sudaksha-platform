@@ -36,7 +36,7 @@ export default async function OrgEmployeeDetailPage({
       slug={slug}
       tenantId={tenant.id}
       memberId={id}
-      memberData={member}
+      memberData={member as any}
       userRole={userRole}
       userId={userId}
     />

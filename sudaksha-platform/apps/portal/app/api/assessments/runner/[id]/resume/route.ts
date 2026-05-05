@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession } from "@/lib/get-session";
 import { prisma } from "@/lib/prisma";
-import { saveCheckpoint, getResumeState } from "@/lib/assessment/session-checkpoint";
+import { saveCheckpoint, saveProjectCheckpoint, getResumeState, getProjectResumeState } from "@/lib/assessment/session-checkpoint";
 
 /**
  * GET /api/assessments/runner/[id]/resume
  * Returns resume state: canResume, resumeFromSection, completedSections, savedResponses.
+ * Supports all user types: B2C (MemberAssessment), Org and Institutional (ProjectUserAssessment).
  */
 export async function GET(
     _req: NextRequest,
@@ -19,60 +20,84 @@ export async function GET(
 
         const { id: assessmentId } = await params;
 
+        // ── B2C flow (MemberAssessment / UserAssessmentModel) ────────────────
         const member = await prisma.member.findFirst({
             where: { email: session.user.email ?? "" },
             select: { id: true }
         });
-        if (!member) {
-            return NextResponse.json({ canResume: false, resumeFromSection: 0, completedSections: [], savedResponses: {} });
-        }
 
-        const ma = await prisma.memberAssessment.findFirst({
-            where: { id: assessmentId, memberId: member.id },
-            select: { assessmentModelId: true }
-        });
-        if (!ma) {
-            return NextResponse.json({ canResume: false, resumeFromSection: 0, completedSections: [], savedResponses: {} });
-        }
-
-        const user = await prisma.user.findFirst({
-            where: { email: { equals: session.user.email ?? "", mode: "insensitive" } },
-            select: { id: true }
-        });
-        if (!user) {
-            return NextResponse.json({ canResume: false, resumeFromSection: 0, completedSections: [], savedResponses: {} });
-        }
-
-        const uam = await prisma.userAssessmentModel.findFirst({
-            where: { userId: user.id, modelId: ma.assessmentModelId },
-            orderBy: { createdAt: "desc" },
-            select: { id: true }
-        });
-        if (!uam) {
-            return NextResponse.json({ canResume: false, resumeFromSection: 0, completedSections: [], savedResponses: {} });
-        }
-
-        const state = await getResumeState(uam.id);
-        if (!state) {
-            return NextResponse.json({ canResume: false, resumeFromSection: 0, completedSections: [], savedResponses: {} });
-        }
-
-        const resumeSection = state.inProgressSection ?? state.failedSection ?? state.nextPendingSection;
-        let savedResponses: Record<string, unknown> = {};
-        if (resumeSection) {
-            const responses = await prisma.componentQuestionResponse.findMany({
-                where: { userComponentId: resumeSection.id },
-                select: { questionId: true, responseData: true }
+        if (member) {
+            const ma = await prisma.memberAssessment.findFirst({
+                where: { id: assessmentId, memberId: member.id },
+                select: { assessmentModelId: true }
             });
-            savedResponses = Object.fromEntries(responses.map(r => [r.questionId, r.responseData]));
+
+            if (ma) {
+                const user = await prisma.user.findFirst({
+                    where: { email: { equals: session.user.email ?? "", mode: "insensitive" } },
+                    select: { id: true }
+                });
+
+                if (user) {
+                    const uam = await prisma.userAssessmentModel.findFirst({
+                        where: { userId: user.id, modelId: ma.assessmentModelId },
+                        orderBy: { createdAt: "desc" },
+                        select: { id: true }
+                    });
+
+                    if (uam) {
+                        const state = await getResumeState(uam.id);
+                        if (state) {
+                            const resumeSection = state.inProgressSection ?? state.failedSection ?? state.nextPendingSection;
+                            let savedResponses: Record<string, unknown> = {};
+                            if (resumeSection) {
+                                const responses = await prisma.componentQuestionResponse.findMany({
+                                    where: { userComponentId: resumeSection.id },
+                                    select: { questionId: true, responseData: true }
+                                });
+                                savedResponses = Object.fromEntries(responses.map(r => [r.questionId, r.responseData]));
+                            }
+                            return NextResponse.json({
+                                canResume: state.canResume,
+                                resumeFromSection: state.completedSections.length,
+                                completedSections: state.completedSections.map(s => s.id),
+                                savedResponses,
+                            });
+                        }
+                    }
+                }
+            }
         }
 
-        return NextResponse.json({
-            canResume: state.canResume,
-            resumeFromSection: state.completedSections.length,
-            completedSections: state.completedSections.map(s => s.id),
-            savedResponses,
+        // ── Org / Institutional flow (ProjectUserAssessment) ─────────────────
+        const pua = await prisma.projectUserAssessment.findFirst({
+            where: { id: assessmentId, userId: (session.user as { id: string }).id },
+            select: { id: true }
         });
+
+        if (pua) {
+            const state = await getProjectResumeState(pua.id);
+            if (state) {
+                const resumeSection = state.inProgressSection ?? state.failedSection ?? state.nextPendingSection;
+                let savedResponses: Record<string, unknown> = {};
+                if (resumeSection) {
+                    const responses = await prisma.componentQuestionResponse.findMany({
+                        where: { userComponentId: resumeSection.id },
+                        select: { questionId: true, responseData: true }
+                    });
+                    savedResponses = Object.fromEntries(responses.map(r => [r.questionId, r.responseData]));
+                }
+                return NextResponse.json({
+                    canResume: state.canResume,
+                    resumeFromSection: state.completedSections.length,
+                    completedSections: state.completedSections.map(s => s.id),
+                    savedResponses,
+                });
+            }
+        }
+
+        // No assessment found for either flow — safe default
+        return NextResponse.json({ canResume: false, resumeFromSection: 0, completedSections: [], savedResponses: {} });
 
     } catch (error) {
         console.error("Resume GET error:", error);
@@ -98,108 +123,143 @@ export async function POST(
 
         const { id: assessmentId } = await params;
 
-        // Resolve member -> user -> UAM
+        // ── B2C flow (MemberAssessment / UserAssessmentModel) ────────────────
         const member = await prisma.member.findFirst({
             where: { email: session.user.email ?? "" },
             select: { id: true }
         });
 
-        if (!member) {
-            return NextResponse.json({ error: "Member not found" }, { status: 404 });
+        if (member) {
+            const ma = await prisma.memberAssessment.findFirst({
+                where: { id: assessmentId, memberId: member.id },
+                select: { assessmentModelId: true }
+            });
+
+            if (ma) {
+                const user = await prisma.user.findFirst({
+                    where: { email: { equals: session.user.email ?? "", mode: "insensitive" } },
+                    select: { id: true }
+                });
+
+                if (user) {
+                    const uam = await prisma.userAssessmentModel.findFirst({
+                        where: { userId: user.id, modelId: ma.assessmentModelId },
+                        orderBy: { createdAt: "desc" },
+                        select: { id: true }
+                    });
+
+                    if (uam) {
+                        const sections: any[] = await (prisma as any).userAssessmentComponent.findMany({
+                            where: { userAssessmentModelId: uam.id },
+                            orderBy: { createdAt: "asc" },
+                            include: { component: { select: { name: true, componentType: true, order: true } } }
+                        });
+
+                        const targetSection =
+                            sections.find(s => s.status === "ACTIVE") ??
+                            sections.find(s => s.status === "DRAFT" && (s as any).sectionError);
+
+                        if (!targetSection) {
+                            const nextPending = sections.find(s => s.status === "DRAFT");
+                            const sectionIdx = nextPending
+                                ? sections.findIndex(s => s.id === nextPending.id)
+                                : sections.length;
+                            return NextResponse.json({
+                                canResume: false,
+                                redirectSectionIndex: sectionIdx,
+                                message: "No failed or in-progress section. Starting from next pending section.",
+                            });
+                        }
+
+                        const aiTypes = ["ADAPTIVE_AI", "VOICE", "VIDEO"];
+                        const componentType = targetSection.component.componentType;
+
+                        if (aiTypes.includes(componentType)) {
+                            await prisma.componentQuestionResponse.deleteMany({ where: { userComponentId: targetSection.id } });
+                            await (prisma as any).userAssessmentComponent.update({
+                                where: { id: targetSection.id },
+                                data: { status: "DRAFT", sectionError: null, startedAt: null, completedAt: null },
+                            });
+                        } else {
+                            await (prisma as any).userAssessmentComponent.update({
+                                where: { id: targetSection.id },
+                                data: { status: "DRAFT", sectionError: null },
+                            });
+                        }
+
+                        await saveCheckpoint(uam.id).catch(() => { });
+
+                        const resumeSectionIndex = sections.findIndex(s => s.id === targetSection.id);
+                        return NextResponse.json({
+                            canResume: true,
+                            resumeSectionIndex,
+                            componentId: targetSection.componentId,
+                            componentType,
+                            redirectTo: `/assessments/take/${assessmentId}?section=${resumeSectionIndex}`,
+                        });
+                    }
+                }
+            }
         }
 
-        const ma = await prisma.memberAssessment.findFirst({
-            where: { id: assessmentId, memberId: member.id },
-            select: { assessmentModelId: true }
-        });
-
-        if (!ma) {
-            return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
-        }
-
-        const user = await prisma.user.findFirst({
-            where: { email: { equals: session.user.email ?? "", mode: "insensitive" } },
+        // ── Org / Institutional flow (ProjectUserAssessment) ─────────────────
+        const pua = await prisma.projectUserAssessment.findFirst({
+            where: { id: assessmentId, userId: (session.user as { id: string }).id },
             select: { id: true }
         });
 
-        if (!user) {
-            return NextResponse.json({ error: "User record not found" }, { status: 404 });
-        }
+        if (pua) {
+            const sections: any[] = await (prisma as any).userAssessmentComponent.findMany({
+                where: { projectUserAssessmentId: pua.id },
+                orderBy: { createdAt: "asc" },
+                include: { component: { select: { name: true, componentType: true, order: true } } }
+            });
 
-        const uam = await prisma.userAssessmentModel.findFirst({
-            where: { userId: user.id, modelId: ma.assessmentModelId },
-            orderBy: { createdAt: "desc" },
-            select: { id: true }
-        });
+            const targetSection =
+                sections.find(s => s.status === "ACTIVE") ??
+                sections.find(s => s.status === "DRAFT" && (s as any).sectionError);
 
-        if (!uam) {
-            return NextResponse.json({ error: "No assessment session found" }, { status: 404 });
-        }
+            if (!targetSection) {
+                const nextPending = sections.find(s => s.status === "DRAFT");
+                const sectionIdx = nextPending
+                    ? sections.findIndex(s => s.id === nextPending.id)
+                    : sections.length;
+                return NextResponse.json({
+                    canResume: false,
+                    redirectSectionIndex: sectionIdx,
+                    message: "No failed or in-progress section. Starting from next pending section.",
+                });
+            }
 
-        // Find the failed or in-progress section
-        const sections: any[] = await (prisma as any).userAssessmentComponent.findMany({
-            where: { userAssessmentModelId: uam.id },
-            orderBy: { createdAt: "asc" },
-            include: { component: { select: { name: true, componentType: true, order: true } } }
-        });
+            const aiTypes = ["ADAPTIVE_AI", "VOICE", "VIDEO"];
+            const componentType = targetSection.component.componentType;
 
-        const targetSection =
-            sections.find(s => s.status === "ACTIVE") ??
-            sections.find(s => s.status === "DRAFT" && (s as any).sectionError);
+            if (aiTypes.includes(componentType)) {
+                await prisma.componentQuestionResponse.deleteMany({ where: { userComponentId: targetSection.id } });
+                await (prisma as any).userAssessmentComponent.update({
+                    where: { id: targetSection.id },
+                    data: { status: "DRAFT", sectionError: null, startedAt: null, completedAt: null },
+                });
+            } else {
+                await (prisma as any).userAssessmentComponent.update({
+                    where: { id: targetSection.id },
+                    data: { status: "DRAFT", sectionError: null },
+                });
+            }
 
-        if (!targetSection) {
-            // Nothing to resume — find next pending
-            const nextPending = sections.find(s => s.status === "DRAFT");
-            const sectionIdx = nextPending
-                ? sections.findIndex(s => s.id === nextPending.id)
-                : sections.length;
+            await saveProjectCheckpoint(pua.id).catch(() => { });
 
+            const resumeSectionIndex = sections.findIndex(s => s.id === targetSection.id);
             return NextResponse.json({
-                canResume: false,
-                redirectSectionIndex: sectionIdx,
-                message: "No failed or in-progress section. Starting from next pending section.",
+                canResume: true,
+                resumeSectionIndex,
+                componentId: targetSection.componentId,
+                componentType,
+                redirectTo: `/assessments/take/${assessmentId}?section=${resumeSectionIndex}`,
             });
         }
 
-        const aiTypes = ["ADAPTIVE_AI", "VOICE", "VIDEO"];
-        const componentType = targetSection.component.componentType;
-
-        // For AI-based sections: clear responses and reset
-        if (aiTypes.includes(componentType)) {
-            await prisma.componentQuestionResponse.deleteMany({
-                where: { userComponentId: targetSection.id }
-            });
-            await (prisma as any).userAssessmentComponent.update({
-                where: { id: targetSection.id },
-                data: {
-                    status: "DRAFT",
-                    sectionError: null,
-                    startedAt: null,
-                    completedAt: null,
-                }
-            });
-        } else {
-            // MCQ/SITUATIONAL: just reset status, keep responses (allow review)
-            await (prisma as any).userAssessmentComponent.update({
-                where: { id: targetSection.id },
-                data: {
-                    status: "DRAFT",
-                    sectionError: null,
-                }
-            });
-        }
-
-        await saveCheckpoint(uam.id).catch(() => { });
-
-        const resumeSectionIndex = sections.findIndex(s => s.id === targetSection.id);
-
-        return NextResponse.json({
-            canResume: true,
-            resumeSectionIndex,
-            componentId: targetSection.componentId,
-            componentType,
-            redirectTo: `/assessments/take/${assessmentId}?section=${resumeSectionIndex}`,
-        });
+        return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
 
     } catch (error) {
         console.error("Resume error:", error);

@@ -11,6 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Clock, PlayCircle, Star, Award, Target } from "lucide-react";
 import { StartAssessmentButton } from "@/components/individuals/StartAssessmentButton";
+import { ThreeLensSummary } from "@/components/Individual/ThreeLensSummary";
+import { CareerFitMatches, CareerFitMatchesSkeleton } from "@/components/Individual/CareerFitMatches";
+import { ProgressTimeline, ProgressTimelineSkeleton } from "@/components/Individual/ProgressTimeline";
+import { CareerCoachChat, CareerCoachChatSkeleton } from "@/components/Individual/CareerCoachChat";
+import { FutureIntelligence, FutureIntelligenceSkeleton } from "@/components/Individual/FutureIntelligence";
+import { BeforeAfterPanel, BeforeAfterPanelSkeleton } from "@/components/Individual/BeforeAfterPanel";
+import { ADAPT16RadarChart } from "@/components/Individual/ADAPT16RadarChart";
+import { Suspense } from "react";
 
 export default async function IndividualDashboard() {
     const session = await getApiSession();
@@ -60,8 +68,138 @@ export default async function IndividualDashboard() {
     const careerProgress = 62;
     const interviewReadiness = 68;
 
+    // ── SEPL/INT/2026/IMPL-STEPS-01 Step 18 — Three-Lens Summary data ────────
+    // CompetencyScore is scoped by memberAssessmentId → join via MemberAssessment
+    const memberAssessmentIds = member.assessments.map((a: { id: string }) => a.id);
+    const competencyScores = memberAssessmentIds.length > 0
+        ? await prisma.competencyScore.findMany({
+            where: { memberAssessmentId: { in: memberAssessmentIds } },
+            orderBy: { createdAt: "desc" },
+        }).catch(() => [])
+        : [];
+
+    // RBCA lens: use compositeRawScore as the role-fit proxy
+    const rbcaScores = competencyScores.filter((s: any) => s.compositeRawScore != null && s.compositeRawScore > 0);
+    const rbcaLens = rbcaScores.length > 0 ? (() => {
+        const TARGET = 85;
+        const avg = Math.round(
+            rbcaScores.reduce((sum: number, s: any) => sum + (s.compositeRawScore ?? 0), 0) / rbcaScores.length
+        );
+        const gaps = rbcaScores.filter((s: any) => (s.compositeRawScore ?? 0) < TARGET).length;
+        return { score: avg, target: TARGET, gaps };
+    })() : null;
+
+    // ADAPT-16 lens: use layerScores JSON { L1: n, L2: n, ... } to derive avgLevel
+    // proficiencyLevel (1-6) is the direct level field per competency
+    const adapt16Scores = competencyScores.filter((s: any) => s.proficiencyLevel != null);
+    const adapt16Lens = adapt16Scores.length > 0 ? (() => {
+        const levels = adapt16Scores.map((s: any) => s.proficiencyLevel as number);
+        const avgLevel = levels.reduce((a: number, b: number) => a + b, 0) / levels.length;
+
+        // Strong/weak domain: group by competencyCode prefix (A, AL, P, D, T)
+        const byCode = [...adapt16Scores].sort((a: any, b: any) =>
+            (b.proficiencyLevel ?? 0) - (a.proficiencyLevel ?? 0)
+        );
+        const strongDomain = byCode[0]?.competencyCode ?? "—";
+        const weakDomain = byCode[byCode.length - 1]?.competencyCode ?? "—";
+
+        return {
+            avgLevel: parseFloat(avgLevel.toFixed(1)),
+            strongDomain,
+            weakDomain,
+        };
+    })() : null;
+
+    // SCIP lens: Step 24 integration
+    const scipScores = await prisma.sCIPDimensionScore.findMany({
+        where: { memberAssessment: { member: { id: member.id } } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+    });
+    
+    const riasecScore = scipScores.find(s => s.dimension === 'RIASEC');
+    const cogScore = scipScores.find(s => s.dimension === 'COG');
+    
+    const scipLens = riasecScore ? {
+        hollandCode: (riasecScore.subScores as any)?.hollandCode ?? '???',
+        cognitivePercentile: cogScore?.percentileRank ?? 0,
+    } : null;
+
+    const lensData = { rbca: rbcaLens, adapt16: adapt16Lens, scip: scipLens };
+    // ── End Step 18 data ─────────────────────────────────────────────────────
+
+    const radarData = await prisma.competencyScore.findMany({
+        where: {
+            memberAssessment: { member: { id: member.id } },
+            assessmentType: 'ADAPT_16',
+        },
+        orderBy: { competencyCode: 'asc' },
+        select: { competencyCode: true, proficiencyLevel: true },
+        take: 16,
+    });
+
+    const radarScores = radarData.map((s) => ({
+        code: s.competencyCode,
+        name: s.competencyCode,
+        level: s.proficiencyLevel,
+    }));
+
     return (
         <div className="min-h-screen bg-gray-50/50 p-6 space-y-8">
+
+            {/* ── Step 18: Three-Lens Summary — additive, before all existing sections ── */}
+            <ThreeLensSummary data={lensData} />
+
+            <section>
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        ADAPT-16 competency radar
+                    </h2>
+                    <span className="text-xs text-gray-400">16-axis learner profile</span>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                    <ADAPT16RadarChart scores={radarScores} />
+                </div>
+            </section>
+
+            {/* ── Step 19: Career Fit Matches — additive section ── */}
+            <section>
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        Top career matches
+                    </h2>
+                    <span className="text-xs text-gray-400">Ranked by role fit score</span>
+                </div>
+                <Suspense fallback={<CareerFitMatchesSkeleton />}>
+                    <CareerFitMatches memberId={member.id} />
+                </Suspense>
+            </section>
+
+            {/* ── Step 20: Progress Timeline — additive section ── */}
+            <section>
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        Progress timeline
+                    </h2>
+                    <span className="text-xs text-gray-400">Lifelong career tracking</span>
+                </div>
+                <Suspense fallback={<ProgressTimelineSkeleton />}>
+                    <ProgressTimeline memberId={member.id} />
+                </Suspense>
+            </section>
+
+            <section>
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        Before/after comparison
+                    </h2>
+                    <span className="text-xs text-gray-400">Training ROI evidence</span>
+                </div>
+                <Suspense fallback={<BeforeAfterPanelSkeleton />}>
+                    <BeforeAfterPanel memberId={member.id} />
+                </Suspense>
+            </section>
+
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -241,6 +379,16 @@ export default async function IndividualDashboard() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* ── Step 25: Future Intelligence Signals ── */}
+                    <Suspense fallback={<FutureIntelligenceSkeleton />}>
+                        <FutureIntelligence memberId={member.id} />
+                    </Suspense>
+
+                    {/* ── Step 21: AI Career Coach Chat ── */}
+                    <Suspense fallback={<CareerCoachChatSkeleton />}>
+                        <CareerCoachChat memberId={member.id} />
+                    </Suspense>
 
                 </div>
             </div>

@@ -3,7 +3,11 @@
     "version": "1.0.0",
     "main": "./src/index.ts",
     "dependencies": {
-        "next-auth": "^4.24.0",
-        "@sudaksha/db-core": "workspace:*"
+        "@sudaksha/db-core": "workspace:*",
+        "bcryptjs": "^3.0.3",
+        "next-auth": "^4.24.0"
+    },
+    "devDependencies": {
+        "@types/bcryptjs": "^2.4.6"
     }
 }

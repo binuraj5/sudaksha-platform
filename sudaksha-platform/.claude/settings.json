@@ -15,7 +15,13 @@
       "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" status --porcelain)",
       "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" ls-files \"sudaksha-platform/apps/portal/components/.gitignore\" \"sudaksha-platform/apps/portal/components/profile/.gitignore\")",
       "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" check-ignore -v \"sudaksha-platform/apps/portal/components/profile/RestrictedProfileForm.tsx\")",
-      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" add -v \"sudaksha-platform/apps/portal/components/profile/RestrictedProfileForm.tsx\")"
+      "Bash(git -C \"/c/Users/Administrator/Documents/GitHub/SudakshaNWS\" add -v \"sudaksha-platform/apps/portal/components/profile/RestrictedProfileForm.tsx\")",
+      "Bash(npx tsc *)",
+      "Bash(npx prisma *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Administrator\\Documents\\GitHub\\SudakshaNWS\\sudaksha-platform\\apps\\portal\\app\\assessments\\reports\\corporate",
+      "C:\\Users\\Administrator\\Documents\\GitHub\\SudakshaNWS\\sudaksha-platform\\apps\\portal\\app\\assessments\\reports\\executive"
     ]
   }
 }

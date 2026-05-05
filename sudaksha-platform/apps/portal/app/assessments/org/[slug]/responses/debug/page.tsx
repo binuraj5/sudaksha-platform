@@ -22,14 +22,14 @@ export default async function DebugPage({
                 JSON.stringify(
                     {
                         user: {
-                            id: (session.user as any)?.id,
-                            email: (session.user as any)?.email,
-                            role: (session.user as any)?.role,
-                            userType: (session.user as any)?.userType,
-                            tenantSlug: (session.user as any)?.tenantSlug,
-                            tenantId: (session.user as any)?.tenantId,
-                            clientId: (session.user as any)?.clientId,
-                            managedOrgUnitId: (session.user as any)?.managedOrgUnitId,
+                            id: ((session as any).user as any)?.id,
+                            email: ((session as any).user as any)?.email,
+                            role: ((session as any).user as any)?.role,
+                            userType: ((session as any).user as any)?.userType,
+                            tenantSlug: ((session as any).user as any)?.tenantSlug,
+                            tenantId: ((session as any).user as any)?.tenantId,
+                            clientId: ((session as any).user as any)?.clientId,
+                            managedOrgUnitId: ((session as any).user as any)?.managedOrgUnitId,
                         },
                     },
                     null,
@@ -40,7 +40,7 @@ export default async function DebugPage({
             )}
 
             <h2>Tenant Lookup</h2>
-            {async () => {
+            {await (async () => {
                 try {
                     const tenant = await prisma.tenant.findUnique({
                         where: { slug },
@@ -50,13 +50,13 @@ export default async function DebugPage({
                 } catch (e: any) {
                     return `Error: ${e.message}`;
                 }
-            }}
+            })()}
 
             <h2>Auth Checks</h2>
             {session ? (
                 <div>
                     {(() => {
-                        const u = session.user as any;
+                        const u = (session as any).user as any;
                         const isSuperAdmin = u.userType === "SUPER_ADMIN" || u.role === "SUPER_ADMIN";
                         const isAdmin = isSuperAdmin || ["TENANT_ADMIN", "DEPARTMENT_HEAD", "TEAM_LEAD", "CLASS_TEACHER"].includes(u.role || "");
                         const hasAccess = isSuperAdmin || u.tenantSlug === slug;
